@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { genAI, SYSTEM_PROMPT } from '@/lib/gemini';
 import { toolDefinitions } from '@/lib/erp-tools';
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { PrismaClient } from '@prisma/client';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 

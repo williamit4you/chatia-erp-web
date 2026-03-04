@@ -16,7 +16,7 @@ export default function ChatPage() {
             </header>
 
             <div className="flex-1 w-full max-w-5xl mx-auto overflow-hidden">
-                <ChatContainer />
+                <ChatContainer key="new" />
             </div>
         </div>
     );

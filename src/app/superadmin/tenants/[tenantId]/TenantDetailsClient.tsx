@@ -190,10 +190,10 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
                             <h3 className="text-lg font-semibold text-white">Usuários da Empresa</h3>
                         </div>
                         <span className="bg-neutral-800 text-neutral-300 py-1 px-3 rounded-full text-xs font-medium">
-                            {tenant.users.length} total
+                            {tenant.users?.length || 0} total
                         </span>
                     </div>
-                    {tenant.users.length === 0 ? (
+                    {(!tenant.users || tenant.users.length === 0) ? (
                         <div className="p-8 text-center">
                             <p className="text-neutral-500 text-sm">Nenhum usuário cadastrado nesta empresa ainda.</p>
                         </div>

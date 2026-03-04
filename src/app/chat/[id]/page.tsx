@@ -39,7 +39,7 @@ export default async function ChatSessionPage({ params }: { params: Promise<{ id
             </header>
 
             <div className="flex-1 w-full max-w-5xl mx-auto overflow-hidden">
-                <ChatContainer sessionId={sessionId} initialMessages={mappedMessages} />
+                <ChatContainer key={sessionId} sessionId={sessionId} initialMessages={mappedMessages} />
             </div>
         </div>
     );

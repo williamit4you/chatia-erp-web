@@ -1,14 +1,10 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { PrismaClient } from "@prisma/client";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Building2, Users, Receipt, PlusCircle, LogOut } from "lucide-react";
 import SignOutButton from "./SignOutButton";
-
 import TestDbButton from "./TestDbButton";
-
-const prisma = new PrismaClient();
 
 export default async function SuperAdminDashboard() {
     const session = await getServerSession(authOptions);
@@ -17,15 +13,11 @@ export default async function SuperAdminDashboard() {
         redirect("/superadmin/login");
     }
 
-    // Fetch all tenants
-    const tenants = await prisma.tenant.findMany({
-        include: {
-            users: true,
-        },
-        orderBy: {
-            createdAt: "desc",
-        },
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5217'}/api/superadmin/tenants`, {
+        headers: { Authorization: `Bearer ${(session.user as any).accessToken}` },
+        cache: 'no-store'
     });
+    const tenants = res.ok ? await res.json() : [];
 
     return (
         <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans">
@@ -91,7 +83,7 @@ export default async function SuperAdminDashboard() {
                             <div>
                                 <p className="text-sm font-medium text-neutral-400">Total de Usuários</p>
                                 <p className="text-4xl font-bold text-white mt-2">
-                                    {tenants.reduce((acc, t) => acc + t.users.length, 0)}
+                                    {tenants.reduce((acc: any, t: any) => acc + (t.users ? t.users.length : 0), 0)}
                                 </p>
                             </div>
                             <div className="bg-blue-500/10 p-3 rounded-xl border border-blue-500/20">
@@ -105,7 +97,7 @@ export default async function SuperAdminDashboard() {
                             <div>
                                 <p className="text-sm font-medium text-neutral-400">Consultas Feitas</p>
                                 <p className="text-4xl font-bold text-white mt-2">
-                                    {tenants.reduce((acc, t) => acc + t.users.reduce((uAcc, u) => uAcc + u.queryCount, 0), 0)}
+                                    {tenants.reduce((acc: any, t: any) => acc + (t.users ? t.users.reduce((uAcc: any, u: any) => uAcc + u.queryCount, 0) : 0), 0)}
                                 </p>
                             </div>
                             <div className="bg-amber-500/10 p-3 rounded-xl border border-amber-500/20">
@@ -140,11 +132,11 @@ export default async function SuperAdminDashboard() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-neutral-800">
-                                    {tenants.map((tenant) => (
+                                    {tenants.map((tenant: any) => (
                                         <tr key={tenant.id} className="hover:bg-neutral-800/50 transition-colors">
                                             <td className="px-6 py-4">
                                                 <div className="font-medium text-white">{tenant.name}</div>
-                                                <div className="text-neutral-500 text-xs mt-0.5">Criada em {tenant.createdAt.toLocaleDateString("pt-BR")}</div>
+                                                <div className="text-neutral-500 text-xs mt-0.5">Criada em {new Date(tenant.createdAt).toLocaleDateString("pt-BR")}</div>
                                             </td>
                                             <td className="px-6 py-4 text-neutral-300 font-mono text-xs">
                                                 {tenant.cnpj}
@@ -152,7 +144,7 @@ export default async function SuperAdminDashboard() {
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-2">
                                                     <Users className="h-4 w-4 text-neutral-500" />
-                                                    <span className="text-neutral-300">{tenant.users.length}</span>
+                                                    <span className="text-neutral-300">{tenant.users ? tenant.users.length : 0}</span>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">

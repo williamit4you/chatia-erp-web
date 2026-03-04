@@ -1,9 +1,7 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
-import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
 
 export default async function AdminDashboardPage() {
     const session = await getServerSession(authOptions);
@@ -25,17 +23,13 @@ export default async function AdminDashboardPage() {
         );
     }
 
-    // Fetch Tenant Data (total queries, users)
-    const usersCount = await prisma.user.count({
-        where: { tenantId },
+    const dbRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5217'}/api/admin/dashboard`, {
+        headers: { Authorization: `Bearer ${(session.user as any).accessToken}` },
+        cache: 'no-store'
     });
-
-    const users = await prisma.user.findMany({
-        where: { tenantId },
-        select: { queryCount: true },
-    });
-
-    const totalQueries = users.reduce((sum, u) => sum + u.queryCount, 0);
+    const data = dbRes.ok ? await dbRes.json() : { usersCount: 0, totalQueries: 0 };
+    const usersCount = data.usersCount;
+    const totalQueries = data.totalQueries;
 
     return (
         <div className="container mx-auto py-10 px-4 max-w-6xl">

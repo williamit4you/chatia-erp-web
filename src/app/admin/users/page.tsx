@@ -1,9 +1,7 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
-import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
 
 export default async function UsersAdminPage() {
     const session = await getServerSession(authOptions);
@@ -19,11 +17,11 @@ export default async function UsersAdminPage() {
         redirect("/dashboard");
     }
 
-    const users = await prisma.user.findMany({
-        where: { tenantId },
-        select: { id: true, name: true, email: true, role: true, queryCount: true, createdAt: true },
-        orderBy: { createdAt: "desc" },
+    const usersRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5217'}/api/admin/users`, {
+        headers: { Authorization: `Bearer ${(session.user as any).accessToken}` },
+        cache: 'no-store'
     });
+    const users = usersRes.ok ? await usersRes.json() : [];
 
     return (
         <div className="container mx-auto py-10 px-4 max-w-5xl">
@@ -53,7 +51,7 @@ export default async function UsersAdminPage() {
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-neutral-200">
-                        {users.map((u) => (
+                        {users.map((u: any) => (
                             <tr key={u.id} className="hover:bg-neutral-50 transition">
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="text-sm font-medium text-neutral-900">{u.name}</div>

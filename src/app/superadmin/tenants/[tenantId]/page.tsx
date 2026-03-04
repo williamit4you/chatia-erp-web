@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
@@ -6,7 +6,6 @@ import TenantDetailsClient from "./TenantDetailsClient";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 
-const prisma = new PrismaClient();
 
 export default async function TenantDetailsPage({ params }: { params: Promise<{ tenantId: string }> }) {
     const session = await getServerSession(authOptions);
@@ -18,16 +17,12 @@ export default async function TenantDetailsPage({ params }: { params: Promise<{ 
     const resolvedParams = await params;
     const tenantId = resolvedParams.tenantId;
 
-    const tenant = await prisma.tenant.findUnique({
-        where: { id: tenantId },
-        include: {
-            users: {
-                orderBy: {
-                    createdAt: "desc"
-                }
-            }
-        }
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5217'}/api/superadmin/tenants`, {
+        headers: { Authorization: `Bearer ${(session.user as any).accessToken}` },
+        cache: 'no-store'
     });
+    const tenants = res.ok ? await res.json() : [];
+    const tenant = tenants.find((t: any) => t.id === tenantId);
 
     if (!tenant) {
         return (

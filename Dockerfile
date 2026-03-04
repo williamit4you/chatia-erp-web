@@ -8,8 +8,6 @@ WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
-COPY prisma ./prisma
-
 RUN \
   if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
   elif [ -f package-lock.json ]; then npm ci; \
@@ -26,8 +24,7 @@ COPY . .
 # Next.js telemetry can be disabled
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Generate Prisma Client
-RUN npx prisma generate
+# Generate step removed
 
 RUN \
   if [ -f yarn.lock ]; then yarn run build; \
@@ -57,7 +54,6 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/prisma ./prisma
 
 USER nextjs
 

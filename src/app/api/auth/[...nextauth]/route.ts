@@ -1,11 +1,6 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-
-// Global Prisma instance for auth (we'll assume strictly one instance in prod)
-const prisma = new PrismaClient();
 
 export const authOptions: NextAuthOptions = {
     // adapter: PrismaAdapter(prisma),

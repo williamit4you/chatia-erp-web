@@ -1,10 +1,7 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
-import { PrismaClient } from "@prisma/client";
 import ChatSidebar from "@/components/chat/ChatSidebar";
-
-const prisma = new PrismaClient();
 
 export default async function ChatLayout({
     children,
@@ -20,16 +17,11 @@ export default async function ChatLayout({
     const userId = (session.user as any).id;
 
     // Fetch the last 10 chat sessions for this user
-    const sessions = await prisma.chatSession.findMany({
-        where: { userId },
-        orderBy: { updatedAt: "desc" },
-        take: 10,
-        select: {
-            id: true,
-            title: true,
-            updatedAt: true
-        }
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5217'}/api/chat/sessions`, {
+        headers: { Authorization: `Bearer ${(session.user as any).accessToken}` },
+        cache: 'no-store'
     });
+    const sessions = res.ok ? await res.json() : [];
 
     return (
         <div className="flex h-screen bg-white overflow-hidden font-sans">

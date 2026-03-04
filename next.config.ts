@@ -4,22 +4,23 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   async rewrites() {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5217';
     return [
       {
         source: '/api/superadmin/:path*',
-        destination: 'http://127.0.0.1:5217/api/superadmin/:path*',
+        destination: `${apiUrl}/api/superadmin/:path*`,
       },
       {
         source: '/api/chat/:path*',
-        destination: 'http://127.0.0.1:5217/api/chat/:path*',
+        destination: `${apiUrl}/api/chat/:path*`,
       },
       {
         source: '/api/admin/:path*',
-        destination: 'http://127.0.0.1:5217/api/admin/:path*',
+        destination: `${apiUrl}/api/admin/:path*`,
       },
       {
         source: '/api/register/:path*',
-        destination: 'http://127.0.0.1:5217/api/register/:path*',
+        destination: `${apiUrl}/api/register/:path*`,
       },
     ];
   },

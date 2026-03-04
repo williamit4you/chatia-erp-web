@@ -1,10 +1,7 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
-import { PrismaClient } from "@prisma/client";
 import SettingsForm from "./SettingsForm";
-
-const prisma = new PrismaClient();
 
 export default async function SettingsPage() {
     const session = await getServerSession(authOptions);
@@ -20,10 +17,11 @@ export default async function SettingsPage() {
         redirect("/dashboard");
     }
 
-    const tenant = await prisma.tenant.findUnique({
-        where: { id: tenantId },
-        select: { iaToken: true, erpToken: true },
+    const req = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5217'}/api/admin/settings`, {
+        headers: { Authorization: `Bearer ${(session.user as any).accessToken}` },
+        cache: 'no-store'
     });
+    const tenant = req.ok ? await req.json() : { iaToken: "", erpToken: "" };
 
     return (
         <div className="container mx-auto py-10 px-4 max-w-4xl">

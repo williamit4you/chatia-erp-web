@@ -1,11 +1,7 @@
 import ChatContainer from "@/components/chat/ChatContainer";
-import { PrismaClient } from "@prisma/client";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../../api/auth/[...nextauth]/route";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
-
-const prisma = new PrismaClient();
-
 export default async function ChatSessionPage({ params }: { params: Promise<{ id: string }> }) {
     const session = await getServerSession(authOptions);
     if (!session?.user) redirect("/login");
@@ -14,21 +10,13 @@ export default async function ChatSessionPage({ params }: { params: Promise<{ id
     const sessionId = resolvedParams.id;
     const userId = (session.user as any).id;
 
-    const chatSession = await prisma.chatSession.findUnique({
-        where: { id: sessionId },
-        include: {
-            messages: {
-                orderBy: { createdAt: "asc" }
-            }
-        }
+    const chatRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5217'}/api/chat/messages/${sessionId}`, {
+        headers: { Authorization: `Bearer ${(session.user as any).accessToken}` },
+        cache: 'no-store'
     });
+    const messages = chatRes.ok ? await chatRes.json() : [];
 
-    if (!chatSession || chatSession.userId !== userId) {
-        redirect("/chat"); // Invalid session or doesn't belong to the user
-    }
-
-    // Adapt messages for the UI
-    const mappedMessages = chatSession.messages.map(m => ({
+    const mappedMessages = messages.map((m: any) => ({
         id: m.id,
         role: m.role as "user" | "model" | "system",
         content: m.content
@@ -43,7 +31,7 @@ export default async function ChatSessionPage({ params }: { params: Promise<{ id
                     </div>
                     <div>
                         <h1 className="text-lg font-bold text-neutral-800 tracking-tight leading-tight truncate">
-                            {chatSession.title || "Conversa"}
+                            {"Conversa " + sessionId}
                         </h1>
                         <p className="text-xs text-neutral-500 font-medium">Sessão Salva</p>
                     </div>
@@ -51,7 +39,7 @@ export default async function ChatSessionPage({ params }: { params: Promise<{ id
             </header>
 
             <div className="flex-1 w-full max-w-5xl mx-auto overflow-hidden">
-                <ChatContainer sessionId={chatSession.id} initialMessages={mappedMessages} />
+                <ChatContainer sessionId={sessionId} initialMessages={mappedMessages} />
             </div>
         </div>
     );

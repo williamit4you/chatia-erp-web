@@ -31,7 +31,7 @@ export default withAuth(
         }
 
         // Route Protection: Chat/Dashboard
-        if (path.startsWith("/chat") || path === "/") {
+        if (path.startsWith("/chat")) {
             if (!token) {
                 return NextResponse.redirect(new URL("/login", req.url));
             }

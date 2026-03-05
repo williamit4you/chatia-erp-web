@@ -1,11 +1,13 @@
 import ChatContainer from "@/components/chat/ChatContainer";
+import SidebarToggle from "@/components/chat/SidebarToggle";
 
 export default function ChatPage() {
     return (
         <div className="flex flex-col h-full bg-white">
-            <header className="bg-white border-b border-neutral-200 py-4 px-6 shadow-sm z-10 sticky top-0 shrink-0">
+            <header className="bg-white border-b border-neutral-200 py-4 px-4 sm:px-6 shadow-sm z-10 sticky top-0 shrink-0">
                 <div className="flex items-center gap-3">
-                    <div className="bg-emerald-100 p-2 rounded-lg border border-emerald-200">
+                    <SidebarToggle />
+                    <div className="bg-emerald-100 p-2 rounded-lg border border-emerald-200 hidden sm:block">
                         <span className="text-xl">🤖</span>
                     </div>
                     <div>

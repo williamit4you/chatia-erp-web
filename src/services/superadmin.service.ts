@@ -20,5 +20,9 @@ export const superAdminService = {
     async createTenantUser(tenantId: string, data: any) {
         const response = await apiClient.post(`/api/superadmin/tenants/${tenantId}/users`, data);
         return response.data;
+    },
+    async updateTenantUser(tenantId: string, userId: string, data: any) {
+        const response = await apiClient.put(`/api/superadmin/tenants/${tenantId}/users/${userId}`, data);
+        return response.data;
     }
 };

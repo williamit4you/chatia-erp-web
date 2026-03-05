@@ -4,6 +4,8 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import Link from "next/link";
+import { Home } from "lucide-react";
 
 function SuperAdminLoginForm() {
     const router = useRouter();
@@ -92,7 +94,15 @@ function SuperAdminLoginForm() {
 
 export default function SuperAdminLoginPage() {
     return (
-        <div className="min-h-screen bg-black flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-black flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative">
+            <Link
+                href="/"
+                className="absolute top-6 left-6 flex items-center gap-2 px-4 py-2 bg-neutral-900 border border-neutral-800 text-neutral-400 rounded-xl hover:bg-neutral-800 hover:text-white transition-all font-medium text-sm shadow-[0_0_15px_rgba(0,0,0,0.5)]"
+            >
+                <Home className="h-4 w-4" />
+                Voltar à Tela Inicial
+            </Link>
+
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
                 <h2 className="mt-6 text-center text-3xl font-extrabold text-white tracking-tight">
                     Super Admin IT4You

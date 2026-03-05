@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Key, Save, UserPlus, Server, Users } from "lucide-react";
+import { Key, Save, UserPlus, Server, Users, Edit2, X } from "lucide-react";
 import { superAdminService } from "@/services/superadmin.service";
 
 export default function TenantDetailsClient({ tenant }: { tenant: any }) {
@@ -20,6 +20,14 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
     const [role, setRole] = useState("TENANT_USER");
     const [userLoading, setUserLoading] = useState(false);
     const [userMsg, setUserMsg] = useState("");
+
+    // Edit User State
+    const [editingUserId, setEditingUserId] = useState<string | null>(null);
+    const [editEmail, setEditEmail] = useState("");
+    const [editPassword, setEditPassword] = useState("");
+    const [editRole, setEditRole] = useState("TENANT_USER");
+    const [editLoading, setEditLoading] = useState(false);
+    const [editMsg, setEditMsg] = useState("");
 
     const updateTokens = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -55,6 +63,40 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
         } finally {
             setUserLoading(false);
             setTimeout(() => setUserMsg(""), 3000);
+        }
+    };
+
+    const startEdit = (user: any) => {
+        setEditingUserId(user.id);
+        setEditEmail(user.email || "");
+        setEditRole(user.role || "TENANT_USER");
+        setEditPassword(""); // reset password input on edit
+        setEditMsg("");
+    };
+
+    const cancelEdit = () => {
+        setEditingUserId(null);
+        setEditMsg("");
+    };
+
+    const saveUser = async (user: any) => {
+        setEditLoading(true);
+        setEditMsg("");
+
+        try {
+            const data: any = { email: editEmail, role: editRole };
+            if (editPassword) {
+                data.password = editPassword;
+            }
+            await superAdminService.updateTenantUser(tenant.id, user.id, data);
+
+            // Sucesso
+            setEditingUserId(null); // Fecha a edição
+            router.refresh();
+        } catch (error: any) {
+            setEditMsg(error.response?.data?.message || error.message);
+        } finally {
+            setEditLoading(false);
         }
     };
 
@@ -201,19 +243,87 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
                         <ul className="divide-y divide-neutral-800">
                             {tenant.users.map((user: any) => (
                                 <li key={user.id} className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-neutral-800/20">
-                                    <div>
-                                        <p className="font-medium text-white">{user.email}</p>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span className="text-xs text-neutral-500">
-                                                Consultas: <strong className="text-neutral-300">{user.queryCount}</strong>
-                                            </span>
+                                    {editingUserId === user.id ? (
+                                        <div className="w-full space-y-4">
+                                            {editMsg && (
+                                                <div className="p-3 rounded-lg text-sm font-medium border bg-red-500/10 text-red-500 border-red-500/20">
+                                                    {editMsg}
+                                                </div>
+                                            )}
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <div>
+                                                    <label className="block text-xs text-neutral-400 mb-1">Email</label>
+                                                    <input
+                                                        type="email"
+                                                        value={editEmail}
+                                                        onChange={(e) => setEditEmail(e.target.value)}
+                                                        className="w-full px-3 py-2 bg-neutral-900 border border-neutral-700 rounded-lg text-white text-sm"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs text-neutral-400 mb-1">Nova Senha</label>
+                                                    <input
+                                                        type="password"
+                                                        placeholder="Deixe em branco para manter"
+                                                        value={editPassword}
+                                                        onChange={(e) => setEditPassword(e.target.value)}
+                                                        className="w-full px-3 py-2 bg-neutral-900 border border-neutral-700 rounded-lg text-white text-sm"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs text-neutral-400 mb-1">Função</label>
+                                                    <select
+                                                        value={editRole}
+                                                        onChange={(e) => setEditRole(e.target.value)}
+                                                        className="w-full px-3 py-2 bg-neutral-900 border border-neutral-700 rounded-lg text-white text-sm custom-select"
+                                                    >
+                                                        <option value="TENANT_USER">Usuário Chat</option>
+                                                        <option value="TENANT_ADMIN">Administrador</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-2 justify-end">
+                                                <button
+                                                    onClick={cancelEdit}
+                                                    disabled={editLoading}
+                                                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+                                                >
+                                                    Cancelar
+                                                </button>
+                                                <button
+                                                    onClick={() => saveUser(user)}
+                                                    disabled={editLoading}
+                                                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-500 flex items-center gap-1"
+                                                >
+                                                    <Save className="h-3 w-3" />
+                                                    {editLoading ? "Salvando..." : "Salvar"}
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div>
-                                        <span className={`inline-flex px-2 py-1 rounded text-xs font-semibold ${user.role === 'TENANT_ADMIN' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'bg-neutral-800 text-neutral-400'}`}>
-                                            {user.role === 'TENANT_ADMIN' ? 'Admin' : 'Membro'}
-                                        </span>
-                                    </div>
+                                    ) : (
+                                        <>
+                                            <div>
+                                                <p className="font-medium text-white">{user.email}</p>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className="text-xs text-neutral-500">
+                                                        Consultas: <strong className="text-neutral-300">{user.queryCount}</strong>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <span className={`inline-flex px-2 py-1 rounded text-xs font-semibold ${user.role === 'TENANT_ADMIN' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'bg-neutral-800 text-neutral-400'}`}>
+                                                    {user.role === 'TENANT_ADMIN' ? 'Admin' : 'Membro'}
+                                                </span>
+                                                <button
+                                                    onClick={() => startEdit(user)}
+                                                    className="p-1.5 rounded-lg text-neutral-500 hover:text-emerald-400 hover:bg-neutral-800 transition-colors"
+                                                    title="Editar Usuário"
+                                                >
+                                                    <Edit2 className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        </>
+                                    )}
                                 </li>
                             ))}
                         </ul>

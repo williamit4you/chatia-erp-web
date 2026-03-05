@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Home } from "lucide-react";
 
 function LoginForm() {
     const router = useRouter();
@@ -112,7 +112,15 @@ function LoginForm() {
 
 export default function LoginPage() {
     return (
-        <div className="min-h-screen bg-neutral-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-neutral-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative">
+            <Link
+                href="/"
+                className="absolute top-6 left-6 flex items-center gap-2 px-4 py-2 bg-white border border-neutral-200 text-neutral-600 rounded-xl hover:bg-neutral-100 hover:text-neutral-900 transition-all font-medium text-sm shadow-sm"
+            >
+                <Home className="h-4 w-4" />
+                Voltar à Tela Inicial
+            </Link>
+
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
                 <h2 className="mt-6 text-center text-3xl font-extrabold text-neutral-900 tracking-tight">
                     Acesse sua base

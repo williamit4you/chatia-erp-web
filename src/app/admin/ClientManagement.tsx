@@ -98,7 +98,7 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
         <div className="container mx-auto py-10 px-4 max-w-6xl space-y-8">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <img src="/logo.png" alt="IT4You Logo" className="h-10 w-auto" />
+                    <img src="/logo.png" alt="IT4You Logo" className="h-16 w-auto" />
                     <h1 className="text-3xl font-bold tracking-tight text-neutral-900">Configurações do Agente</h1>
                 </div>
                 <a href="/chat" className="text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors bg-emerald-50 px-4 py-2 rounded-xl">

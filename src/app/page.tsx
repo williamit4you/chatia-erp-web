@@ -9,14 +9,14 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-2">
-              <img src="/logo.png" alt="IT4You Logo" className="h-10 w-auto" />
+              <img src="/logo.png" alt="IT4You Logo" className="h-14 w-auto" />
             </div>
             <div className="flex gap-4 items-center">
               <Link href="/login" className="text-sm font-medium text-neutral-600 hover:text-emerald-600 transition-colors">
                 Login Colaborador
               </Link>
               <Link href="/login?callbackUrl=/admin" className="text-sm font-medium bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors">
-                Gestão da Empresa
+                Acessar Agente de IA
               </Link>
             </div>
           </div>
@@ -78,7 +78,7 @@ export default function Home() {
         {/* Try it out / Footer simulation */}
         <div className="mt-32 pb-10 text-center border-t border-neutral-200 pt-10">
           <p className="text-neutral-500 text-sm flex items-center justify-center gap-1">
-            <img src="/vercel.svg" alt="Vercel Logo" className="h-5 w-auto" /> Powered by IT4You AI
+            <img src="/vercel.svg" alt="Vercel Logo" className="h-10 w-auto" /> Powered by IT4You AI
           </p>
         </div>
       </main>

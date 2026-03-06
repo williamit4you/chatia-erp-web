@@ -137,7 +137,7 @@ function LoginContent() {
             </Link>
 
             <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center">
-                <img src="/logo.png" alt="IT4You Logo" className="h-12 w-auto mb-6" />
+                <img src="/logo.png" alt="IT4You Logo" className="h-24 w-auto mb-6" />
                 <h2 className="text-center text-3xl font-extrabold text-neutral-900 tracking-tight">
                     {isSuperAdminLogin ? "Painel Super Admin" : isAdminLogin ? "Acessar Agente de IA" : "Acesse sua base"}
                 </h2>

@@ -15,6 +15,14 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "IT4You AI ERP",
   description: "Intelligent ERP Assistant",
+  icons: {
+    icon: [
+      { url: '/logo.png?v=5', type: 'image/png' },
+      { url: '/vercel.svg?v=5', type: 'image/svg+xml' },
+    ],
+    shortcut: '/logo.png?v=5',
+    apple: '/logo.png?v=5',
+  },
 };
 
 import { Toaster } from 'sonner';

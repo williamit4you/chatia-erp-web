@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bot, MessageSquare, Database, ArrowRight, ShieldCheck, Zap } from "lucide-react";
+import { MessageSquare, Database, ArrowRight, ShieldCheck } from "lucide-react";
 
 export default function Home() {
   return (
@@ -78,7 +78,7 @@ export default function Home() {
         {/* Try it out / Footer simulation */}
         <div className="mt-32 pb-10 text-center border-t border-neutral-200 pt-10">
           <p className="text-neutral-500 text-sm flex items-center justify-center gap-1">
-            <Zap className="h-4 w-4 text-emerald-500" /> Powered by IT4You AI
+            <img src="/vercel.svg" alt="Vercel Logo" className="h-5 w-auto" /> Powered by IT4You AI
           </p>
         </div>
       </main>

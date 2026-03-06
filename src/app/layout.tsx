@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 };
 
 import { Toaster } from 'sonner';
+import SessionModal from "@/components/SessionModal";
 
 export default function RootLayout({
   children,
@@ -31,6 +32,7 @@ export default function RootLayout({
       >
         {children}
         <Toaster richColors position="top-right" />
+        <SessionModal />
       </body>
     </html>
   );

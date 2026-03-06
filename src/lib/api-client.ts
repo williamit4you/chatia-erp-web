@@ -26,9 +26,13 @@ apiClient.interceptors.response.use(
             const data = error.response.data;
             if (data?.error === 'CONCURRENT_SESSION' || data?.error === 'FORBIDDEN_INACTIVE_USER') {
                 if (typeof window !== 'undefined') {
-                    window.alert(data.message);
-                    const { signOut } = await import('next-auth/react');
-                    await signOut({ callbackUrl: '/' });
+                    // Dispatch custom event to show the SessionModal
+                    window.dispatchEvent(new CustomEvent('show-session-modal', {
+                        detail: {
+                            message: data.message,
+                            errorType: data.error
+                        }
+                    }));
                 }
             }
         }

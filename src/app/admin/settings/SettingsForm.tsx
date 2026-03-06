@@ -39,7 +39,7 @@ export default function SettingsForm({ initialIaToken, initialErpToken }: { init
                 )}
 
                 <div>
-                    <label className="block text-sm font-medium text-neutral-700">Token da Inteligência Artificial (Google Gemini)</label>
+                    <label className="block text-sm font-medium text-neutral-700">Token da Inteligência Artificial (IT4You IA)</label>
                     <div className="mt-2">
                         <input
                             name="iaToken"
@@ -49,7 +49,7 @@ export default function SettingsForm({ initialIaToken, initialErpToken }: { init
                             onChange={(e) => setFormData({ ...formData, iaToken: e.target.value })}
                         />
                     </div>
-                    <p className="mt-2 text-sm text-neutral-500">A chave da API para conectar ao Gemini (AI Models).</p>
+                    <p className="mt-2 text-sm text-neutral-500">A chave da API para conectar aos modelos de IA (AI Models).</p>
                 </div>
 
                 <div>

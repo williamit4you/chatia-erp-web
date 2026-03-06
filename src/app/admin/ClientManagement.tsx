@@ -97,7 +97,10 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
     return (
         <div className="container mx-auto py-10 px-4 max-w-6xl space-y-8">
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold tracking-tight text-neutral-900">Gestão da Empresa</h1>
+                <div className="flex items-center gap-4">
+                    <img src="/logo.png" alt="IT4You Logo" className="h-10 w-auto" />
+                    <h1 className="text-3xl font-bold tracking-tight text-neutral-900">Configurações do Agente</h1>
+                </div>
                 <a href="/chat" className="text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors bg-emerald-50 px-4 py-2 rounded-xl">
                     Voltar ao Chat
                 </a>
@@ -115,7 +118,7 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                             Você pode visualizar os tokens da sua empresa. Para atualizá-los, contate o Super Administrador.
                         </p>
                         <div>
-                            <label className="block font-medium text-neutral-700 mb-2">Token ChatGPT (IA)</label>
+                            <label className="block font-medium text-neutral-700 mb-2">Token de Inteligência Artificial</label>
                             <div className="relative">
                                 <Key className="absolute left-3 top-2.5 h-4 w-4 text-neutral-400" />
                                 <input
@@ -314,8 +317,8 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                                 onClick={handleToggleStatusConfirm}
                                 disabled={loading}
                                 className={`w-full py-3 rounded-xl font-bold transition-all ${confirmAction.currentStatus
-                                        ? 'bg-red-600 hover:bg-red-700 text-white'
-                                        : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                                    ? 'bg-red-600 hover:bg-red-700 text-white'
+                                    : 'bg-emerald-600 hover:bg-emerald-700 text-white'
                                     }`}
                             >
                                 {loading ? 'Processando...' : `Sim, ${confirmAction.currentStatus ? 'Inativar' : 'Ativar'}`}

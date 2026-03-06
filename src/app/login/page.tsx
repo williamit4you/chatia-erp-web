@@ -136,12 +136,13 @@ function LoginContent() {
                 Voltar à Tela Inicial
             </Link>
 
-            <div className="sm:mx-auto sm:w-full sm:max-w-md">
-                <h2 className="mt-6 text-center text-3xl font-extrabold text-neutral-900 tracking-tight">
-                    {isSuperAdminLogin ? "Painel Super Admin" : isAdminLogin ? "Gestão da Empresa" : "Acesse sua base"}
+            <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center">
+                <img src="/logo.png" alt="IT4You Logo" className="h-12 w-auto mb-6" />
+                <h2 className="text-center text-3xl font-extrabold text-neutral-900 tracking-tight">
+                    {isSuperAdminLogin ? "Painel Super Admin" : isAdminLogin ? "Acessar Agente de IA" : "Acesse sua base"}
                 </h2>
                 <p className="mt-3 text-center text-sm text-neutral-600">
-                    {isSuperAdminLogin ? "Acesso restrito ao administrador do sistema" : isAdminLogin ? "Entre para gerenciar sua empresa" : "Insira suas credenciais da empresa"}
+                    {isSuperAdminLogin ? "Acesso restrito ao administrador do sistema" : isAdminLogin ? "Entre para acessar sua inteligência erp" : "Insira suas credenciais da empresa"}
                 </p>
             </div>
 

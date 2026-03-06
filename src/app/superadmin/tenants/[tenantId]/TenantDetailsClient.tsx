@@ -121,7 +121,7 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
                                 </div>
                             )}
                             <div>
-                                <label className="block text-sm font-medium text-neutral-300 mb-2">Token ChatGPT (IA)</label>
+                                <label className="block text-sm font-medium text-neutral-300 mb-2">Token de Inteligência Artificial</label>
                                 <div className="relative">
                                     <Key className="absolute left-3 top-3 h-5 w-5 text-neutral-500" />
                                     <input

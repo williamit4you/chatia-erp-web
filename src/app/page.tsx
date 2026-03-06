@@ -9,11 +9,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-2">
-              <div className="bg-emerald-500 rounded p-1.5 shadow-sm">
-                <Bot className="h-5 w-5 text-white" />
-              </div>
-              <span className="font-bold text-xl tracking-tight text-neutral-900">IT4You</span>
-              <span className="font-light text-neutral-500">AI ERP</span>
+              <img src="/logo.png" alt="IT4You Logo" className="h-10 w-auto" />
             </div>
             <div className="flex gap-4 items-center">
               <Link href="/login" className="text-sm font-medium text-neutral-600 hover:text-emerald-600 transition-colors">
@@ -33,8 +29,8 @@ export default function Home() {
           <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-neutral-900 mb-6 leading-tight">
             Seu ERP, agora <span className="text-emerald-600">inteligente</span> e <span className="text-emerald-600">conversacional</span>.
           </h1>
-          <p className="text-lg md:text-xl text-neutral-600 mb-10 leading-relaxed">
-            O IT4You AI ERP Assistant integra de forma nativa a inteligência artificial do Google Gemini às suas operações empresariais. Converse com os seus dados, descubra faturamentos e preveja resultados como se estivesse batendo um papo.
+          <p className="text-lg md:text-xl text-neutral-600 mb-10 leading-relaxed text-balance">
+            O IT4You AI ERP Assistant integra de forma nativa a inteligência artificial às suas operações empresariais. Converse com os seus dados, descubra faturamentos e preveja resultados como se estivesse batendo um papo.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link
@@ -82,7 +78,7 @@ export default function Home() {
         {/* Try it out / Footer simulation */}
         <div className="mt-32 pb-10 text-center border-t border-neutral-200 pt-10">
           <p className="text-neutral-500 text-sm flex items-center justify-center gap-1">
-            <Zap className="h-4 w-4 text-emerald-500" /> Powered by Gemini & Next.js 14
+            <Zap className="h-4 w-4 text-emerald-500" /> Powered by IT4You AI
           </p>
         </div>
       </main>

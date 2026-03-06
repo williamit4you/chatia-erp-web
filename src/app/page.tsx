@@ -17,10 +17,10 @@ export default function Home() {
             </div>
             <div className="flex gap-4 items-center">
               <Link href="/login" className="text-sm font-medium text-neutral-600 hover:text-emerald-600 transition-colors">
-                Área do Cliente
+                Login Colaborador
               </Link>
-              <Link href="/superadmin/login" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors hidden sm:block">
-                Administração
+              <Link href="/login?callbackUrl=/admin" className="text-sm font-medium bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors">
+                Gestão da Empresa
               </Link>
             </div>
           </div>

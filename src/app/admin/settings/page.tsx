@@ -7,14 +7,14 @@ export default async function SettingsPage() {
     const session = await getServerSession(authOptions);
 
     if (!session?.user) {
-        redirect("/login");
+        redirect("/login?callbackUrl=/admin/settings");
     }
 
     const userRole = (session.user as any).role;
     const tenantId = (session.user as any).tenantId;
 
     if (userRole !== "TENANT_ADMIN" && userRole !== "SUPER_ADMIN") {
-        redirect("/dashboard");
+        redirect("/chat");
     }
 
     const req = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5217'}/api/admin/settings`, {

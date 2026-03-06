@@ -11,6 +11,7 @@ function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const registered = searchParams.get("registered");
+    const callbackUrl = searchParams.get("callbackUrl") || "/chat";
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -31,12 +32,12 @@ function LoginForm() {
             });
 
             if (res?.error) {
-                setError("Invalid email or password");
+                setError("Email ou senha inválidos.");
             } else {
-                router.push("/chat");
+                router.push(callbackUrl);
             }
         } catch (err) {
-            setError("An unexpected error occurred");
+            setError("Ocorreu um erro inesperado.");
         } finally {
             setLoading(false);
         }
@@ -112,6 +113,20 @@ function LoginForm() {
 
 export default function LoginPage() {
     return (
+        <Suspense fallback={<div className="min-h-screen bg-neutral-50 flex items-center justify-center">Carregando...</div>}>
+            <LoginContent />
+        </Suspense>
+    );
+}
+
+function LoginContent() {
+    const searchParams = useSearchParams();
+    const callbackUrl = searchParams.get("callbackUrl") || "";
+
+    const isAdminLogin = callbackUrl.includes("/admin");
+    const isSuperAdminLogin = callbackUrl.includes("/superadmin");
+
+    return (
         <div className="min-h-screen bg-neutral-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative">
             <Link
                 href="/"
@@ -123,17 +138,15 @@ export default function LoginPage() {
 
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
                 <h2 className="mt-6 text-center text-3xl font-extrabold text-neutral-900 tracking-tight">
-                    Acesse sua base
+                    {isSuperAdminLogin ? "Painel Super Admin" : isAdminLogin ? "Gestão da Empresa" : "Acesse sua base"}
                 </h2>
                 <p className="mt-3 text-center text-sm text-neutral-600">
-                    Insira suas credenciais da empresa
+                    {isSuperAdminLogin ? "Acesso restrito ao administrador do sistema" : isAdminLogin ? "Entre para gerenciar sua empresa" : "Insira suas credenciais da empresa"}
                 </p>
             </div>
 
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-                <Suspense fallback={<div className="text-center p-8 bg-white rounded-2xl shadow-xl">Carregando...</div>}>
-                    <LoginForm />
-                </Suspense>
+                <LoginForm />
             </div>
         </div>
     );

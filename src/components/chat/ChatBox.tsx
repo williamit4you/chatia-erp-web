@@ -1,4 +1,4 @@
-import { User, Bot, Server } from "lucide-react";
+import { User, Bot, Server, Star } from "lucide-react";
 
 type Message = {
     id: string;
@@ -6,7 +6,7 @@ type Message = {
     content: string;
 };
 
-export default function ChatBox({ messages, isLoading }: { messages: Message[], isLoading: boolean }) {
+export default function ChatBox({ messages, isLoading, onFavorite }: { messages: Message[], isLoading: boolean, onFavorite?: (text: string) => void }) {
     return (
         <div className="flex flex-col space-y-4">
             {messages.map((msg) => (
@@ -32,15 +32,26 @@ export default function ChatBox({ messages, isLoading }: { messages: Message[], 
                     </div>
 
                     {/* Message Bubble Area */}
-                    <div
-                        className={`max-w-[75%] px-5 py-3.5 rounded-2xl ${msg.role === "user"
+                    <div className="relative group max-w-[75%]">
+                        {msg.role === "user" && onFavorite && (
+                            <button
+                                onClick={() => onFavorite(msg.content)}
+                                className="absolute -left-10 top-1/2 -translate-y-1/2 p-2 text-neutral-300 hover:text-amber-400 opacity-0 group-hover:opacity-100 transition-all hidden sm:block"
+                                title="Salvar nos Favoritos"
+                            >
+                                <Star className="w-5 h-5" />
+                            </button>
+                        )}
+                        <div
+                            className={`px-5 py-3.5 rounded-2xl ${msg.role === "user"
                                 ? "bg-emerald-600 text-white shadow-sm"
                                 : msg.role === "model"
                                     ? "bg-white border border-neutral-200 text-neutral-800 shadow-sm whitespace-pre-wrap"
                                     : "bg-neutral-50 border border-neutral-200 text-neutral-600 shadow-sm italic"
-                            }`}
-                    >
-                        <p className="text-sm leading-relaxed">{msg.content}</p>
+                                }`}
+                        >
+                            <p className="text-sm leading-relaxed">{msg.content}</p>
+                        </div>
                     </div>
                 </div>
             ))}

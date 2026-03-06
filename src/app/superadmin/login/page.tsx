@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import Link from "next/link";
-import { Home } from "lucide-react";
+import { Home, Eye, EyeOff } from "lucide-react";
 
 function SuperAdminLoginForm() {
     const router = useRouter();
@@ -14,6 +14,7 @@ function SuperAdminLoginForm() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
@@ -66,15 +67,22 @@ function SuperAdminLoginForm() {
 
                 <div>
                     <label className="block text-sm font-medium text-neutral-300">Senha Master</label>
-                    <div className="mt-2">
+                    <div className="mt-2 relative">
                         <input
                             name="password"
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             required
-                            className="appearance-none block w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl shadow-sm placeholder-neutral-500 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                            className="appearance-none block w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl shadow-sm placeholder-neutral-500 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all pr-12"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-neutral-400 hover:text-white"
+                        >
+                            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
                     </div>
                 </div>
 

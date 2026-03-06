@@ -22,7 +22,7 @@ export default withAuth(
         // Route Protection: Tenant Admin (Company Settings)
         if (path.startsWith("/admin")) {
             if (!token) {
-                return NextResponse.redirect(new URL("/login", req.url));
+                return NextResponse.redirect(new URL(`/login?callbackUrl=${encodeURIComponent(path)}`, req.url));
             }
             if (token?.role !== "TENANT_ADMIN" && token?.role !== "SUPER_ADMIN") {
                 return NextResponse.redirect(new URL("/chat", req.url));
@@ -33,7 +33,7 @@ export default withAuth(
         // Route Protection: Chat/Dashboard
         if (path.startsWith("/chat")) {
             if (!token) {
-                return NextResponse.redirect(new URL("/login", req.url));
+                return NextResponse.redirect(new URL(`/login?callbackUrl=${encodeURIComponent(path)}`, req.url));
             }
             if (token?.role === "SUPER_ADMIN") {
                 return NextResponse.redirect(new URL("/superadmin", req.url));

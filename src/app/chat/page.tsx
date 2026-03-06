@@ -1,7 +1,10 @@
 import ChatContainer from "@/components/chat/ChatContainer";
 import SidebarToggle from "@/components/chat/SidebarToggle";
 
-export default function ChatPage() {
+export default async function ChatPage({ searchParams }: { searchParams: Promise<{ prompt?: string }> }) {
+    const resolvedSearchParams = await searchParams;
+    const prompt = resolvedSearchParams?.prompt;
+
     return (
         <div className="flex flex-col h-full bg-white">
             <header className="bg-white border-b border-neutral-200 py-4 px-4 sm:px-6 shadow-sm z-10 sticky top-0 shrink-0">
@@ -18,7 +21,7 @@ export default function ChatPage() {
             </header>
 
             <div className="flex-1 w-full max-w-5xl mx-auto overflow-hidden">
-                <ChatContainer key="new" />
+                <ChatContainer key="new" initialPrompt={prompt} />
             </div>
         </div>
     );

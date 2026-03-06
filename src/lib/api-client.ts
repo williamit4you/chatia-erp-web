@@ -19,4 +19,21 @@ apiClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) =>
     return config;
 });
 
+apiClient.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        if (error.response?.status === 403) {
+            const data = error.response.data;
+            if (data?.error === 'CONCURRENT_SESSION' || data?.error === 'FORBIDDEN_INACTIVE_USER') {
+                if (typeof window !== 'undefined') {
+                    window.alert(data.message);
+                    const { signOut } = await import('next-auth/react');
+                    await signOut({ callbackUrl: '/' });
+                }
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
 export default apiClient;

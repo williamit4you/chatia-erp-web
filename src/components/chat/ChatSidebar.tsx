@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { PlusCircle, MessageSquare, LogOut, Settings, MoreVertical, X } from "lucide-react";
+import { PlusCircle, MessageSquare, LogOut, Settings, MoreVertical, X, Star } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useSidebar } from "./SidebarContext";
+import FavoritesModal from "./FavoritesModal";
+import { useState } from "react";
 
 interface ChatSidebarProps {
     sessions: any[];
@@ -12,6 +14,7 @@ interface ChatSidebarProps {
 
 export default function ChatSidebar({ sessions, user }: ChatSidebarProps) {
     const { isOpen, setIsOpen } = useSidebar();
+    const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
 
     return (
         <>
@@ -34,15 +37,25 @@ export default function ChatSidebar({ sessions, user }: ChatSidebarProps) {
                 </div>
 
                 {/* New Chat Button */}
-                <div className="p-4">
+                <div className="p-4 flex flex-col gap-2">
                     <Link
                         href="/chat"
                         onClick={() => setIsOpen(false)}
-                        className="flex items-center gap-2 w-full px-4 py-3 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl font-medium transition-colors border border-neutral-700"
+                        className="flex items-center gap-2 w-full px-4 py-3 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl font-medium transition-colors border border-neutral-700 justify-center"
                     >
                         <PlusCircle className="h-5 w-5 text-emerald-500" />
                         Nova Conversa
                     </Link>
+                    <button
+                        onClick={() => {
+                            setIsOpen(false);
+                            setIsFavoritesOpen(true);
+                        }}
+                        className="flex items-center gap-2 w-full px-4 py-3 bg-neutral-800/50 hover:bg-neutral-800 text-white rounded-xl font-medium transition-colors border border-neutral-700/50 justify-center"
+                    >
+                        <Star className="h-5 w-5 text-amber-400" />
+                        Favoritos
+                    </button>
                 </div>
 
                 {/* Conversation List */}
@@ -105,6 +118,11 @@ export default function ChatSidebar({ sessions, user }: ChatSidebarProps) {
                     </div>
                 </div>
             </div>
+
+            <FavoritesModal
+                isOpen={isFavoritesOpen}
+                onClose={() => setIsFavoritesOpen(false)}
+            />
         </>
     );
 }

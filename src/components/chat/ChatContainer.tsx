@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import apiClient from "@/lib/api-client";
 import ChatBox from "./ChatBox";
 import ChatInput from "./ChatInput";
 import { useRouter } from "next/navigation";
@@ -9,9 +10,10 @@ import { chatService, Message } from "@/services/chat.service";
 interface ChatContainerProps {
     sessionId?: string;
     initialMessages?: Message[];
+    initialPrompt?: string;
 }
 
-export default function ChatContainer({ sessionId, initialMessages }: ChatContainerProps) {
+export default function ChatContainer({ sessionId, initialMessages, initialPrompt }: ChatContainerProps) {
     const router = useRouter();
     const [messages, setMessages] = useState<Message[]>(
         initialMessages || [
@@ -23,6 +25,17 @@ export default function ChatContainer({ sessionId, initialMessages }: ChatContai
         ]
     );
     const [isLoading, setIsLoading] = useState(false);
+    const hasStartedRef = useRef(false);
+
+    useEffect(() => {
+        if (initialPrompt && !hasStartedRef.current) {
+            hasStartedRef.current = true;
+            // Next tick to allow state init
+            setTimeout(() => {
+                handleSendMessage(initialPrompt);
+            }, 0);
+        }
+    }, [initialPrompt]);
 
     const handleSendMessage = async (text: string) => {
         if (!text.trim()) return;
@@ -59,10 +72,20 @@ export default function ChatContainer({ sessionId, initialMessages }: ChatContai
         }
     };
 
+    const handleFavorite = async (text: string) => {
+        try {
+            await apiClient.post('/api/Favorites', { questionText: text });
+            alert("Adicionado aos favoritos!");
+        } catch (error) {
+            console.error("Erro ao favoritar", error);
+            alert("Erro ao salvar favorito.");
+        }
+    };
+
     return (
         <div className="flex flex-col h-full bg-white md:border-x border-neutral-200">
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
-                <ChatBox messages={messages} isLoading={isLoading} />
+                <ChatBox messages={messages} isLoading={isLoading} onFavorite={handleFavorite} />
             </div>
             <div className="p-4 bg-white border-t border-neutral-100">
                 <ChatInput onSend={handleSendMessage} disabled={isLoading} />

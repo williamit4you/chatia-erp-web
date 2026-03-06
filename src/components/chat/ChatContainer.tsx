@@ -6,6 +6,7 @@ import ChatBox from "./ChatBox";
 import ChatInput from "./ChatInput";
 import { useRouter } from "next/navigation";
 import { chatService, Message } from "@/services/chat.service";
+import { toast } from "sonner";
 
 interface ChatContainerProps {
     sessionId?: string;
@@ -30,10 +31,11 @@ export default function ChatContainer({ sessionId, initialMessages, initialPromp
     useEffect(() => {
         if (initialPrompt && !hasStartedRef.current) {
             hasStartedRef.current = true;
-            // Next tick to allow state init
-            setTimeout(() => {
+            // Delay to allow component to fully load
+            const timer = setTimeout(() => {
                 handleSendMessage(initialPrompt);
-            }, 0);
+            }, 100);
+            return () => clearTimeout(timer);
         }
     }, [initialPrompt]);
 
@@ -55,7 +57,6 @@ export default function ChatContainer({ sessionId, initialMessages, initialPromp
 
             setMessages((prev) => [...prev, aiMessage]);
 
-            // If we didn't have a sessionId but the server created one, redirect seamlessly!
             if (!sessionId && data.sessionId) {
                 router.push(`/chat/${data.sessionId}`);
                 router.refresh();
@@ -75,10 +76,10 @@ export default function ChatContainer({ sessionId, initialMessages, initialPromp
     const handleFavorite = async (text: string) => {
         try {
             await apiClient.post('/api/Favorites', { questionText: text });
-            alert("Adicionado aos favoritos!");
+            toast.success("Adicionado aos favoritos!");
         } catch (error) {
             console.error("Erro ao favoritar", error);
-            alert("Erro ao salvar favorito.");
+            toast.error("Erro ao salvar favorito.");
         }
     };
 

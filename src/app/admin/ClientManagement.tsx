@@ -13,16 +13,22 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
     const [loading, setLoading] = useState(false);
     const [showNewUserModal, setShowNewUserModal] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
-    const [newUserForm, setNewUserForm] = useState({ name: '', email: '', password: '', role: 'TENANT_USER' });
+    const [newUserForm, setNewUserForm] = useState({
+        name: '',
+        email: '',
+        password: '',
+        role: 'TENANT_USER',
+        hasDashboardAccess: false,
+        hasPayableAccess: false,
+        hasReceivableAccess: false
+    });
 
     const [showEditUserModal, setShowEditUserModal] = useState(false);
     const [showEditPassword, setShowEditPassword] = useState(false);
     const [editingUser, setEditingUser] = useState<any>(null);
     const [editPassword, setEditPassword] = useState('');
 
-    // Confirmation Modal State
-    const [showConfirmModal, setShowConfirmModal] = useState(false);
-    const [confirmAction, setConfirmAction] = useState<{ userId: string, currentStatus: boolean } | null>(null);
+
 
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -33,7 +39,15 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
             setUsers(res.data);
             setShowNewUserModal(false);
             setShowNewPassword(false);
-            setNewUserForm({ name: '', email: '', password: '', role: 'TENANT_USER' });
+            setNewUserForm({
+                name: '',
+                email: '',
+                password: '',
+                role: 'TENANT_USER',
+                hasDashboardAccess: false,
+                hasPayableAccess: false,
+                hasReceivableAccess: false
+            });
             toast.success('Usuário criado com sucesso!');
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Erro ao criar usuário');
@@ -42,31 +56,7 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
         }
     };
 
-    const handleToggleStatusRequest = (userId: string, currentStatus: boolean) => {
-        if (userId === currentUser.id) {
-            toast.warning('Você não pode inativar a si mesmo.');
-            return;
-        }
-        setConfirmAction({ userId, currentStatus });
-        setShowConfirmModal(true);
-    };
 
-    const handleToggleStatusConfirm = async () => {
-        if (!confirmAction) return;
-        const { userId, currentStatus } = confirmAction;
-        setLoading(true);
-        try {
-            await apiClient.put(`/api/Users/${userId}/status`, { isActive: !currentStatus });
-            setUsers(users.map((u: any) => u.id === userId ? { ...u, isActive: !currentStatus } : u));
-            toast.success('Status atualizado com sucesso!');
-            setShowConfirmModal(false);
-        } catch (error) {
-            toast.error('Erro ao alterar status do usuário');
-        } finally {
-            setLoading(false);
-            setConfirmAction(null);
-        }
-    };
 
     const handleOpenEditUser = (user: any) => {
         setEditingUser(user);
@@ -75,20 +65,26 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
         setShowEditUserModal(true);
     };
 
-    const handleUpdateUserPassword = async (e: React.FormEvent) => {
+    const handleUpdateUser = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!editPassword) {
-            toast.warning("Digite a nova senha.");
-            return;
-        }
-
         setLoading(true);
         try {
-            await apiClient.put(`/api/admin/users/${editingUser.id}`, { email: editingUser.email, password: editPassword, role: editingUser.role });
-            toast.success('Senha atualizada com sucesso!');
+            await apiClient.put(`/api/admin/users/${editingUser.id}`, {
+                email: editingUser.email,
+                name: editingUser.name,
+                password: editPassword,
+                role: editingUser.role,
+                isActive: editingUser.isActive,
+                hasDashboardAccess: editingUser.hasDashboardAccess,
+                hasPayableAccess: editingUser.hasPayableAccess,
+                hasReceivableAccess: editingUser.hasReceivableAccess
+            });
+            const res = await apiClient.get('/api/admin/users');
+            setUsers(res.data);
+            toast.success('Usuário atualizado com sucesso!');
             setShowEditUserModal(false);
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Erro ao atualizar senha.');
+            toast.error(error.response?.data?.message || 'Erro ao atualizar usuário.');
         } finally {
             setLoading(false);
         }
@@ -168,6 +164,9 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                                     <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider">Nome</th>
                                     <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider">Email</th>
                                     <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center">Consultas</th>
+                                    <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center">Pagar</th>
+                                    <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center">Receber</th>
+                                    <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center">Dash</th>
                                     <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center">Status</th>
                                     <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center">Ações</th>
                                 </tr>
@@ -182,22 +181,45 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                                         <td className="py-4 px-6 text-neutral-500 text-sm">{user.email}</td>
                                         <td className="py-4 px-6 text-neutral-900 text-sm text-center font-medium">{user.queryCount}</td>
                                         <td className="py-4 px-6 text-center">
-                                            <button
-                                                onClick={() => handleToggleStatusRequest(user.id, user.isActive)}
-                                                disabled={user.id === currentUser.id}
-                                                className={`px-3 py-1 text-xs font-semibold rounded-full border transition-colors ${user.isActive
-                                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-red-50 hover:text-red-700 hover:border-red-200'
-                                                    : 'bg-red-50 text-red-700 border-red-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200'
-                                                    } ${user.id === currentUser.id ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                            >
+                                            {(user.role === 'TENANT_ADMIN' || user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') ? (
+                                                <span className="text-[10px] uppercase font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">Sim</span>
+                                            ) : (
+                                                <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-md ${user.hasPayableAccess ? 'text-emerald-600 bg-emerald-50' : 'text-neutral-400 bg-neutral-100'}`}>
+                                                    {user.hasPayableAccess ? 'Sim' : 'Não'}
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="py-4 px-6 text-center">
+                                            {(user.role === 'TENANT_ADMIN' || user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') ? (
+                                                <span className="text-[10px] uppercase font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">Sim</span>
+                                            ) : (
+                                                <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-md ${user.hasReceivableAccess ? 'text-emerald-600 bg-emerald-50' : 'text-neutral-400 bg-neutral-100'}`}>
+                                                    {user.hasReceivableAccess ? 'Sim' : 'Não'}
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="py-4 px-6 text-center">
+                                            {(user.role === 'TENANT_ADMIN' || user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') ? (
+                                                <span className="text-[10px] uppercase font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">Sim</span>
+                                            ) : (
+                                                <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-md ${user.hasDashboardAccess ? 'text-emerald-600 bg-emerald-50' : 'text-neutral-400 bg-neutral-100'}`}>
+                                                    {user.hasDashboardAccess ? 'Sim' : 'Não'}
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="py-4 px-6 text-center">
+                                            <span className={`px-2 py-1 text-[10px] uppercase font-bold rounded-full border transition-colors ${user.isActive
+                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                                : 'bg-red-50 text-red-700 border-red-200'
+                                                }`}>
                                                 {user.isActive ? 'Ativo' : 'Inativo'}
-                                            </button>
+                                            </span>
                                         </td>
                                         <td className="py-4 px-6 text-center">
                                             <button
                                                 onClick={() => handleOpenEditUser(user)}
                                                 className="p-1.5 rounded-lg text-neutral-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
-                                                title="Trocar Senha"
+                                                title="Editar Usuário"
                                             >
                                                 <Edit2 className="h-4 w-4" />
                                             </button>
@@ -206,7 +228,7 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                                 ))}
                                 {users.length === 0 && (
                                     <tr>
-                                        <td colSpan={5} className="py-8 text-center text-neutral-500 text-sm">Nenhum usuário cadastrado.</td>
+                                        <td colSpan={8} className="py-8 text-center text-neutral-500 text-sm">Nenhum usuário cadastrado.</td>
                                     </tr>
                                 )}
                             </tbody>
@@ -249,6 +271,46 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                                 </button>
                             </div>
 
+                            <div className="grid grid-cols-2 gap-3 pb-2">
+                                <div className="flex items-center gap-2 p-3 bg-neutral-50 rounded-xl border border-neutral-200">
+                                    <input
+                                        type="checkbox"
+                                        id="payableAccess"
+                                        checked={newUserForm.hasPayableAccess}
+                                        onChange={e => setNewUserForm({ ...newUserForm, hasPayableAccess: e.target.checked })}
+                                        className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-neutral-300 rounded"
+                                    />
+                                    <label htmlFor="payableAccess" className="text-sm font-medium text-neutral-700 cursor-pointer">
+                                        Pagar
+                                    </label>
+                                </div>
+                                <div className="flex items-center gap-2 p-3 bg-neutral-50 rounded-xl border border-neutral-200">
+                                    <input
+                                        type="checkbox"
+                                        id="receivableAccess"
+                                        checked={newUserForm.hasReceivableAccess}
+                                        onChange={e => setNewUserForm({ ...newUserForm, hasReceivableAccess: e.target.checked })}
+                                        className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-neutral-300 rounded"
+                                    />
+                                    <label htmlFor="receivableAccess" className="text-sm font-medium text-neutral-700 cursor-pointer">
+                                        Receber
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 p-3 bg-neutral-50 rounded-xl border border-neutral-200">
+                                <input
+                                    type="checkbox"
+                                    id="hasDashboardAccess"
+                                    checked={newUserForm.hasDashboardAccess}
+                                    onChange={e => setNewUserForm({ ...newUserForm, hasDashboardAccess: e.target.checked })}
+                                    className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-neutral-300 rounded"
+                                />
+                                <label htmlFor="hasDashboardAccess" className="text-sm font-medium text-neutral-700 cursor-pointer">
+                                    Dashboard (Gráficos)
+                                </label>
+                            </div>
+
                             <div className="flex justify-end space-x-3 pt-2">
                                 <button type="button" onClick={() => setShowNewUserModal(false)} className="px-5 py-2.5 text-neutral-600 hover:bg-neutral-100 rounded-xl font-medium transition-colors">
                                     Cancelar
@@ -266,14 +328,83 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
             {showEditUserModal && editingUser && (
                 <div className="fixed inset-0 bg-neutral-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-neutral-100">
-                        <h2 className="text-xl font-bold text-neutral-900 mb-1">Trocar Senha</h2>
-                        <p className="text-sm text-neutral-500 mb-5">Atualize a senha de acesso para <strong>{editingUser.email}</strong>.</p>
+                        <h2 className="text-xl font-bold text-neutral-900 mb-1">Editar Usuário</h2>
+                        <p className="text-sm text-neutral-500 mb-5">Atualize as informações de <strong>{editingUser.email}</strong>.</p>
 
-                        <form onSubmit={handleUpdateUserPassword} className="space-y-4">
-                            <div className="relative">
-                                <label className="block text-sm font-medium text-neutral-700 mb-1">Nova Senha</label>
+                        <form onSubmit={handleUpdateUser} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-neutral-700 mb-1">Nome</label>
                                 <input
                                     required
+                                    type="text"
+                                    value={editingUser.name}
+                                    onChange={e => setEditingUser({ ...editingUser, name: e.target.value })}
+                                    className="w-full border border-neutral-300 rounded-xl px-4 py-2.5 text-neutral-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="flex items-center gap-2 p-3 bg-neutral-50 rounded-xl border border-neutral-200">
+                                    <input
+                                        type="checkbox"
+                                        id="editHasPayableAccess"
+                                        checked={(editingUser.role === 'TENANT_ADMIN' || editingUser.role === 'SUPER_ADMIN' || editingUser.role === 'ADMIN') ? true : (editingUser.hasPayableAccess || false)}
+                                        disabled={editingUser.role === 'TENANT_ADMIN' || editingUser.role === 'SUPER_ADMIN' || editingUser.role === 'ADMIN'}
+                                        onChange={e => setEditingUser({ ...editingUser, hasPayableAccess: e.target.checked })}
+                                        className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-neutral-300 rounded disabled:opacity-50"
+                                    />
+                                    <label htmlFor="editHasPayableAccess" className="text-sm font-medium text-neutral-700 cursor-pointer">
+                                        Pagar
+                                    </label>
+                                </div>
+                                <div className="flex items-center gap-2 p-3 bg-neutral-50 rounded-xl border border-neutral-200">
+                                    <input
+                                        type="checkbox"
+                                        id="editHasReceivableAccess"
+                                        checked={(editingUser.role === 'TENANT_ADMIN' || editingUser.role === 'SUPER_ADMIN' || editingUser.role === 'ADMIN') ? true : (editingUser.hasReceivableAccess || false)}
+                                        disabled={editingUser.role === 'TENANT_ADMIN' || editingUser.role === 'SUPER_ADMIN' || editingUser.role === 'ADMIN'}
+                                        onChange={e => setEditingUser({ ...editingUser, hasReceivableAccess: e.target.checked })}
+                                        className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-neutral-300 rounded disabled:opacity-50"
+                                    />
+                                    <label htmlFor="editHasReceivableAccess" className="text-sm font-medium text-neutral-700 cursor-pointer">
+                                        Receber
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="flex items-center gap-2 p-3 bg-neutral-50 rounded-xl border border-neutral-200">
+                                    <input
+                                        type="checkbox"
+                                        id="editIsActive"
+                                        checked={editingUser.isActive}
+                                        disabled={editingUser.id === currentUser.id}
+                                        onChange={e => setEditingUser({ ...editingUser, isActive: e.target.checked })}
+                                        className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-neutral-300 rounded disabled:opacity-50"
+                                    />
+                                    <label htmlFor="editIsActive" className="text-sm font-medium text-neutral-700 cursor-pointer">
+                                        Status Ativo
+                                    </label>
+                                </div>
+
+                                <div className="flex items-center gap-2 p-3 bg-neutral-50 rounded-xl border border-neutral-200">
+                                    <input
+                                        type="checkbox"
+                                        id="editHasDashboardAccess"
+                                        checked={(editingUser.role === 'TENANT_ADMIN' || editingUser.role === 'SUPER_ADMIN' || editingUser.role === 'ADMIN') ? true : (editingUser.hasDashboardAccess || false)}
+                                        disabled={editingUser.role === 'TENANT_ADMIN' || editingUser.role === 'SUPER_ADMIN' || editingUser.role === 'ADMIN'}
+                                        onChange={e => setEditingUser({ ...editingUser, hasDashboardAccess: e.target.checked })}
+                                        className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-neutral-300 rounded disabled:opacity-50"
+                                    />
+                                    <label htmlFor="editHasDashboardAccess" className="text-sm font-medium text-neutral-700 cursor-pointer text-xs">
+                                        Dashboard
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="relative">
+                                <label className="block text-sm font-medium text-neutral-700 mb-1">Nova Senha (Deixe em branco para manter)</label>
+                                <input
                                     type={showEditPassword ? "text" : "password"}
                                     value={editPassword}
                                     onChange={e => setEditPassword(e.target.value)}
@@ -301,41 +432,7 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                 </div>
             )}
 
-            {/* Modal de Confirmação Profissional */}
-            {showConfirmModal && confirmAction && (
-                <div className="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-                    <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-neutral-100 text-center animate-in fade-in zoom-in duration-200">
-                        <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-100">
-                            <AlertTriangle className="text-amber-500 h-8 w-8" />
-                        </div>
-                        <h3 className="text-xl font-bold text-neutral-900 mb-2">Confirmar Alteração</h3>
-                        <p className="text-neutral-500 mb-6 px-2">
-                            Deseja realmente {confirmAction.currentStatus ? 'inativar' : 'ativar'} o acesso deste usuário ao sistema?
-                        </p>
-                        <div className="flex flex-col gap-2">
-                            <button
-                                onClick={handleToggleStatusConfirm}
-                                disabled={loading}
-                                className={`w-full py-3 rounded-xl font-bold transition-all ${confirmAction.currentStatus
-                                    ? 'bg-red-600 hover:bg-red-700 text-white'
-                                    : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                                    }`}
-                            >
-                                {loading ? 'Processando...' : `Sim, ${confirmAction.currentStatus ? 'Inativar' : 'Ativar'}`}
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setShowConfirmModal(false);
-                                    setConfirmAction(null);
-                                }}
-                                className="w-full py-3 text-neutral-500 hover:bg-neutral-50 rounded-xl font-medium transition-colors"
-                            >
-                                Não, Cancelar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+
         </div>
     );
 }

@@ -332,8 +332,8 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-4">
-                                            <span className={`inline-flex px-2 py-1 rounded text-xs font-semibold ${user.role === 'TENANT_ADMIN' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'bg-neutral-800 text-neutral-400'}`}>
-                                                {user.role === 'TENANT_ADMIN' ? 'Admin' : 'Membro'}
+                                            <span className={`inline-flex px-2 py-1 rounded text-xs font-semibold ${(user.role === 'TENANT_ADMIN' || user.role === 'ADMIN') ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'bg-neutral-800 text-neutral-400'}`}>
+                                                {(user.role === 'TENANT_ADMIN' || user.role === 'ADMIN') ? 'Admin' : 'Membro'}
                                             </span>
                                             <button
                                                 onClick={() => startEdit(user)}

@@ -13,7 +13,7 @@ export default async function SettingsPage() {
     const userRole = (session.user as any).role;
     const tenantId = (session.user as any).tenantId;
 
-    if (userRole !== "TENANT_ADMIN" && userRole !== "SUPER_ADMIN") {
+    if (userRole !== "TENANT_ADMIN" && userRole !== "SUPER_ADMIN" && userRole !== "ADMIN") {
         redirect("/chat");
     }
 

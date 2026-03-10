@@ -35,6 +35,7 @@ export const authOptions: NextAuthOptions = {
                             email: user.email,
                             tenantId: user.tenantId,
                             role: user.role,
+                            hasDashboardAccess: user.hasDashboardAccess,
                             accessToken: user.token, // Store the C# JWT
                         };
                     }
@@ -53,7 +54,12 @@ export const authOptions: NextAuthOptions = {
                 (session.user as any).id = token.id;
                 (session.user as any).tenantId = token.tenantId;
                 (session.user as any).role = token.role;
+                (session.user as any).hasDashboardAccess = token.hasDashboardAccess;
+                (session.user as any).hasPayableAccess = token.hasPayableAccess;
+                (session.user as any).hasReceivableAccess = token.hasReceivableAccess;
+                (session.user as any).currentSessionId = token.currentSessionId;
                 (session.user as any).accessToken = token.accessToken;
+                console.log("NextAuth Session Callback - accessToken payload:", (token.accessToken as string) ? (token.accessToken as string).substring(0, 30) + "..." : "missing");
             }
             return session;
         },
@@ -62,6 +68,10 @@ export const authOptions: NextAuthOptions = {
                 token.id = user.id;
                 token.tenantId = (user as any).tenantId;
                 token.role = (user as any).role;
+                token.hasDashboardAccess = (user as any).hasDashboardAccess;
+                token.hasPayableAccess = (user as any).hasPayableAccess;
+                token.hasReceivableAccess = (user as any).hasReceivableAccess;
+                token.currentSessionId = (user as any).currentSessionId;
                 token.accessToken = (user as any).accessToken;
             }
             return token;

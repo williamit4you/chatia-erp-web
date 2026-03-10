@@ -6,6 +6,8 @@ import { redirect } from "next/navigation";
 export default async function UsersAdminPage() {
     const session = await getServerSession(authOptions);
 
+    console.log("session", session);
+
     if (!session?.user) {
         redirect("/login?callbackUrl=/admin/users");
     }
@@ -13,7 +15,7 @@ export default async function UsersAdminPage() {
     const userRole = (session.user as any).role;
     const tenantId = (session.user as any).tenantId;
 
-    if (userRole !== "TENANT_ADMIN" && userRole !== "SUPER_ADMIN") {
+    if (userRole !== "TENANT_ADMIN" && userRole !== "SUPER_ADMIN" && userRole !== "ADMIN") {
         redirect("/chat");
     }
 
@@ -21,6 +23,7 @@ export default async function UsersAdminPage() {
         headers: { Authorization: `Bearer ${(session.user as any).accessToken}` },
         cache: 'no-store'
     });
+
     const users = usersRes.ok ? await usersRes.json() : [];
 
     return (

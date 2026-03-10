@@ -12,7 +12,7 @@ export default async function AdminDashboardPage() {
 
     const userRole = (session.user as any).role;
     const token = (session.user as any).accessToken;
-    const isTenantAdmin = userRole === "TENANT_ADMIN" || userRole === "SUPER_ADMIN";
+    const isTenantAdmin = userRole === "TENANT_ADMIN" || userRole === "SUPER_ADMIN" || userRole === "ADMIN";
 
     if (!isTenantAdmin) {
         redirect("/chat"); // User should not be here

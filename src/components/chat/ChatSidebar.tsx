@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { PlusCircle, MessageSquare, LogOut, Settings, MoreVertical, X, Star } from "lucide-react";
+import { PlusCircle, MessageSquare, LogOut, Settings, MoreVertical, X, Star, LineChart } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useSidebar } from "./SidebarContext";
 import FavoritesModal from "./FavoritesModal";
@@ -51,11 +51,21 @@ export default function ChatSidebar({ sessions, user }: ChatSidebarProps) {
                             setIsOpen(false);
                             setIsFavoritesOpen(true);
                         }}
-                        className="flex items-center gap-2 w-full px-4 py-3 bg-neutral-800/50 hover:bg-neutral-800 text-white rounded-xl font-medium transition-colors border border-neutral-700/50 justify-center"
+                        className="flex items-center justify-start gap-2 w-full px-4 py-3 bg-neutral-800/50 hover:bg-neutral-800 text-white rounded-xl font-medium transition-colors border border-neutral-700/50"
                     >
                         <Star className="h-5 w-5 text-amber-400" />
                         Favoritos
                     </button>
+                    {(user?.role === 'TENANT_ADMIN' || user?.role === 'SUPER_ADMIN' || user?.hasDashboardAccess) && (
+                        <Link
+                            href="/chat/finance-analytics"
+                            onClick={() => setIsOpen(false)}
+                            className="flex items-center justify-start gap-2 w-full px-4 py-3 bg-neutral-800/50 hover:bg-neutral-800 text-white rounded-xl font-medium transition-colors border border-neutral-700/50"
+                        >
+                            <LineChart className="h-5 w-5 text-blue-400" />
+                            Dashboard
+                        </Link>
+                    )}
                 </div>
 
                 {/* Conversation List */}

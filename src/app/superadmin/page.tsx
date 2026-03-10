@@ -17,6 +17,7 @@ export default async function SuperAdminDashboard() {
         headers: { Authorization: `Bearer ${(session.user as any).accessToken}` },
         cache: 'no-store'
     });
+
     const tenants = res.ok ? await res.json() : [];
 
     return (

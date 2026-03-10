@@ -27,6 +27,7 @@ export const metadata: Metadata = {
 
 import { Toaster } from 'sonner';
 import SessionModal from "@/components/SessionModal";
+import AuthProvider from "@/components/AuthProvider";
 
 export default function RootLayout({
   children,
@@ -38,9 +39,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
-        <Toaster richColors position="top-right" />
-        <SessionModal />
+        <AuthProvider>
+          {children}
+          <Toaster richColors position="top-right" />
+          <SessionModal />
+        </AuthProvider>
       </body>
     </html>
   );

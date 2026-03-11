@@ -56,7 +56,10 @@ export default function ChatSidebar({ sessions, user }: ChatSidebarProps) {
                         <Star className="h-5 w-5 text-amber-400" />
                         Favoritos
                     </button>
-                    {(user?.role === 'TENANT_ADMIN' || user?.role === 'SUPER_ADMIN' || user?.hasDashboardAccess) && (
+                    {(user?.role === 'TENANT_ADMIN' || user?.role === 'SUPER_ADMIN' || 
+                      user?.hasPayableDashboardAccess || 
+                      user?.hasReceivableDashboardAccess || 
+                      user?.hasBankingDashboardAccess) && (
                         <Link
                             href="/chat/finance-analytics"
                             onClick={() => setIsOpen(false)}

@@ -143,12 +143,27 @@ export default function FinanceAnalyticsDashboard() {
     useEffect(() => {
         if (session) {
             const user = session.user as any;
-            const hasAccess = user.role === 'TENANT_ADMIN' || user.role === 'SUPER_ADMIN' || user.hasDashboardAccess;
+            const hasAnyAccess = user.role === 'TENANT_ADMIN' || user.role === 'SUPER_ADMIN' || 
+                                user.hasPayableDashboardAccess || 
+                                user.hasReceivableDashboardAccess || 
+                                user.hasBankingDashboardAccess;
 
-            if (!hasAccess) {
+            if (!hasAnyAccess) {
                 window.location.href = "/chat";
                 return;
             }
+
+            // Filter widgets based on access
+            const filteredWidgets = DEFAULT_WIDGETS.filter(w => {
+                if (user.role === 'TENANT_ADMIN' || user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') return true;
+                
+                // Widgets that require Receber
+                const receiveWidgets = ['aging', 'dist_clients', 'performance', 'debtors'];
+                if (receiveWidgets.includes(w.id) && !user.hasReceivableDashboardAccess) return false;
+                
+                return true;
+            });
+            setWidgets(filteredWidgets);
 
             fetchData(startDate, endDate);
         }

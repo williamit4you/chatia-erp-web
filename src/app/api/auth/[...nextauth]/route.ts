@@ -35,7 +35,12 @@ export const authOptions: NextAuthOptions = {
                             email: user.email,
                             tenantId: user.tenantId,
                             role: user.role,
-                            hasDashboardAccess: user.hasDashboardAccess,
+                            hasPayableChatAccess: user.hasPayableChatAccess,
+                            hasPayableDashboardAccess: user.hasPayableDashboardAccess,
+                            hasReceivableChatAccess: user.hasReceivableChatAccess,
+                            hasReceivableDashboardAccess: user.hasReceivableDashboardAccess,
+                            hasBankingChatAccess: user.hasBankingChatAccess,
+                            hasBankingDashboardAccess: user.hasBankingDashboardAccess,
                             accessToken: user.token, // Store the C# JWT
                         };
                     }
@@ -54,9 +59,12 @@ export const authOptions: NextAuthOptions = {
                 (session.user as any).id = token.id;
                 (session.user as any).tenantId = token.tenantId;
                 (session.user as any).role = token.role;
-                (session.user as any).hasDashboardAccess = token.hasDashboardAccess;
-                (session.user as any).hasPayableAccess = token.hasPayableAccess;
-                (session.user as any).hasReceivableAccess = token.hasReceivableAccess;
+                (session.user as any).hasPayableChatAccess = token.hasPayableChatAccess;
+                (session.user as any).hasPayableDashboardAccess = token.hasPayableDashboardAccess;
+                (session.user as any).hasReceivableChatAccess = token.hasReceivableChatAccess;
+                (session.user as any).hasReceivableDashboardAccess = token.hasReceivableDashboardAccess;
+                (session.user as any).hasBankingChatAccess = token.hasBankingChatAccess;
+                (session.user as any).hasBankingDashboardAccess = token.hasBankingDashboardAccess;
                 (session.user as any).currentSessionId = token.currentSessionId;
                 (session.user as any).accessToken = token.accessToken;
                 console.log("NextAuth Session Callback - accessToken payload:", (token.accessToken as string) ? (token.accessToken as string).substring(0, 30) + "..." : "missing");
@@ -68,9 +76,12 @@ export const authOptions: NextAuthOptions = {
                 token.id = user.id;
                 token.tenantId = (user as any).tenantId;
                 token.role = (user as any).role;
-                token.hasDashboardAccess = (user as any).hasDashboardAccess;
-                token.hasPayableAccess = (user as any).hasPayableAccess;
-                token.hasReceivableAccess = (user as any).hasReceivableAccess;
+                token.hasPayableChatAccess = (user as any).hasPayableChatAccess;
+                token.hasPayableDashboardAccess = (user as any).hasPayableDashboardAccess;
+                token.hasReceivableChatAccess = (user as any).hasReceivableChatAccess;
+                token.hasReceivableDashboardAccess = (user as any).hasReceivableDashboardAccess;
+                token.hasBankingChatAccess = (user as any).hasBankingChatAccess;
+                token.hasBankingDashboardAccess = (user as any).hasBankingDashboardAccess;
                 token.currentSessionId = (user as any).currentSessionId;
                 token.accessToken = (user as any).accessToken;
             }

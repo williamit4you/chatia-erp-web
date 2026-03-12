@@ -30,6 +30,7 @@ import MonthlyEvolutionChart from "@/components/finance/MonthlyEvolutionChart";
 import TopAccountsList from "@/components/finance/TopAccountsList";
 import EfficiencyKpiCards from "@/components/finance/EfficiencyKpiCards";
 import DailyBalanceChart from "@/components/finance/DailyBalanceChart";
+import ChartAnalysisView from "@/components/finance/ChartAnalysisView";
 
 import {
     AlertCircle,
@@ -176,6 +177,7 @@ export default function FinanceAnalyticsDashboard() {
     const [isEditMode, setIsEditMode] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [showResetModal, setShowResetModal] = useState(false);
+    const [analysisChartId, setAnalysisChartId] = useState<string | null>(null);
 
     const userId = session?.user?.id || 'default';
 
@@ -197,53 +199,68 @@ export default function FinanceAnalyticsDashboard() {
 
     useEffect(() => {
         setMounted(true);
-        // Load persistence
-        const sWidgets = localStorage.getItem(`finance_v5_widgets_${userId}`);
-        const sLayouts = localStorage.getItem(`finance_v5_layouts_${userId}`);
 
-        if (sWidgets) {
-            try { setWidgets(JSON.parse(sWidgets)); } catch (e) { }
-        }
-        if (sLayouts) {
-            try {
-                const parsed = JSON.parse(sLayouts);
-                setSavedLayouts(parsed);
-                setLayouts(parsed);
-            } catch (e) { }
-        }
-    }, [setLayouts]);
-
-    useEffect(() => {
         if (session) {
             const user = session.user as any;
+            const currentUserId = user.id || 'default';
+
+            // Check for any access and redirect if none
             const hasAnyAccess = user.role === 'TENANT_ADMIN' || user.role === 'SUPER_ADMIN' || 
-                                user.hasPayableDashboardAccess || 
-                                user.hasReceivableDashboardAccess || 
-                                user.hasBankingDashboardAccess;
+                                 user.hasPayableDashboardAccess || 
+                                 user.hasReceivableDashboardAccess || 
+                                 user.hasBankingDashboardAccess;
 
             if (!hasAnyAccess) {
                 window.location.href = "/chat";
                 return;
             }
 
-            // Filter widgets based on access
-            const filteredWidgets = DEFAULT_WIDGETS.filter(w => {
+            // 1. Load from storage
+            const sWidgets = localStorage.getItem(`finance_v5_widgets_${currentUserId}`);
+            const sLayouts = localStorage.getItem(`finance_v5_layouts_${currentUserId}`);
+
+            let savedWidgets: WidgetConfig[] = [];
+            if (sWidgets) {
+                try { savedWidgets = JSON.parse(sWidgets); } catch (e) { }
+            }
+
+            // 2. Filter default widgets by access (Master list)
+            const availableWidgets = DEFAULT_WIDGETS.filter(w => {
                 if (user.role === 'TENANT_ADMIN' || user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') return true;
                 
                 // Widgets that require Receber
-                const receiveWidgets = ['aging', 'performance', 'dist_rec_cliente', 'geo_receber', 'evolucao_rec', 'curva_rec', 'top_rec', 'faixa_rec'];
+                const receiveWidgets = ['aging', 'performance', 'dist_rec_cliente', 'geo_receber', 'evolucao_rec', 'curva_rec', 'top_rec', 'faixa_rec', 'pm_rec_cli', 'tm_rec_cli', 'docs_cli'];
                 if (receiveWidgets.includes(w.id) && !user.hasReceivableDashboardAccess) return false;
 
-                const payableWidgets = ['dist_pag_fornecedor', 'geo_pagar', 'dist_tipo_pag', 'dist_cond_pag', 'evolucao_pag', 'curva_pag', 'top_pag', 'faixa_pag'];
+                const payableWidgets = ['dist_pag_fornecedor', 'geo_pagar', 'dist_tipo_pag', 'dist_cond_pag', 'evolucao_pag', 'curva_pag', 'top_pag', 'faixa_pag', 'pm_pag_for', 'tm_pag_for', 'docs_for'];
                 if (payableWidgets.includes(w.id) && !user.hasPayableDashboardAccess) return false;
                 
                 return true;
             });
-            setWidgets(filteredWidgets);
+
+            // 3. Apply saved visibility to available widgets
+            const finalWidgets = availableWidgets.map(aw => {
+                const saved = savedWidgets.find(sw => sw.id === aw.id);
+                return {
+                    ...aw,
+                    visible: saved ? saved.visible : aw.visible
+                };
+            });
+
+            setWidgets(finalWidgets);
+
+            // 4. Load Layouts
+            if (sLayouts) {
+                try {
+                    const parsed = JSON.parse(sLayouts);
+                    setSavedLayouts(parsed);
+                    setLayouts(parsed);
+                } catch (e) { }
+            }
 
             fetchData(startDate, endDate);
         }
-    }, [session]);
+    }, [session, setLayouts]);
 
     const handleFilter = () => fetchData(startDate, endDate);
     const handleClearFilters = () => {
@@ -297,284 +314,105 @@ export default function FinanceAnalyticsDashboard() {
 
     const isWidgetVisible = (id: string) => widgets.find(w => w.id === id)?.visible;
 
-    // Render logic for grid items
-    const renderWidget = (id: string) => {
-        switch (id) {
-            case 'kpis':
-                return (
-                    <div key="kpis">
-                        <DashboardWidget id="kpis" title="Indicadores de Saúde" showControls={isEditMode} onRemove={toggleWidget}>
-                            <AdvancedKpiCards data={advanced?.saudeFinanceira || null} isLoading={isLoading} />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'summary':
-                return (
-                    <div key="summary">
-                        <DashboardWidget id="summary" title="Resumo Geral" showControls={isEditMode} onRemove={toggleWidget}>
-                            <FinanceSummaryCards data={summary} isLoading={isLoading} />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'flow':
-                return (
-                    <div key="flow">
-                        <DashboardWidget id="flow" title="Fluxo de Caixa Mensal" showControls={isEditMode} onRemove={toggleWidget}>
-                            <MonthlyFlowChart data={monthlyFlow} isLoading={isLoading} />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'projection':
-                return (
-                    <div key="projection">
-                        <DashboardWidget id="projection" title="Previsão (30 dias)" showControls={isEditMode} onRemove={toggleWidget}>
-                            <CashProjectionChart data={advanced?.previsaoCaixa || []} isLoading={isLoading} />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'aging':
-                return (
-                    <div key="aging">
-                        <DashboardWidget id="aging" title="Aging (Inadimplência)" showControls={isEditMode} onRemove={toggleWidget}>
-                            <AgingChart data={advanced?.aging || []} isLoading={isLoading} />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'ai':
-                return (
-                    <div key="ai">
-                        <DashboardWidget id="ai" title="Assistente de Análise" showControls={isEditMode} onRemove={toggleWidget}>
-                            <AiAnalysisPanel data={aiAnalysis} isLoading={isLoading} />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'performance':
-                return (
-                    <div key="performance">
-                        <DashboardWidget id="performance" title="Performance de Recebimento" showControls={isEditMode} onRemove={toggleWidget}>
-                            <DistributionPieChart title="" data={advanced?.performanceRecebimento?.map(i => ({ label: i.categoria, valor: i.valor, percentual: 0 })) || []} isLoading={isLoading} />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'dist_pag_fornecedor':
-                return (
-                    <div key="dist_pag_fornecedor">
-                        <DashboardWidget id="dist_pag_fornecedor" title="Pagar por Fornecedor (Top 15)" showControls={isEditMode} onRemove={toggleWidget}>
-                            <DistributionPieChart title="" data={advanced?.distribuicaoPagarFornecedor || []} isLoading={isLoading} />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'geo_pagar':
-                return (
-                    <div key="geo_pagar">
-                        <DashboardWidget id="geo_pagar" title="Pagar por Estado (UF)" showControls={isEditMode} onRemove={toggleWidget}>
-                            <DistributionPieChart title="" data={advanced?.geograficoPagar?.map(i => ({ label: i.local, valor: i.valor, percentual: 0 })) || []} isLoading={isLoading} />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'dist_tipo_pag':
-                return (
-                    <div key="dist_tipo_pag">
-                        <DashboardWidget id="dist_tipo_pag" title="Tipo de Pagamento" showControls={isEditMode} onRemove={toggleWidget}>
-                            <DistributionPieChart title="" data={advanced?.distribuicaoTipoPagamento || []} isLoading={isLoading} />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'dist_cond_pag':
-                return (
-                    <div key="dist_cond_pag">
-                        <DashboardWidget id="dist_cond_pag" title="Condição de Pagamento" showControls={isEditMode} onRemove={toggleWidget}>
-                            <DistributionPieChart title="" data={advanced?.distribuicaoCondicaoPagamento || []} isLoading={isLoading} />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'faixa_pag':
-                return (
-                    <div key="faixa_pag">
-                        <DashboardWidget id="faixa_pag" title="Pagar por Faixa de Valor" showControls={isEditMode} onRemove={toggleWidget}>
-                            <DistributionPieChart title="" data={advanced?.distribuicaoFaixaValorPagar || []} isLoading={isLoading} />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'evolucao_pag':
-                return (
-                    <div key="evolucao_pag">
-                        <DashboardWidget id="evolucao_pag" title="Evolução de Pagamentos" showControls={isEditMode} onRemove={toggleWidget}>
-                            <MonthlyEvolutionChart title="" data={advanced?.evolucaoMensalPagamento || []} isLoading={isLoading} color="#f43f5e" fillColor="#f43f5e" dataKey="valor" />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'curva_pag':
-                return (
-                    <div key="curva_pag">
-                        <DashboardWidget id="curva_pag" title="Curva de Vencimentos (Pagar)" showControls={isEditMode} onRemove={toggleWidget}>
-                            <MonthlyEvolutionChart title="" data={advanced?.curvaVencimentoPagar || []} isLoading={isLoading} color="#e11d48" fillColor="#e11d48" dataKey="valor" />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'top_pag':
-                return (
-                    <div key="top_pag">
-                        <DashboardWidget id="top_pag" title="Top 10 a Pagar" showControls={isEditMode} onRemove={toggleWidget}>
-                            <TopAccountsList title="" data={advanced?.topContasPagar || []} isLoading={isLoading} iconColor="text-rose-500" valueColor="text-rose-600" />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'dist_rec_cliente':
-                return (
-                    <div key="dist_rec_cliente">
-                        <DashboardWidget id="dist_rec_cliente" title="Receitas por Cliente (Top 15)" showControls={isEditMode} onRemove={toggleWidget}>
-                            <DistributionPieChart title="" data={advanced?.distribuicaoReceberCliente || []} isLoading={isLoading} />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'geo_receber':
-                return (
-                    <div key="geo_receber">
-                        <DashboardWidget id="geo_receber" title="Receber por Estado (UF)" showControls={isEditMode} onRemove={toggleWidget}>
-                            <DistributionPieChart title="" data={advanced?.geograficoReceber?.map(i => ({ label: i.local, valor: i.valor, percentual: 0 })) || []} isLoading={isLoading} />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'faixa_rec':
-                return (
-                    <div key="faixa_rec">
-                        <DashboardWidget id="faixa_rec" title="Receber por Faixa de Valor" showControls={isEditMode} onRemove={toggleWidget}>
-                            <DistributionPieChart title="" data={advanced?.distribuicaoFaixaValorReceber || []} isLoading={isLoading} />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'evolucao_rec':
-                return (
-                    <div key="evolucao_rec">
-                        <DashboardWidget id="evolucao_rec" title="Evolução de Recebimentos" showControls={isEditMode} onRemove={toggleWidget}>
-                            <MonthlyEvolutionChart title="" data={advanced?.evolucaoMensalRecebimento || []} isLoading={isLoading} color="#10b981" fillColor="#10b981" dataKey="valor" />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'curva_rec':
-                return (
-                    <div key="curva_rec">
-                        <DashboardWidget id="curva_rec" title="Curva de Vencimentos (Receber)" showControls={isEditMode} onRemove={toggleWidget}>
-                            <MonthlyEvolutionChart title="" data={advanced?.curvaVencimentoReceber || []} isLoading={isLoading} color="#059669" fillColor="#059669" dataKey="valor" />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'top_rec':
-                return (
-                    <div key="top_rec">
-                        <DashboardWidget id="top_rec" title="Top 10 a Receber" showControls={isEditMode} onRemove={toggleWidget}>
-                            <TopAccountsList title="" data={advanced?.topContasReceber || []} isLoading={isLoading} iconColor="text-emerald-500" valueColor="text-emerald-600" />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'efficiency_kpis':
-                return (
-                    <div key="efficiency_kpis">
-                        <DashboardWidget id="efficiency_kpis" title="Indicadores de Eficiência e Risco" showControls={isEditMode} onRemove={toggleWidget}>
-                            <EfficiencyKpiCards data={advanced?.saudeFinanceira || null} isLoading={isLoading} />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'vol_dia_mes':
-                return (
-                    <div key="vol_dia_mes">
-                        <DashboardWidget id="vol_dia_mes" title="Volume por Dia do Mês" showControls={isEditMode} onRemove={toggleWidget}>
-                            <DistributionPieChart title="" data={advanced?.volumePorDia || []} isLoading={isLoading} />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'liq_empresa':
-                return (
-                    <div key="liq_empresa">
-                        <DashboardWidget id="liq_empresa" title="Índice de Liquidez por Empresa" showControls={isEditMode} onRemove={toggleWidget}>
-                            <DistributionPieChart title="" data={advanced?.indiceLiquidezPorEmpresa || []} isLoading={isLoading} />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'fluxo_diario_proj':
-                return (
-                    <div key="fluxo_diario_proj">
-                        <DashboardWidget id="fluxo_diario_proj" title="Fluxo Diário Projetado" showControls={isEditMode} onRemove={toggleWidget}>
-                            <DailyBalanceChart data={advanced?.fluxoCaixaDiarioProjetado || []} isLoading={isLoading} color="#8b5cf6" />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'vol_cpf_cnpj':
-                return (
-                    <div key="vol_cpf_cnpj">
-                        <DashboardWidget id="vol_cpf_cnpj" title="Concentração por CPF/CNPJ" showControls={isEditMode} onRemove={toggleWidget}>
-                            <TopAccountsList title="" data={advanced?.volumePorCpfCnpj?.map((i) => ({ documento: i.label, valor: i.valor })) || []} isLoading={isLoading} iconColor="text-indigo-500" valueColor="text-indigo-600" />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'saldo_acumulado':
-                return (
-                    <div key="saldo_acumulado">
-                        <DashboardWidget id="saldo_acumulado" title="Saldo Financeiro Acumulado" showControls={isEditMode} onRemove={toggleWidget}>
-                            <DailyBalanceChart data={advanced?.evolucaoSaldo?.map((i) => ({ ano: 2024, mes: 1, valor: i.saldoAcumulado, mesAno: i.data.toString().split('T')[0] })) || []} isLoading={isLoading} color="#10b981" />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'dist_faixa_prazo':
-                return (
-                    <div key="dist_faixa_prazo">
-                        <DashboardWidget id="dist_faixa_prazo" title="Distribuição por Faixa de Prazo" showControls={isEditMode} onRemove={toggleWidget}>
-                            <DistributionPieChart title="" data={advanced?.distribuicaoFaixaPrazoVencimento || []} isLoading={isLoading} />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'pm_rec_cli':
-                return (
-                    <div key="pm_rec_cli">
-                        <DashboardWidget id="pm_rec_cli" title="PM Rec. por Cliente" showControls={isEditMode} onRemove={toggleWidget}>
-                            <DistributionPieChart title="" data={advanced?.prazoMedioRecebimentoPorCliente || []} isLoading={isLoading} />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'pm_pag_for':
-                return (
-                    <div key="pm_pag_for">
-                        <DashboardWidget id="pm_pag_for" title="PM Pag. por Fornecedor" showControls={isEditMode} onRemove={toggleWidget}>
-                            <DistributionPieChart title="" data={advanced?.prazoMedioPagamentoPorFornecedor || []} isLoading={isLoading} />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'tm_rec_cli':
-                return (
-                    <div key="tm_rec_cli">
-                        <DashboardWidget id="tm_rec_cli" title="Ticket Médio por Cliente" showControls={isEditMode} onRemove={toggleWidget}>
-                            <TopAccountsList title="" data={advanced?.ticketMedioPorCliente?.map(i => ({ documento: i.label, valor: i.valor })) || []} isLoading={isLoading} iconColor="text-emerald-500" valueColor="text-emerald-600" />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'tm_pag_for':
-                return (
-                    <div key="tm_pag_for">
-                        <DashboardWidget id="tm_pag_for" title="Ticket Médio por Fornecedor" showControls={isEditMode} onRemove={toggleWidget}>
-                            <TopAccountsList title="" data={advanced?.ticketMedioPorFornecedor?.map(i => ({ documento: i.label, valor: i.valor })) || []} isLoading={isLoading} iconColor="text-rose-500" valueColor="text-rose-600" />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'docs_cli':
-                return (
-                    <div key="docs_cli">
-                        <DashboardWidget id="docs_cli" title="Documentos por Cliente" showControls={isEditMode} onRemove={toggleWidget}>
-                            <TopAccountsList title="" data={advanced?.documentosPorClienteAtivo?.map(i => ({ documento: i.label, valor: i.valor })) || []} isLoading={isLoading} iconColor="text-blue-500" valueColor="text-blue-600" />
-                        </DashboardWidget>
-                    </div>
-                );
-            case 'docs_for':
-                return (
-                    <div key="docs_for">
-                        <DashboardWidget id="docs_for" title="Documentos por Fornecedor" showControls={isEditMode} onRemove={toggleWidget}>
-                            <TopAccountsList title="" data={advanced?.documentosPorFornecedorAtivo?.map(i => ({ documento: i.label, valor: i.valor })) || []} isLoading={isLoading} iconColor="text-orange-500" valueColor="text-orange-600" />
-                        </DashboardWidget>
-                    </div>
-                );
-            default: return null;
-        }
+    const getWidgetInfo = (id: string) => {
+        const descriptions: Record<string, string> = {
+            'kpis': 'Visão geral dos principais indicadores de saúde financeira, incluindo score, DSO e prazos médios.',
+            'summary': 'Resumo consolidado dos valores totais a pagar, a receber e saldo projetado.',
+            'flow': 'Comparativo mensal entre valores recebidos, pagos e previsões de entradas.',
+            'projection': 'Projeção detalhada de saldo e fluxo financeiro para os próximos 30 dias.',
+            'aging': 'Análise de documentos vencidos distribuídos por faixas de atraso.',
+            'ai': 'Insights gerados automaticamente pela IA baseados em tendências de comportamento dos dados.',
+            'performance': 'Mede a pontualidade dos recebimentos históricos.',
+            'dist_pag_fornecedor': 'Identifica quais fornecedores concentram a maior parte das despesas em aberto.',
+            'geo_pagar': 'Distribuição geográfica das obrigações financeiras por estado.',
+            'dist_tipo_pag': 'Análise dos métodos de pagamento mais utilizados (Boleto, Pix, Cartão, etc).',
+            'dist_cond_pag': 'Distribuição das condições de parcelamento negociadas com fornecedores.',
+            'evolucao_pag': 'Demonstra o volume de pagamentos realizados mês a mês.',
+            'curva_pag': 'Visualização temporal do volume a pagar futuro (curva de vencimentos).',
+            'top_pag': 'Lista dos 10 maiores documentos individuais pendentes de pagamento.',
+            'faixa_pag': 'Distribuição da contagem de documentos por faixas de valor financeiro.',
+            'dist_rec_cliente': 'Identifica a concentração de receita em clientes específicos.',
+            'geo_receber': 'Distribuição geográfica das receitas por estado.',
+            'evolucao_rec': 'Evolução mensal do volume total de recebimentos efetuados.',
+            'curva_rec': 'Visualização temporal do volume a receber futuro.',
+            'top_rec': 'Lista dos 10 maiores recebíveis individuais em aberto.',
+            'faixa_rec': 'Distribuição do volume de títulos a receber por faixas de valor.',
+            'efficiency_kpis': '23 indicadores avançados de performance, risco e eficiência operacional.',
+            'vol_dia_mes': 'Volume total de movimentação diária para identificar picos de carga mensal.',
+            'liq_empresa': 'Índice de liquidez segregado por unidade de negócio ou filial.',
+            'fluxo_diario_proj': 'Projeção de saldo acumulado dia a dia nos próximos 30 dias.',
+            'vol_cpf_cnpj': 'Volume transacionado por identificador de documento.',
+            'dist_faixa_prazo': 'Agrupamento de documentos pelo tempo restante até o vencimento.',
+            'pm_rec_cli': 'Prazo médio que cada cliente leva para efetuar o pagamento após o vencimento.',
+            'pm_pag_for': 'Prazo médio de pagamento para fornecedores específicos.',
+            'tm_rec_cli': 'Valor médio por documento faturado para cada cliente.',
+            'tm_pag_for': 'Valor médio das compras realizadas com cada fornecedor.',
+            'docs_cli': 'Quantidade total de documentos ativos ou liquidados por cliente.',
+            'docs_for': 'Quantidade total de documentos gerados por fornecedor.'
+        };
+        return {
+            title: widgets.find(w => w.id === id)?.name || "Análise de Gráfico",
+            description: descriptions[id] || "Esta análise permite visualizar o comportamento dos dados financeiros através deste indicador.",
+            data: advanced ? (advanced as any)[id] || advanced.saudeFinanceira : null
+        };
     };
+
+    // Render logic for grid items
+    const renderWidget = (id: string, onlyContent = false) => {
+        const widget = widgets.find(w => w.id === id);
+        if (!widget) return null;
+
+        const content = (() => {
+            switch (id) {
+                case 'kpis': return <AdvancedKpiCards data={advanced?.saudeFinanceira || null} isLoading={isLoading} />;
+                case 'summary': return <FinanceSummaryCards data={summary} isLoading={isLoading} />;
+                case 'flow': return <MonthlyFlowChart data={monthlyFlow} isLoading={isLoading} />;
+                case 'projection': return <CashProjectionChart data={advanced?.previsaoCaixa || []} isLoading={isLoading} />;
+                case 'aging': return <AgingChart data={advanced?.aging || []} isLoading={isLoading} />;
+                case 'ai': return <AiAnalysisPanel data={aiAnalysis} isLoading={isLoading} />;
+                case 'performance': return <DistributionPieChart title="" data={advanced?.performanceRecebimento?.map(i => ({ label: i.categoria, valor: i.valor, percentual: 0 })) || []} isLoading={isLoading} />;
+                case 'dist_pag_fornecedor': return <DistributionPieChart title="" data={advanced?.distribuicaoPagarFornecedor || []} isLoading={isLoading} />;
+                case 'geo_pagar': return <DistributionPieChart title="" data={advanced?.geograficoPagar?.map(i => ({ label: i.local, valor: i.valor, percentual: 0 })) || []} isLoading={isLoading} />;
+                case 'dist_tipo_pag': return <DistributionPieChart title="" data={advanced?.distribuicaoTipoPagamento || []} isLoading={isLoading} />;
+                case 'dist_cond_pag': return <DistributionPieChart title="" data={advanced?.distribuicaoCondicaoPagamento || []} isLoading={isLoading} />;
+                case 'faixa_pag': return <DistributionPieChart title="" data={advanced?.distribuicaoFaixaValorPagar || []} isLoading={isLoading} />;
+                case 'evolucao_pag': return <MonthlyEvolutionChart title="" data={advanced?.evolucaoMensalPagamento || []} isLoading={isLoading} color="#f43f5e" fillColor="#f43f5e" dataKey="valor" />;
+                case 'curva_pag': return <MonthlyEvolutionChart title="" data={advanced?.curvaVencimentoPagar || []} isLoading={isLoading} color="#e11d48" fillColor="#e11d48" dataKey="valor" />;
+                case 'top_pag': return <TopAccountsList title="" data={advanced?.topContasPagar || []} isLoading={isLoading} iconColor="text-rose-500" valueColor="text-rose-600" />;
+                case 'dist_rec_cliente': return <DistributionPieChart title="" data={advanced?.distribuicaoReceberCliente || []} isLoading={isLoading} />;
+                case 'geo_receber': return <DistributionPieChart title="" data={advanced?.geograficoReceber?.map(i => ({ label: i.local, valor: i.valor, percentual: 0 })) || []} isLoading={isLoading} />;
+                case 'faixa_rec': return <DistributionPieChart title="" data={advanced?.distribuicaoFaixaValorReceber || []} isLoading={isLoading} />;
+                case 'evolucao_rec': return <MonthlyEvolutionChart title="" data={advanced?.evolucaoMensalRecebimento || []} isLoading={isLoading} color="#10b981" fillColor="#10b981" dataKey="valor" />;
+                case 'curva_rec': return <MonthlyEvolutionChart title="" data={advanced?.curvaVencimentoReceber || []} isLoading={isLoading} color="#059669" fillColor="#059669" dataKey="valor" />;
+                case 'top_rec': return <TopAccountsList title="" data={advanced?.topContasReceber || []} isLoading={isLoading} iconColor="text-emerald-500" valueColor="text-emerald-600" />;
+                case 'efficiency_kpis': return <EfficiencyKpiCards data={advanced?.saudeFinanceira || null} isLoading={isLoading} />;
+                case 'vol_dia_mes': return <DistributionPieChart title="" data={advanced?.volumePorDia || []} isLoading={isLoading} />;
+                case 'liq_empresa': return <DistributionPieChart title="" data={advanced?.indiceLiquidezPorEmpresa || []} isLoading={isLoading} />;
+                case 'fluxo_diario_proj': return <DailyBalanceChart data={advanced?.fluxoCaixaDiarioProjetado || []} isLoading={isLoading} color="#8b5cf6" />;
+                case 'vol_cpf_cnpj': return <TopAccountsList title="" data={advanced?.volumePorCpfCnpj?.map((i: any) => ({ documento: i.label, valor: i.valor })) || []} isLoading={isLoading} iconColor="text-indigo-500" valueColor="text-indigo-600" />;
+                case 'saldo_acumulado': return <DailyBalanceChart data={advanced?.evolucaoSaldo?.map((i: any) => ({ ano: 2024, mes: 1, valor: i.saldoAcumulado, mesAno: i.data.toString().split('T')[0] })) || []} isLoading={isLoading} color="#10b981" />;
+                case 'dist_faixa_prazo': return <DistributionPieChart title="" data={advanced?.distribuicaoFaixaPrazoVencimento || []} isLoading={isLoading} />;
+                case 'pm_rec_cli': return <DistributionPieChart title="" data={advanced?.prazoMedioRecebimentoPorCliente || []} isLoading={isLoading} />;
+                case 'pm_pag_for': return <DistributionPieChart title="" data={advanced?.prazoMedioPagamentoPorFornecedor || []} isLoading={isLoading} />;
+                case 'tm_rec_cli': return <TopAccountsList title="" data={advanced?.ticketMedioPorCliente?.map((i: any) => ({ documento: i.label, valor: i.valor })) || []} isLoading={isLoading} iconColor="text-emerald-500" valueColor="text-emerald-600" />;
+                case 'tm_pag_for': return <TopAccountsList title="" data={advanced?.ticketMedioPorFornecedor?.map((i: any) => ({ documento: i.label, valor: i.valor })) || []} isLoading={isLoading} iconColor="text-rose-500" valueColor="text-rose-600" />;
+                case 'docs_cli': return <TopAccountsList title="" data={advanced?.documentosPorClienteAtivo?.map((i: any) => ({ documento: i.label, valor: i.valor })) || []} isLoading={isLoading} iconColor="text-blue-500" valueColor="text-blue-600" />;
+                case 'docs_for': return <TopAccountsList title="" data={advanced?.documentosPorFornecedorAtivo?.map((i: any) => ({ documento: i.label, valor: i.valor })) || []} isLoading={isLoading} iconColor="text-orange-500" valueColor="text-orange-600" />;
+                default: return null;
+            }
+        })();
+
+        if (onlyContent) return <div className="h-full w-full min-h-[500px] flex flex-col">{content}</div>;
+
+        return (
+            <div key={id} className="h-full">
+                <DashboardWidget id={id} title={widget.name} showControls={isEditMode} onRemove={toggleWidget} onAnalyze={setAnalysisChartId}>
+                    {content}
+                </DashboardWidget>
+            </div>
+        );
+    };
+
 
     if (!mounted) return null;
 
@@ -685,6 +523,16 @@ export default function FinanceAnalyticsDashboard() {
                     )}
                 </div>
             </div>
+
+            {/* AI Deep Analysis View */}
+            {analysisChartId && (
+                <ChartAnalysisView
+                    id={analysisChartId}
+                    {...getWidgetInfo(analysisChartId)}
+                    chartComponent={renderWidget(analysisChartId, true)}
+                    onClose={() => setAnalysisChartId(null)}
+                />
+            )}
 
             {/* Custom Reset Modal */}
             {showResetModal && (

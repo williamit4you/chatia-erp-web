@@ -1,11 +1,12 @@
 import { ReactNode, forwardRef } from "react";
-import { X, GripVertical } from "lucide-react";
+import { X, GripVertical, Search } from "lucide-react";
 
 interface DashboardWidgetProps {
     id: string;
     title: string;
     children: ReactNode;
     onRemove?: (id: string) => void;
+    onAnalyze?: (id: string) => void;
     showControls?: boolean;
     className?: string;
     style?: React.CSSProperties;
@@ -15,7 +16,7 @@ interface DashboardWidgetProps {
 }
 
 const DashboardWidget = forwardRef<HTMLDivElement, DashboardWidgetProps>(
-    ({ id, title, children, onRemove, showControls = false, className, style, onMouseDown, onMouseUp, onTouchEnd }, ref) => {
+    ({ id, title, children, onRemove, onAnalyze, showControls = false, className, style, onMouseDown, onMouseUp, onTouchEnd }, ref) => {
         return (
             <div
                 ref={ref}
@@ -31,17 +32,31 @@ const DashboardWidget = forwardRef<HTMLDivElement, DashboardWidgetProps>(
                         {showControls && <GripVertical className="w-4 h-4 text-neutral-400 shrink-0" />}
                         <h3 className="text-sm font-bold text-neutral-700 truncate">{title}</h3>
                     </div>
-                    {showControls && onRemove && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onRemove(id);
-                            }}
-                            className="p-1 hover:bg-red-50 rounded text-neutral-400 hover:text-red-500 transition-colors"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
-                    )}
+                    <div className="flex items-center gap-1">
+                        {!showControls && onAnalyze && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onAnalyze(id);
+                                }}
+                                className="p-1 hover:bg-indigo-50 rounded text-neutral-400 hover:text-indigo-600 transition-colors"
+                                title="Analisar com IA"
+                            >
+                                <Search className="w-4 h-4" />
+                            </button>
+                        )}
+                        {showControls && onRemove && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onRemove(id);
+                                }}
+                                className="p-1 hover:bg-red-50 rounded text-neutral-400 hover:text-red-500 transition-colors"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {/* Content Area */}

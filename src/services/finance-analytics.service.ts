@@ -193,6 +193,18 @@ export const financeAnalyticsService = {
     getAdvancedAnalytics: async (startDate?: string, endDate?: string): Promise<AdvancedDashboard> => {
         const response = await apiClient.get(`/api/finance-analytics/advanced-analytics${buildQueryParams(startDate, endDate)}`);
         return response.data;
+    },
+
+    analyzeChart: async (params: { 
+        message: string; 
+        history: { role: string; content: string }[]; 
+        chartId: string; 
+        chartTitle: string; 
+        chartDescription: string; 
+        chartData: any 
+    }): Promise<{ reply: string; sessionId: string }> => {
+        const response = await apiClient.post('/api/chat/analyze-chart', params);
+        return response.data;
     }
 };
 

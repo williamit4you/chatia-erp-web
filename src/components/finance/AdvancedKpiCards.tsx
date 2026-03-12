@@ -19,15 +19,53 @@ export default function AdvancedKpiCards({ data, isLoading }: AdvancedKpiCardsPr
         );
     }
 
+    const formatCurrency = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(val);
+
     const kpis = [
         {
-            label: "Score de Saúde",
-            value: data.score.toFixed(0),
-            suffix: "/100",
-            icon: Activity,
+            label: "Ticket Médio (Receber)",
+            value: formatCurrency(data.ticketMedioRecebimento),
+            suffix: "",
+            icon: Target,
+            color: "text-emerald-600",
+            bgColor: "bg-emerald-50",
+            sub: "Por documento recebido"
+        },
+        {
+            label: "Ticket Médio (Pagar)",
+            value: formatCurrency(data.ticketMedioPagamento),
+            suffix: "",
+            icon: Target,
+            color: "text-rose-600",
+            bgColor: "bg-rose-50",
+            sub: "Por documento pago"
+        },
+        {
+            label: "Prazo Médio Rec.",
+            value: data.prazoMedioRecebimento.toFixed(0),
+            suffix: " dias",
+            icon: Clock,
             color: "text-indigo-600",
             bgColor: "bg-indigo-50",
-            sub: "Índice Ponderado"
+            sub: "Tempo para receber"
+        },
+        {
+            label: "Prazo Médio Pagt.",
+            value: data.prazoMedioPagamento.toFixed(0),
+            suffix: " dias",
+            icon: Clock,
+            color: "text-amber-600",
+            bgColor: "bg-amber-50",
+            sub: "Tempo para pagar"
+        },
+        {
+            label: "Índ. de Liquidez",
+            value: data.indiceLiquidezOperacional.toFixed(2),
+            suffix: "x",
+            icon: Activity,
+            color: "text-cyan-600",
+            bgColor: "bg-cyan-50",
+            sub: "Receitas / Despesas"
         },
         {
             label: "Inadimplência",
@@ -36,25 +74,7 @@ export default function AdvancedKpiCards({ data, isLoading }: AdvancedKpiCardsPr
             icon: Percent,
             color: "text-red-600",
             bgColor: "bg-red-50",
-            sub: "Total Vencido"
-        },
-        {
-            label: "DSO (Prazo Médio)",
-            value: data.dso.toFixed(0),
-            suffix: " dias",
-            icon: Clock,
-            color: "text-orange-600",
-            bgColor: "bg-orange-50",
-            sub: "Velocidade Rec."
-        },
-        {
-            label: "Conc. Receita",
-            value: data.concentracaoReceita.toFixed(1),
-            suffix: "%",
-            icon: Target,
-            color: "text-blue-600",
-            bgColor: "bg-blue-50",
-            sub: "Dependência Top 1"
+            sub: "Total Vencido vs Geral"
         }
     ];
 

@@ -50,6 +50,12 @@ export interface Performance {
     valor: number;
 }
 
+export interface BalancePoint {
+    data: string;
+    valor: number;
+    saldoAcumulado: number;
+}
+
 export interface CashProjection {
     data: string;
     saldoPrevisto: number;
@@ -62,6 +68,57 @@ export interface FinancialHealth {
     inadimplencia: number;
     dso: number;
     concentracaoReceita: number;
+    prazoMedioPagamento: number;
+    prazoMedioRecebimento: number;
+    ticketMedioPagamento: number;
+    ticketMedioRecebimento: number;
+    indiceLiquidezOperacional: number;
+
+    // Novos KPIs Fase 2
+    indiceCobertura: number;
+    gapFinanceiro: number;
+    saldoFinanceiro30Dias: number;
+    percRecebidoNoPrazo: number;
+    percPagoNoPrazo: number;
+    diasMedioAtrasoReceber: number;
+    diasMedioAtrasoPagar: number;
+    indiceDependenciaCliente: number;
+    indiceDependenciaFornecedor: number;
+    rotacaoFinanceira: number;
+    prazoMedioRestanteReceber: number;
+    prazoMedioRestantePagar: number;
+    percParcelasAtraso: number;
+    valorMedioCliente: number;
+    valorMedioFornecedor: number;
+    indiceLiquidacaoDocumentos: number;
+    concentracaoTop5Clientes: number;
+    concentracaoTop5Fornecedores: number;
+    crescimentoRecebimentos: number;
+    crescimentoPagamentos: number;
+    percContasProximoVencimento: number;
+    mediaDiasEmissaoVencimento: number;
+    valorMedioParcelamento: number;
+
+    // Phase 3
+    percRecebimentoAntecipado: number;
+    percPagamentoAntecipado: number;
+    tempoMedioEmissaoPagamento: number;
+    percDocumentosParcelados: number;
+    mediaParcelasPorDocumento: number;
+    percRecebimentos7Dias: number;
+    tempoMedioRestanteVencimento: number;
+}
+
+export interface MonthlyEvolution {
+    ano: number;
+    mes: number;
+    valor: number;
+    mesAno: string;
+}
+
+export interface TopAccount {
+    documento: string;
+    valor: number;
 }
 
 export interface AdvancedDashboard {
@@ -71,6 +128,37 @@ export interface AdvancedDashboard {
     performanceRecebimento: Performance[];
     previsaoCaixa: CashProjection[];
     saudeFinanceira: FinancialHealth;
+    evolucaoSaldo: BalancePoint[];
+    
+    distribuicaoPagarFornecedor: Distribution[];
+    distribuicaoReceberCliente: Distribution[];
+    geograficoPagar: Geographic[];
+    geograficoReceber: Geographic[];
+    distribuicaoTipoPagamento: Distribution[];
+    distribuicaoCondicaoPagamento: Distribution[];
+    evolucaoMensalPagamento: MonthlyEvolution[];
+    evolucaoMensalRecebimento: MonthlyEvolution[];
+    curvaVencimentoPagar: MonthlyEvolution[];
+    curvaVencimentoReceber: MonthlyEvolution[];
+    topContasPagar: TopAccount[];
+    topContasReceber: TopAccount[];
+    distribuicaoFaixaValorPagar: Distribution[];
+    distribuicaoFaixaValorReceber: Distribution[];
+
+    // Novas Coleções Fase 2
+    volumePorDia: Distribution[];
+    indiceLiquidezPorEmpresa: Distribution[];
+    fluxoCaixaDiarioProjetado: MonthlyEvolution[];
+    volumePorCpfCnpj: Distribution[];
+    distribuicaoFaixaPrazoVencimento: Distribution[];
+
+    // Phase 3
+    prazoMedioRecebimentoPorCliente: Distribution[];
+    prazoMedioPagamentoPorFornecedor: Distribution[];
+    ticketMedioPorCliente: Distribution[];
+    ticketMedioPorFornecedor: Distribution[];
+    documentosPorClienteAtivo: Distribution[];
+    documentosPorFornecedorAtivo: Distribution[];
 }
 
 const buildQueryParams = (startDate?: string, endDate?: string) => {

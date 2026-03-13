@@ -94,6 +94,18 @@ const DEFAULT_WIDGETS: WidgetConfig[] = [
     { id: 'docs_for', name: 'F3: Docs por Fornecedor', visible: true },
 ];
 
+const PAYABLE_WIDGETS = [
+    'dist_pag_fornecedor', 'geo_pagar', 'dist_tipo_pag', 'dist_cond_pag', 
+    'evolucao_pag', 'curva_pag', 'top_pag', 'faixa_pag', 
+    'pm_pag_for', 'tm_pag_for', 'docs_for'
+];
+
+const RECEIVABLE_WIDGETS = [
+    'aging', 'performance', 'dist_rec_cliente', 'geo_receber', 
+    'evolucao_rec', 'curva_rec', 'top_rec', 'faixa_rec', 
+    'pm_rec_cli', 'tm_rec_cli', 'docs_cli'
+];
+
 const DEFAULT_LAYOUTS: ResponsiveLayouts = {
     lg: [
         { i: 'kpis', x: 0, y: 0, w: 12, h: 4, minW: 4, minH: 3 },
@@ -101,36 +113,22 @@ const DEFAULT_LAYOUTS: ResponsiveLayouts = {
         { i: 'flow', x: 0, y: 8, w: 8, h: 10, minW: 4, minH: 6 },
         { i: 'ai', x: 8, y: 8, w: 4, h: 6, minW: 3, minH: 4 },
         { i: 'projection', x: 0, y: 18, w: 8, h: 10, minW: 4, minH: 6 },
-        
-        // Pagar Line 1
         { i: 'evolucao_pag', x: 0, y: 28, w: 6, h: 9, minW: 3, minH: 6 },
         { i: 'curva_pag', x: 6, y: 28, w: 6, h: 9, minW: 3, minH: 6 },
-
-        // Pagar Line 2
         { i: 'dist_pag_fornecedor', x: 0, y: 37, w: 4, h: 9, minW: 3, minH: 6 },
         { i: 'top_pag', x: 4, y: 37, w: 4, h: 9, minW: 3, minH: 6 },
         { i: 'faixa_pag', x: 8, y: 37, w: 4, h: 9, minW: 3, minH: 6 },
-
-        // Pagar Line 3
         { i: 'geo_pagar', x: 0, y: 46, w: 4, h: 9, minW: 3, minH: 6 },
         { i: 'dist_tipo_pag', x: 4, y: 46, w: 4, h: 9, minW: 3, minH: 6 },
         { i: 'dist_cond_pag', x: 8, y: 46, w: 4, h: 9, minW: 3, minH: 6 },
-
-        // Receber Line 1
         { i: 'evolucao_rec', x: 0, y: 55, w: 6, h: 9, minW: 3, minH: 6 },
         { i: 'curva_rec', x: 6, y: 55, w: 6, h: 9, minW: 3, minH: 6 },
-
-        // Receber Line 2
         { i: 'dist_rec_cliente', x: 0, y: 64, w: 4, h: 9, minW: 3, minH: 6 },
         { i: 'top_rec', x: 4, y: 64, w: 4, h: 9, minW: 3, minH: 6 },
         { i: 'faixa_rec', x: 8, y: 64, w: 4, h: 9, minW: 3, minH: 6 },
-
-        // Receber Line 3
         { i: 'geo_receber', x: 0, y: 73, w: 4, h: 9, minW: 3, minH: 6 },
         { i: 'performance', x: 4, y: 73, w: 4, h: 9, minW: 3, minH: 6 },
         { i: 'aging', x: 8, y: 73, w: 4, h: 9, minW: 3, minH: 6 },
-
-        // Fase 2 Management
         { i: 'efficiency_kpis', x: 0, y: 82, w: 12, h: 10, minW: 6, minH: 6 },
         { i: 'saldo_acumulado', x: 0, y: 92, w: 8, h: 12, minW: 4, minH: 8 },
         { i: 'fluxo_diario_proj', x: 8, y: 92, w: 4, h: 12, minW: 3, minH: 8 },
@@ -138,8 +136,6 @@ const DEFAULT_LAYOUTS: ResponsiveLayouts = {
         { i: 'dist_faixa_prazo', x: 6, y: 104, w: 6, h: 10, minW: 3, minH: 6 },
         { i: 'liq_empresa', x: 0, y: 114, w: 6, h: 10, minW: 3, minH: 6 },
         { i: 'vol_cpf_cnpj', x: 6, y: 108, w: 6, h: 9, minW: 3, minH: 6 },
-
-        // Fase 3
         { i: 'pm_rec_cli', x: 0, y: 117, w: 4, h: 9, minW: 3, minH: 6 },
         { i: 'pm_pag_for', x: 4, y: 117, w: 4, h: 9, minW: 3, minH: 6 },
         { i: 'tm_rec_cli', x: 8, y: 117, w: 4, h: 9, minW: 3, minH: 6 },
@@ -148,6 +144,16 @@ const DEFAULT_LAYOUTS: ResponsiveLayouts = {
         { i: 'docs_for', x: 8, y: 126, w: 4, h: 9, minW: 3, minH: 6 },
     ]
 };
+
+// Auto-generate md and sm from lg to prevent tiny items
+// Auto-generate md and sm from lg to prevent tiny items
+const generateResponsiveLayouts = (lg: any[]): ResponsiveLayouts => {
+    const md = lg.map(item => ({ ...item, w: Math.min(item.w, 10), x: Math.min(item.x, 9) }));
+    const sm = lg.map(item => ({ ...item, w: Math.min(item.w, 6), x: Math.min(item.x, 5) }));
+    return { lg, md, sm };
+};
+
+const FINAL_DEFAULT_LAYOUTS = generateResponsiveLayouts(DEFAULT_LAYOUTS.lg as any);
 
 export default function FinanceAnalyticsDashboard() {
     const { data: session } = useSession();
@@ -171,22 +177,77 @@ export default function FinanceAnalyticsDashboard() {
 
     // Layout Persistent State
     const [widgets, setWidgets] = useState<WidgetConfig[]>(DEFAULT_WIDGETS);
-    const [savedLayouts, setSavedLayouts] = useState<ResponsiveLayouts>(DEFAULT_LAYOUTS);
+    const [savedLayouts, setSavedLayouts] = useState<ResponsiveLayouts>(FINAL_DEFAULT_LAYOUTS);
 
     // UI State
     const [isEditMode, setIsEditMode] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [showResetModal, setShowResetModal] = useState(false);
     const [analysisChartId, setAnalysisChartId] = useState<string | null>(null);
+    const [filterMode, setFilterMode] = useState<'all' | 'payable' | 'receivable'>('all');
 
     const userId = session?.user?.id || 'default';
 
-    // Unified layout change handler
     const onLayoutChange = (_current: Layout, all: ResponsiveLayouts) => {
-        if (isEditMode) {
-            setSavedLayouts(all);
-            localStorage.setItem(`finance_v5_layouts_${userId}`, JSON.stringify(all));
-        }
+        if (!isEditMode) return;
+
+        setSavedLayouts((prev) => {
+            const updated = { ...prev };
+            
+            Object.keys(all).forEach((breakpoint) => {
+                const newBpLayout = all[breakpoint as keyof ResponsiveLayouts] || [];
+                const existingBpLayout = [...(prev[breakpoint as keyof ResponsiveLayouts] || [])];
+
+                newBpLayout.forEach((newItem: any) => {
+                    const defaultItem = (DEFAULT_LAYOUTS.lg as any[] || []).find(d => d.i === newItem.i);
+                    
+                    // Sanitize: never save smaller than min or 1x1 if default is bigger
+                    const sanitizedItem = {
+                        ...newItem,
+                        w: Math.max(newItem.w, defaultItem?.minW || 1),
+                        h: Math.max(newItem.h, defaultItem?.minH || 1)
+                    };
+
+                    const idx = existingBpLayout.findIndex((item: any) => item.i === newItem.i);
+                    if (idx !== -1) {
+                        existingBpLayout[idx] = { ...existingBpLayout[idx], ...sanitizedItem };
+                    } else {
+                        existingBpLayout.push(sanitizedItem);
+                    }
+                });
+
+                updated[breakpoint as keyof ResponsiveLayouts] = existingBpLayout;
+            });
+
+            localStorage.setItem(`finance_v5_layouts_${userId}`, JSON.stringify(updated));
+            return updated;
+        });
+    };
+
+    // Helper to merge saved layout with defaults (Ensures no missing/tiny items)
+    const mergeWithDefaults = (saved: ResponsiveLayouts): ResponsiveLayouts => {
+        const merged = { ...FINAL_DEFAULT_LAYOUTS, ...saved };
+        Object.keys(FINAL_DEFAULT_LAYOUTS).forEach(bp => {
+            const dLayout = FINAL_DEFAULT_LAYOUTS[bp as keyof ResponsiveLayouts] || [];
+            const sLayout = [...(merged[bp as keyof ResponsiveLayouts] || [])];
+            
+            dLayout.forEach(dItem => {
+                const sItemIdx = sLayout.findIndex(si => si.i === dItem.i);
+                if (sItemIdx === -1) {
+                    sLayout.push(dItem);
+                } else {
+                    // Force minimum height/width if they somehow became 0 or tiny
+                    sLayout[sItemIdx] = { 
+                        ...dItem, 
+                        ...sLayout[sItemIdx],
+                        w: Math.max(sLayout[sItemIdx].w, dItem.minW || 1),
+                        h: Math.max(sLayout[sItemIdx].h, dItem.minH || 1)
+                    };
+                }
+            });
+            merged[bp as keyof ResponsiveLayouts] = sLayout;
+        });
+        return merged;
     };
 
     // Responsive Grid Hooks
@@ -253,14 +314,28 @@ export default function FinanceAnalyticsDashboard() {
             if (sLayouts) {
                 try {
                     const parsed = JSON.parse(sLayouts);
-                    setSavedLayouts(parsed);
-                    setLayouts(parsed);
+                    const merged = mergeWithDefaults(parsed);
+                    setSavedLayouts(merged);
+                    setLayouts(merged);
                 } catch (e) { }
+            }
+
+            // 5. Load Filter Mode
+            const sFilterMode = localStorage.getItem(`finance_v5_filter_mode_${currentUserId}`);
+            if (sFilterMode && ['all', 'payable', 'receivable'].includes(sFilterMode)) {
+                setFilterMode(sFilterMode as any);
             }
 
             fetchData(startDate, endDate);
         }
-    }, [session, setLayouts]);
+    }, [session]); // Removed setLayouts from deps to prevent loops
+
+    // Sync grid layout when items are toggled or filter changed
+    useEffect(() => {
+        if (mounted) {
+            setLayouts(savedLayouts);
+        }
+    }, [filterMode, widgets, mounted, setLayouts, savedLayouts]);
 
     const handleFilter = () => fetchData(startDate, endDate);
     const handleClearFilters = () => {
@@ -303,10 +378,35 @@ export default function FinanceAnalyticsDashboard() {
         localStorage.setItem(`finance_v5_widgets_${userId}`, JSON.stringify(newWidgets));
     };
 
+    const applyFilterMode = (mode: 'all' | 'payable' | 'receivable') => {
+        setFilterMode(mode);
+        const newWidgets = widgets.map(w => {
+            if (mode === 'payable') {
+                if (RECEIVABLE_WIDGETS.includes(w.id)) return { ...w, visible: false };
+                if (PAYABLE_WIDGETS.includes(w.id)) return { ...w, visible: true };
+            } else if (mode === 'receivable') {
+                if (PAYABLE_WIDGETS.includes(w.id)) return { ...w, visible: false };
+                if (RECEIVABLE_WIDGETS.includes(w.id)) return { ...w, visible: true };
+            } else if (mode === 'all') {
+                return { ...w, visible: true };
+            }
+            return w;
+        });
+        setWidgets(newWidgets);
+        localStorage.setItem(`finance_v5_widgets_${userId}`, JSON.stringify(newWidgets));
+        localStorage.setItem(`finance_v5_filter_mode_${userId}`, mode);
+        
+        // Force a layout merge and update immediately
+        const currentMerged = mergeWithDefaults(savedLayouts);
+        setSavedLayouts(currentMerged);
+        setLayouts(currentMerged);
+    };
+
     const resetLayout = () => {
-        setSavedLayouts(DEFAULT_LAYOUTS);
-        setLayouts(DEFAULT_LAYOUTS);
+        setSavedLayouts(FINAL_DEFAULT_LAYOUTS);
+        setLayouts(FINAL_DEFAULT_LAYOUTS);
         setWidgets(DEFAULT_WIDGETS);
+        setFilterMode('all');
         localStorage.removeItem(`finance_v5_layouts_${userId}`);
         localStorage.removeItem(`finance_v5_widgets_${userId}`);
         setShowResetModal(false);
@@ -450,42 +550,139 @@ export default function FinanceAnalyticsDashboard() {
                             {isEditMode ? 'Travar Layout' : 'Modo Edição'}
                         </button>
 
-                        <div className="h-8 w-px bg-neutral-200 hidden sm:block mx-1"></div>
+                            <div className="h-8 w-px bg-neutral-200 hidden sm:block mx-1"></div>
 
-                        <div className="flex items-center gap-3 bg-white p-1.5 rounded-xl border border-neutral-200 shadow-sm">
-                            <div className="flex items-center gap-2 px-3 border-r border-neutral-100">
-                                <Calendar className="w-4 h-4 text-neutral-400" />
-                                <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="text-xs font-bold outline-none w-28 text-neutral-700" />
-                                <span className="text-neutral-300">/</span>
-                                <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="text-xs font-bold outline-none w-28 text-neutral-700" />
+                            <div className="flex items-center gap-1 bg-neutral-100 p-1 rounded-xl border border-neutral-200 shadow-sm overflow-hidden">
+                                <button
+                                    onClick={() => applyFilterMode('all')}
+                                    className={`px-4 py-1.5 rounded-lg text-xs font-black transition-all ${filterMode === 'all'
+                                        ? 'bg-white text-neutral-900 shadow-sm'
+                                        : 'text-neutral-500 hover:text-neutral-700'
+                                        }`}
+                                >
+                                    Todos
+                                </button>
+                                <button
+                                    onClick={() => applyFilterMode('payable')}
+                                    className={`px-4 py-1.5 rounded-lg text-xs font-black transition-all ${filterMode === 'payable'
+                                        ? 'bg-rose-500 text-white shadow-sm'
+                                        : 'text-neutral-500 hover:text-neutral-700'
+                                        }`}
+                                >
+                                    Pagar
+                                </button>
+                                <button
+                                    onClick={() => applyFilterMode('receivable')}
+                                    className={`px-4 py-1.5 rounded-lg text-xs font-black transition-all ${filterMode === 'receivable'
+                                        ? 'bg-emerald-500 text-white shadow-sm'
+                                        : 'text-neutral-500 hover:text-neutral-700'
+                                        }`}
+                                >
+                                    Receber
+                                </button>
                             </div>
-                            <button onClick={handleFilter} className="bg-neutral-900 text-white px-5 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider hover:bg-black transition-colors">
-                                Atualizar
-                            </button>
-                        </div>
+
+                            <div className="flex items-center gap-3 bg-white p-1.5 rounded-xl border border-neutral-200 shadow-sm">
+                                <div className="flex items-center gap-2 px-3 border-r border-neutral-100">
+                                    <Calendar className="w-4 h-4 text-neutral-400" />
+                                    <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="text-xs font-bold outline-none w-28 text-neutral-700" />
+                                    <span className="text-neutral-300">/</span>
+                                    <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="text-xs font-bold outline-none w-28 text-neutral-700" />
+                                </div>
+                                <button onClick={handleFilter} className="bg-neutral-900 text-white px-5 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider hover:bg-black transition-colors">
+                                    Atualizar
+                                </button>
+                            </div>
                     </div>
                 </div>
 
                 {isEditMode && (
-                    <div className="mb-8 p-6 bg-white rounded-2xl border-2 border-dashed border-indigo-200/60 animate-in fade-in zoom-in-95 duration-300 shadow-[inset_0_2px_20px_-10px_rgba(79,70,229,0.1)]">
-                        <h4 className="text-sm font-black text-indigo-900 mb-4 flex items-center gap-2">
-                            <LayoutIcon className="w-4 h-4" />
-                            GESTÃO DE MÓDULOS
-                        </h4>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
-                            {widgets.map((w) => (
-                                <button
-                                    key={w.id}
-                                    onClick={() => toggleWidget(w.id)}
-                                    className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border ${w.visible
-                                        ? 'bg-indigo-50 text-indigo-700 border-indigo-200 shadow-sm shadow-indigo-100'
-                                        : 'bg-neutral-50 text-neutral-400 border-neutral-200 opacity-60'
-                                        }`}
-                                >
-                                    {w.visible ? <Check className="w-3.5 h-3.5 shrink-0" /> : <Plus className="w-3.5 h-3.5 shrink-0" />}
-                                    <span className="truncate">{w.name}</span>
-                                </button>
-                            ))}
+                    <div className="mb-8 p-6 bg-white rounded-3xl border border-neutral-200 animate-in fade-in zoom-in-95 duration-500 shadow-xl shadow-indigo-100/20">
+                        <div className="flex items-center justify-between mb-6">
+                            <h4 className="text-sm font-black text-neutral-900 flex items-center gap-2 tracking-tight">
+                                <LayoutIcon className="w-5 h-5 text-indigo-600" />
+                                GESTÃO E CONFIGURAÇÃO DA DASHBOARD
+                            </h4>
+                            <span className="text-[10px] font-black bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-full uppercase tracking-widest">
+                                Layout Interativo
+                            </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            {/* Coluna Receber */}
+                            <div className="space-y-4 p-4 rounded-2xl bg-emerald-50/30 border border-emerald-100/50">
+                                <h5 className="text-[11px] font-black text-emerald-700 uppercase tracking-widest flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                    Módulos de Recebimento
+                                </h5>
+                                <div className="grid grid-cols-1 gap-2">
+                                    {widgets.filter(w => RECEIVABLE_WIDGETS.includes(w.id)).map((w) => (
+                                        <button
+                                            key={w.id}
+                                            onClick={() => toggleWidget(w.id)}
+                                            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all border ${w.visible
+                                                ? 'bg-white text-emerald-700 border-emerald-200 shadow-sm shadow-emerald-100'
+                                                : 'bg-neutral-50/50 text-neutral-400 border-neutral-100 opacity-60'
+                                                }`}
+                                        >
+                                            <div className={`w-4 h-4 rounded-md flex items-center justify-center transition-colors ${w.visible ? 'bg-emerald-500 text-white' : 'bg-neutral-200 text-neutral-400'}`}>
+                                                {w.visible ? <Check className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+                                            </div>
+                                            <span className="truncate">{w.name}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Coluna Geral / Ambos */}
+                            <div className="space-y-4 p-4 rounded-2xl bg-indigo-50/30 border border-indigo-100/50">
+                                <h5 className="text-[11px] font-black text-indigo-700 uppercase tracking-widest flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                                    Visão Geral e IA
+                                </h5>
+                                <div className="grid grid-cols-1 gap-2">
+                                    {widgets.filter(w => !RECEIVABLE_WIDGETS.includes(w.id) && !PAYABLE_WIDGETS.includes(w.id)).map((w) => (
+                                        <button
+                                            key={w.id}
+                                            onClick={() => toggleWidget(w.id)}
+                                            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all border ${w.visible
+                                                ? 'bg-white text-indigo-700 border-indigo-200 shadow-sm shadow-indigo-100'
+                                                : 'bg-neutral-50/50 text-neutral-400 border-neutral-100 opacity-60'
+                                                }`}
+                                        >
+                                            <div className={`w-4 h-4 rounded-md flex items-center justify-center transition-colors ${w.visible ? 'bg-indigo-500 text-white' : 'bg-neutral-200 text-neutral-400'}`}>
+                                                {w.visible ? <Check className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+                                            </div>
+                                            <span className="truncate">{w.name}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Coluna Pagar */}
+                            <div className="space-y-4 p-4 rounded-2xl bg-rose-50/30 border border-rose-100/50">
+                                <h5 className="text-[11px] font-black text-rose-700 uppercase tracking-widest flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                    Módulos de Pagamento
+                                </h5>
+                                <div className="grid grid-cols-1 gap-2">
+                                    {widgets.filter(w => PAYABLE_WIDGETS.includes(w.id)).map((w) => (
+                                        <button
+                                            key={w.id}
+                                            onClick={() => toggleWidget(w.id)}
+                                            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all border ${w.visible
+                                                ? 'bg-white text-rose-700 border-rose-200 shadow-sm shadow-rose-100'
+                                                : 'bg-neutral-50/50 text-neutral-400 border-neutral-100 opacity-60'
+                                                }`}
+                                        >
+                                            <div className={`w-4 h-4 rounded-md flex items-center justify-center transition-colors ${w.visible ? 'bg-rose-500 text-white' : 'bg-neutral-200 text-neutral-400'}`}>
+                                                {w.visible ? <Check className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+                                            </div>
+                                            <span className="truncate">{w.name}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}

@@ -204,6 +204,7 @@ export const financeAnalyticsService = {
         chartData: any 
     }): Promise<{ reply: string; sessionId: string }> => {
         const response = await apiClient.post('/api/chat/analyze-chart', params);
+        
         return response.data;
     }
 };

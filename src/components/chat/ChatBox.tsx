@@ -1,12 +1,50 @@
-import { User, Bot, Server, Star } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { User, Bot, Server, Star, Database, ChevronDown, ChevronUp } from "lucide-react";
 
 type Message = {
     id: string;
     role: "user" | "model" | "system";
     content: string;
+    sqlQueries?: string;
 };
 
-export default function ChatBox({ messages, isLoading, onFavorite }: { messages: Message[], isLoading: boolean, onFavorite?: (text: string) => void }) {
+function SqlViewer({ sqlQueries }: { sqlQueries: string }) {
+    const [isOpen, setIsOpen] = useState(false);
+
+    let queries: string[] = [];
+    try {
+        queries = JSON.parse(sqlQueries);
+    } catch {
+        queries = [sqlQueries];
+    }
+
+    return (
+        <div className="mt-3 border-t border-neutral-200 pt-3">
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex items-center gap-1.5 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
+            >
+                <Database className="w-3.5 h-3.5" />
+                {isOpen ? "Ocultar SQL" : "Ver SQL"}
+                {isOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                <span className="text-neutral-400 font-normal">({queries.length} {queries.length === 1 ? "query" : "queries"})</span>
+            </button>
+            {isOpen && (
+                <div className="mt-2 space-y-2 animate-in slide-in-from-top-2 duration-200">
+                    {queries.map((q, i) => (
+                        <pre key={i} className="text-[11px] bg-neutral-900 text-green-400 p-3 rounded-xl overflow-x-auto font-mono leading-relaxed whitespace-pre-wrap break-all">
+                            {q}
+                        </pre>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
+export default function ChatBox({ messages, isLoading, onFavorite, isAdmin = false }: { messages: Message[], isLoading: boolean, onFavorite?: (text: string) => void, isAdmin?: boolean }) {
     return (
         <div className="flex flex-col space-y-4">
             {messages.map((msg) => (
@@ -51,6 +89,9 @@ export default function ChatBox({ messages, isLoading, onFavorite }: { messages:
                                 }`}
                         >
                             <p className="text-sm leading-relaxed">{msg.content}</p>
+                            {isAdmin && msg.role === "model" && msg.sqlQueries && (
+                                <SqlViewer sqlQueries={msg.sqlQueries} />
+                            )}
                         </div>
                     </div>
                 </div>

@@ -19,8 +19,9 @@ export default async function ChatSessionPage({ params }: { params: Promise<{ id
 
     const mappedMessages = messages.map((m: any) => ({
         id: m.id,
-        role: m.role as "user" | "model" | "system",
-        content: m.content
+        role: (m.role === "assistant" ? "model" : m.role) as "user" | "model" | "system",
+        content: m.content,
+        sqlQueries: m.sqlQueries || undefined
     }));
 
     return (

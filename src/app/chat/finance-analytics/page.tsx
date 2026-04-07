@@ -728,6 +728,8 @@ export default function FinanceAnalyticsDashboard() {
                     {...getWidgetInfo(analysisChartId)}
                     chartComponent={renderWidget(analysisChartId, true)}
                     onClose={() => setAnalysisChartId(null)}
+                    initialStartDate={startDate}
+                    initialEndDate={endDate}
                 />
             )}
 

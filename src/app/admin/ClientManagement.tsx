@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import apiClient from '@/lib/api-client';
 import { toast } from 'sonner';
-import { Key, Server, UserPlus, Users, Edit2, Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import { Key, Server, UserPlus, Users, Edit2, Eye, EyeOff, AlertTriangle, Database, Calendar, ChevronDown, ChevronUp, Search } from 'lucide-react';
 
 export default function ClientManagement({ initialUsers, initialSettings, currentUser, isTenantAdmin }: any) {
     const [users, setUsers] = useState(initialUsers || []);
@@ -30,6 +30,15 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
     const [showEditPassword, setShowEditPassword] = useState(false);
     const [editingUser, setEditingUser] = useState<any>(null);
     const [editPassword, setEditPassword] = useState('');
+
+    // Tabs & SQL Logs state
+    const [activeTab, setActiveTab] = useState<'users' | 'sql-logs'>('users');
+    const [sqlLogs, setSqlLogs] = useState<any[]>([]);
+    const [sqlLogsLoading, setSqlLogsLoading] = useState(false);
+    const [sqlFilterUserId, setSqlFilterUserId] = useState('');
+    const [sqlFilterStart, setSqlFilterStart] = useState('');
+    const [sqlFilterEnd, setSqlFilterEnd] = useState('');
+    const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
 
 
 
@@ -99,6 +108,23 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
         }
     };
 
+    const fetchSqlLogs = async () => {
+        setSqlLogsLoading(true);
+        try {
+            const params = new URLSearchParams();
+            if (sqlFilterUserId) params.append('userId', sqlFilterUserId);
+            if (sqlFilterStart) params.append('startDate', sqlFilterStart);
+            if (sqlFilterEnd) params.append('endDate', sqlFilterEnd);
+            const res = await apiClient.get(`/api/chat/sql-logs?${params.toString()}`);
+            setSqlLogs(res.data);
+        } catch (error) {
+            console.error('Erro ao buscar logs SQL:', error);
+            toast.error('Erro ao buscar logs de SQL.');
+        } finally {
+            setSqlLogsLoading(false);
+        }
+    };
+
     return (
         <div className="container mx-auto py-10 px-4 max-w-6xl space-y-8">
             <div className="flex items-center justify-between">
@@ -109,6 +135,33 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                 <a href="/chat" className="text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors bg-emerald-50 px-4 py-2 rounded-xl">
                     Voltar ao Chat
                 </a>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex items-center gap-1 bg-neutral-100 p-1 rounded-xl border border-neutral-200 shadow-sm w-fit">
+                <button
+                    onClick={() => setActiveTab('users')}
+                    className={`px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'users'
+                        ? 'bg-white text-neutral-900 shadow-sm'
+                        : 'text-neutral-500 hover:text-neutral-700'
+                    }`}
+                >
+                    <Users className="w-4 h-4" />
+                    Usuários
+                </button>
+                <button
+                    onClick={() => {
+                        setActiveTab('sql-logs');
+                        if (sqlLogs.length === 0) fetchSqlLogs();
+                    }}
+                    className={`px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'sql-logs'
+                        ? 'bg-white text-neutral-900 shadow-sm'
+                        : 'text-neutral-500 hover:text-neutral-700'
+                    }`}
+                >
+                    <Database className="w-4 h-4" />
+                    Log de Consultas SQL
+                </button>
             </div>
 
             <div className="grid grid-cols-1 gap-8">
@@ -147,6 +200,8 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                     </div>
                 </section>
 
+            {activeTab === 'users' && (
+            <>
                 {/* Users List Section - Full Width */}
                 <section className="bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden">
                     <div className="px-6 py-5 border-b border-neutral-100 flex items-center justify-between">
@@ -249,7 +304,6 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                         </table>
                     </div>
                 </section>
-            </div>
 
             {/* Modal Novo Usuário */}
             {showNewUserModal && (
@@ -457,6 +511,104 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                 </div>
             )}
 
+            </>
+            )}
+
+            </div>
+
+            {activeTab === 'sql-logs' && (
+                <section className="bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden">
+                    <div className="px-6 py-5 border-b border-neutral-100 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <Database className="text-indigo-600 h-5 w-5" />
+                            <h3 className="text-lg font-semibold text-neutral-900">Log de Consultas SQL da IA</h3>
+                        </div>
+                    </div>
+
+                    {/* Filters */}
+                    <div className="p-6 border-b border-neutral-100 flex flex-wrap items-end gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Usuário</label>
+                            <select 
+                                value={sqlFilterUserId} 
+                                onChange={e => setSqlFilterUserId(e.target.value)}
+                                className="bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-2 text-sm w-48 outline-none focus:border-indigo-400"
+                            >
+                                <option value="">Todos</option>
+                                {users.map((u: any) => (
+                                    <option key={u.id} value={u.id}>{u.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Data Início</label>
+                            <input type="date" value={sqlFilterStart} onChange={e => setSqlFilterStart(e.target.value)} className="bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-400" />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Data Fim</label>
+                            <input type="date" value={sqlFilterEnd} onChange={e => setSqlFilterEnd(e.target.value)} className="bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-400" />
+                        </div>
+                        <button 
+                            onClick={fetchSqlLogs}
+                            disabled={sqlLogsLoading}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg text-sm font-bold transition-colors inline-flex items-center gap-1.5 disabled:opacity-50"
+                        >
+                            <Search className="w-4 h-4" />
+                            Buscar
+                        </button>
+                    </div>
+
+                    {/* Results */}
+                    <div className="divide-y divide-neutral-100">
+                        {sqlLogsLoading && (
+                            <div className="p-12 text-center text-neutral-400 text-sm font-medium">Carregando logs...</div>
+                        )}
+                        {!sqlLogsLoading && sqlLogs.length === 0 && (
+                            <div className="p-12 text-center text-neutral-400 text-sm font-medium">Nenhum log de SQL encontrado. As consultas SQL serão registradas a partir de agora.</div>
+                        )}
+                        {!sqlLogsLoading && sqlLogs.map((log: any) => {
+                            const isExpanded = expandedLogId === log.messageId;
+                            let queries: string[] = [];
+                            try { queries = JSON.parse(log.sqlQueries); } catch { queries = [log.sqlQueries]; }
+
+                            return (
+                                <div key={log.messageId} className="px-6 py-4 hover:bg-neutral-50 transition-colors">
+                                    <div className="flex items-center justify-between cursor-pointer" onClick={() => setExpandedLogId(isExpanded ? null : log.messageId)}>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-3 mb-1">
+                                                <span className="text-[11px] text-neutral-400 font-mono">{new Date(log.date).toLocaleString('pt-BR')}</span>
+                                                <span className="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">{log.userName}</span>
+                                                <span className="text-[10px] text-neutral-300">{log.userEmail}</span>
+                                            </div>
+                                            <p className="text-sm font-medium text-neutral-800 truncate">{log.userQuestion}</p>
+                                        </div>
+                                        <div className="flex items-center gap-2 ml-4 shrink-0">
+                                            <span className="text-[10px] font-bold text-neutral-400 bg-neutral-100 px-2 py-1 rounded-lg">{queries.length} SQL</span>
+                                            {isExpanded ? <ChevronUp className="w-4 h-4 text-neutral-400" /> : <ChevronDown className="w-4 h-4 text-neutral-400" />}
+                                        </div>
+                                    </div>
+                                    {isExpanded && (
+                                        <div className="mt-4 space-y-3 animate-in slide-in-from-top-2 duration-200">
+                                            <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-200">
+                                                <h5 className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-2">Resposta da IA</h5>
+                                                <p className="text-sm text-neutral-700 whitespace-pre-wrap leading-relaxed">{log.aiReply.length > 500 ? log.aiReply.substring(0, 500) + '...' : log.aiReply}</p>
+                                            </div>
+                                            <div>
+                                                <h5 className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-2">Queries Executadas</h5>
+                                                <div className="space-y-2">
+                                                    {queries.map((q: string, i: number) => (
+                                                        <pre key={i} className="text-[11px] bg-neutral-900 text-green-400 p-3 rounded-xl overflow-x-auto font-mono leading-relaxed whitespace-pre-wrap break-all">{q}</pre>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </section>
+            )}
 
         </div>
     );

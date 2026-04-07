@@ -1,0 +1,80 @@
+
+[2026-04-07T20:38:00.796Z] Attempting login for admin@it4you.com at http://127.0.0.1:5217/api/auth/login
+[2026-04-07T20:38:03.011Z] API Response Status: 401
+[2026-04-07T20:38:03.033Z] API Response Body: {"message":"Invalid email or password"}
+
+[2026-04-07T20:38:12.184Z] Attempting login for admin@it4you.inf.br at http://127.0.0.1:5217/api/auth/login
+[2026-04-07T20:38:12.532Z] API Response Status: 401
+[2026-04-07T20:38:12.542Z] API Response Body: {"message":"Invalid email or password"}
+
+[2026-04-07T20:42:51.935Z] Attempting login for william@it4you.inf.br at http://127.0.0.1:5217/api/auth/login
+[2026-04-07T20:42:54.551Z] API Response Status: 200
+[2026-04-07T20:42:54.555Z] API Response Body: {"id":"9e06ca7d-685c-4d39-a967-25fd0fc03364","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiJ3aWxsaWFtQGl0NHlvdS5pbmYuYnIiLCJ1c2VySWQiOiI5ZTA2Y2E3ZC02ODVjLTRkMzktYTk2Ny0yNWZkMGZjMDMzNjQiLCJpZCI6IndpbGxpYW1AaXQ0eW91LmluZi5iciIsInRlbmFudElkIjoiMjVlYTkzN2QtMmFkYy00ZTFhLWJlMTUtNmNlY2ZkZThmNDU4Iiwic2Vzc2lvbklkIjoiNTY2YTBmNTMtNDRlYy00ZGUwLTk0OGUtNTZkMmNlYjJlMGI2Iiwicm9sZSI6IlNVUEVSX0FETUlOIiwiaGFzUGF5YWJsZUNoYXRBY2Nlc3MiOiJ0cnVlIiwiaGFzUGF5YWJsZURhc2hib2FyZEFjY2VzcyI6InRydWUiLCJoYXNSZWNlaXZhYmxlQ2hhdEFjY2VzcyI6ImZhbHNlIiwiaGFzUmVjZWl2YWJsZURhc2hib2FyZEFjY2VzcyI6ImZhbHNlIiwiaGFzQmFua2luZ0NoYXRBY2Nlc3MiOiJmYWxzZSIsImhhc0JhbmtpbmdEYXNoYm9hcmRBY2Nlc3MiOiJmYWxzZSIsIm5iZiI6MTc3NTU5NDU3NCwiZXhwIjoxNzc2MTk5Mzc0LCJpYXQiOjE3NzU1OTQ1NzQsImlzcyI6Iml0NHlvdS1hcGkiLCJhdWQiOiJpdDR5b3Utd2ViIn0.h8vx-7TO8WjHXbL2tAIj95G2DlKhkB22zhjH3Nob5pk","name":"Willian","email":"william@it4you.inf.br","tenantId":"25ea937d-2adc-4e1a-be15-6cecfde8f458","role":"SUPER_ADMIN","hasPayableChatAccess":true,"hasPayableDashboardAccess":true,"hasReceivableChatAccess":false,"hasReceivableDashboardAccess":false,"hasBankingChatAccess":false,"hasBankingDashboardAccess":false,"currentSessionId":"566a0f53-44ec-4de0-948e-56d2ceb2e0b6"}
+
+[2026-04-07T20:43:42.124Z] Attempting login for diogo@it4you.inf.br at http://127.0.0.1:5217/api/auth/login
+[2026-04-07T20:43:42.909Z] API Response Status: 200
+[2026-04-07T20:43:42.913Z] API Response Body: {"id":"09367b44-d0e9-46f8-928a-21ef3beecb80","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiJkaW9nb0BpdDR5b3UuaW5mLmJyIiwidXNlcklkIjoiMDkzNjdiNDQtZDBlOS00NmY4LTkyOGEtMjFlZjNiZWVjYjgwIiwiaWQiOiJkaW9nb0BpdDR5b3UuaW5mLmJyIiwidGVuYW50SWQiOiIyNWVhOTM3ZC0yYWRjLTRlMWEtYmUxNS02Y2VjZmRlOGY0NTgiLCJzZXNzaW9uSWQiOiI1MjE3YTMyMi0xNmNkLTRiMzYtOWY5ZS1kNWQ4MGY2NjgwYjciLCJyb2xlIjoiVEVOQU5UX0FETUlOIiwiaGFzUGF5YWJsZUNoYXRBY2Nlc3MiOiJmYWxzZSIsImhhc1BheWFibGVEYXNoYm9hcmRBY2Nlc3MiOiJmYWxzZSIsImhhc1JlY2VpdmFibGVDaGF0QWNjZXNzIjoiZmFsc2UiLCJoYXNSZWNlaXZhYmxlRGFzaGJvYXJkQWNjZXNzIjoiZmFsc2UiLCJoYXNCYW5raW5nQ2hhdEFjY2VzcyI6ImZhbHNlIiwiaGFzQmFua2luZ0Rhc2hib2FyZEFjY2VzcyI6ImZhbHNlIiwibmJmIjoxNzc1NTk0NjIyLCJleHAiOjE3NzYxOTk0MjIsImlhdCI6MTc3NTU5NDYyMiwiaXNzIjoiaXQ0eW91LWFwaSIsImF1ZCI6Iml0NHlvdS13ZWIifQ.Zt9amf-0v7jw5kThXbVxjV4URr6AwVt26JDXMfMGSxU","name":"Diogo","email":"diogo@it4you.inf.br","tenantId":"25ea937d-2adc-4e1a-be15-6cecfde8f458","role":"TENANT_ADMIN","hasPayableChatAccess":false,"hasPayableDashboardAccess":false,"hasReceivableChatAccess":false,"hasReceivableDashboardAccess":false,"hasBankingChatAccess":false,"hasBankingDashboardAccess":false,"currentSessionId":"5217a322-16cd-4b36-9f9e-d5d80f6680b7"}
+
+[2026-04-07T20:44:50.665Z] Attempting login for diogo@it4you.inf.br at http://127.0.0.1:5217/api/auth/login
+[2026-04-07T20:44:51.344Z] API Response Status: 200
+[2026-04-07T20:44:51.347Z] API Response Body: {"id":"09367b44-d0e9-46f8-928a-21ef3beecb80","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiJkaW9nb0BpdDR5b3UuaW5mLmJyIiwidXNlcklkIjoiMDkzNjdiNDQtZDBlOS00NmY4LTkyOGEtMjFlZjNiZWVjYjgwIiwiaWQiOiJkaW9nb0BpdDR5b3UuaW5mLmJyIiwidGVuYW50SWQiOiIyNWVhOTM3ZC0yYWRjLTRlMWEtYmUxNS02Y2VjZmRlOGY0NTgiLCJzZXNzaW9uSWQiOiIyMmFjZjFkYi1lMGM2LTRjNTgtOWIwNy1lMTMzMzI2ZDVjNjYiLCJyb2xlIjoiVEVOQU5UX0FETUlOIiwiaGFzUGF5YWJsZUNoYXRBY2Nlc3MiOiJmYWxzZSIsImhhc1BheWFibGVEYXNoYm9hcmRBY2Nlc3MiOiJmYWxzZSIsImhhc1JlY2VpdmFibGVDaGF0QWNjZXNzIjoiZmFsc2UiLCJoYXNSZWNlaXZhYmxlRGFzaGJvYXJkQWNjZXNzIjoiZmFsc2UiLCJoYXNCYW5raW5nQ2hhdEFjY2VzcyI6ImZhbHNlIiwiaGFzQmFua2luZ0Rhc2hib2FyZEFjY2VzcyI6ImZhbHNlIiwibmJmIjoxNzc1NTk0NjkxLCJleHAiOjE3NzYxOTk0OTEsImlhdCI6MTc3NTU5NDY5MSwiaXNzIjoiaXQ0eW91LWFwaSIsImF1ZCI6Iml0NHlvdS13ZWIifQ.hjt6F5qAT5asHPCaPrNuV4-Yc8p-ZnVTBsVr0sjxjAg","name":"Diogo","email":"diogo@it4you.inf.br","tenantId":"25ea937d-2adc-4e1a-be15-6cecfde8f458","role":"TENANT_ADMIN","hasPayableChatAccess":false,"hasPayableDashboardAccess":false,"hasReceivableChatAccess":false,"hasReceivableDashboardAccess":false,"hasBankingChatAccess":false,"hasBankingDashboardAccess":false,"currentSessionId":"22acf1db-e0c6-4c58-9b07-e133326d5c66"}
+
+[2026-04-07T20:55:36.182Z] Attempting login for diogo@it4you.inf.br at http://127.0.0.1:5217/api/auth/login
+[2026-04-07T20:55:36.294Z] NEXTAUTH FETCH ERROR: fetch failed
+TypeError: fetch failed
+    at node:internal/deps/undici/undici:13484:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Object.authorize (C:\dev\chaterpia\web\.next\dev\server\chunks\[root-of-the-server]__5cf5a965._.js:151:33)
+    at async Object.callback (C:\dev\chaterpia\web\.next\dev\server\chunks\node_modules_next-auth_1810886e._.js:1600:20)
+    at async AuthHandler (C:\dev\chaterpia\web\.next\dev\server\chunks\node_modules_next-auth_1810886e._.js:3333:38)
+    at async NextAuthRouteHandler (C:\dev\chaterpia\web\.next\dev\server\chunks\node_modules_next-auth_1810886e._.js:3501:30)
+    at async NextAuth._args$ (C:\dev\chaterpia\web\.next\dev\server\chunks\node_modules_next-auth_1810886e._.js:3536:24)
+    at async AppRouteRouteModule.do (C:\dev\chaterpia\web\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js:5:37866)
+    at async AppRouteRouteModule.handle (C:\dev\chaterpia\web\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js:5:45156)
+    at async responseGenerator (C:\dev\chaterpia\web\.next\dev\server\chunks\node_modules_next_0073c1d9._.js:12519:38)
+    at async AppRouteRouteModule.handleResponse (C:\dev\chaterpia\web\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js:1:191938)
+    at async handleResponse (C:\dev\chaterpia\web\.next\dev\server\chunks\node_modules_next_0073c1d9._.js:12582:32)
+    at async Module.handler (C:\dev\chaterpia\web\.next\dev\server\chunks\node_modules_next_0073c1d9._.js:12635:13)
+    at async DevServer.renderToResponseWithComponentsImpl (C:\dev\chaterpia\web\node_modules\next\dist\server\base-server.js:1442:9)
+    at async DevServer.renderPageComponent (C:\dev\chaterpia\web\node_modules\next\dist\server\base-server.js:1494:24)
+    at async DevServer.renderToResponseImpl (C:\dev\chaterpia\web\node_modules\next\dist\server\base-server.js:1544:32)
+    at async DevServer.pipeImpl (C:\dev\chaterpia\web\node_modules\next\dist\server\base-server.js:1038:25)
+    at async NextNodeServer.handleCatchallRenderRequest (C:\dev\chaterpia\web\node_modules\next\dist\server\next-server.js:395:17)
+    at async DevServer.handleRequestImpl (C:\dev\chaterpia\web\node_modules\next\dist\server\base-server.js:929:17)
+    at async C:\dev\chaterpia\web\node_modules\next\dist\server\dev\next-dev-server.js:387:20
+    at async Span.traceAsyncFn (C:\dev\chaterpia\web\node_modules\next\dist\trace\trace.js:157:20)
+    at async DevServer.handleRequest (C:\dev\chaterpia\web\node_modules\next\dist\server\dev\next-dev-server.js:383:24)
+    at async invokeRender (C:\dev\chaterpia\web\node_modules\next\dist\server\lib\router-server.js:248:21)
+    at async handleRequest (C:\dev\chaterpia\web\node_modules\next\dist\server\lib\router-server.js:447:24)
+    at async requestHandlerImpl (C:\dev\chaterpia\web\node_modules\next\dist\server\lib\router-server.js:496:13)
+    at async Server.requestListener (C:\dev\chaterpia\web\node_modules\next\dist\server\lib\start-server.js:226:13)
+
+[2026-04-07T20:55:40.793Z] Attempting login for william@it4you.inf.br at http://127.0.0.1:5217/api/auth/login
+[2026-04-07T20:55:40.806Z] NEXTAUTH FETCH ERROR: fetch failed
+TypeError: fetch failed
+    at node:internal/deps/undici/undici:13484:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Object.authorize (C:\dev\chaterpia\web\.next\dev\server\chunks\[root-of-the-server]__5cf5a965._.js:151:33)
+    at async Object.callback (C:\dev\chaterpia\web\.next\dev\server\chunks\node_modules_next-auth_1810886e._.js:1600:20)
+    at async AuthHandler (C:\dev\chaterpia\web\.next\dev\server\chunks\node_modules_next-auth_1810886e._.js:3333:38)
+    at async NextAuthRouteHandler (C:\dev\chaterpia\web\.next\dev\server\chunks\node_modules_next-auth_1810886e._.js:3501:30)
+    at async NextAuth._args$ (C:\dev\chaterpia\web\.next\dev\server\chunks\node_modules_next-auth_1810886e._.js:3536:24)
+    at async AppRouteRouteModule.do (C:\dev\chaterpia\web\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js:5:37866)
+    at async AppRouteRouteModule.handle (C:\dev\chaterpia\web\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js:5:45156)
+    at async responseGenerator (C:\dev\chaterpia\web\.next\dev\server\chunks\node_modules_next_0073c1d9._.js:12519:38)
+    at async AppRouteRouteModule.handleResponse (C:\dev\chaterpia\web\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js:1:191938)
+    at async handleResponse (C:\dev\chaterpia\web\.next\dev\server\chunks\node_modules_next_0073c1d9._.js:12582:32)
+    at async Module.handler (C:\dev\chaterpia\web\.next\dev\server\chunks\node_modules_next_0073c1d9._.js:12635:13)
+    at async DevServer.renderToResponseWithComponentsImpl (C:\dev\chaterpia\web\node_modules\next\dist\server\base-server.js:1442:9)
+    at async DevServer.renderPageComponent (C:\dev\chaterpia\web\node_modules\next\dist\server\base-server.js:1494:24)
+    at async DevServer.renderToResponseImpl (C:\dev\chaterpia\web\node_modules\next\dist\server\base-server.js:1544:32)
+    at async DevServer.pipeImpl (C:\dev\chaterpia\web\node_modules\next\dist\server\base-server.js:1038:25)
+    at async NextNodeServer.handleCatchallRenderRequest (C:\dev\chaterpia\web\node_modules\next\dist\server\next-server.js:395:17)
+    at async DevServer.handleRequestImpl (C:\dev\chaterpia\web\node_modules\next\dist\server\base-server.js:929:17)
+    at async C:\dev\chaterpia\web\node_modules\next\dist\server\dev\next-dev-server.js:387:20
+    at async Span.traceAsyncFn (C:\dev\chaterpia\web\node_modules\next\dist\trace\trace.js:157:20)
+    at async DevServer.handleRequest (C:\dev\chaterpia\web\node_modules\next\dist\server\dev\next-dev-server.js:383:24)
+    at async invokeRender (C:\dev\chaterpia\web\node_modules\next\dist\server\lib\router-server.js:248:21)
+    at async handleRequest (C:\dev\chaterpia\web\node_modules\next\dist\server\lib\router-server.js:447:24)
+    at async requestHandlerImpl (C:\dev\chaterpia\web\node_modules\next\dist\server\lib\router-server.js:496:13)
+    at async Server.requestListener (C:\dev\chaterpia\web\node_modules\next\dist\server\lib\start-server.js:226:13)

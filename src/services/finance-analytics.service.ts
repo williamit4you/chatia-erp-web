@@ -201,8 +201,10 @@ export const financeAnalyticsService = {
         chartId: string; 
         chartTitle: string; 
         chartDescription: string; 
-        chartData: any 
-    }): Promise<{ reply: string; sessionId: string }> => {
+        chartData: any;
+        startDate?: string;
+        endDate?: string;
+    }): Promise<{ reply: string; sessionId: string; sqlQueries?: string }> => {
         const response = await apiClient.post('/api/chat/analyze-chart', params);
         
         return response.data;

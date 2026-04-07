@@ -12,12 +12,20 @@ export const authOptions: NextAuthOptions = {
                 password: { label: "Password", type: "password" }
             },
             async authorize(credentials) {
+                console.log("---- NEXTAUTH AUTHORIZE CALLED ----");
+                console.log("Credentials received for email:", credentials?.email);
+
                 if (!credentials?.email || !credentials?.password) {
+                    console.log("Missing email or password");
                     return null;
                 }
 
                 try {
-                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5217'}/api/auth/login`, {
+                    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5217'}/api/auth/login`;
+                    const fs = require('fs');
+                    fs.appendFileSync('auth_log.txt', `\n[${new Date().toISOString()}] Attempting login for ${credentials.email} at ${apiUrl}\n`);
+
+                    const res = await fetch(apiUrl, {
                         method: "POST",
                         body: JSON.stringify({
                             email: credentials.email,
@@ -26,7 +34,10 @@ export const authOptions: NextAuthOptions = {
                         headers: { "Content-Type": "application/json" }
                     });
 
+                    fs.appendFileSync('auth_log.txt', `[${new Date().toISOString()}] API Response Status: ${res.status}\n`);
+
                     const user = await res.json();
+                    fs.appendFileSync('auth_log.txt', `[${new Date().toISOString()}] API Response Body: ${JSON.stringify(user)}\n`);
 
                     if (res.ok && user) {
                         return {
@@ -45,7 +56,9 @@ export const authOptions: NextAuthOptions = {
                         };
                     }
                     return null;
-                } catch (error) {
+                } catch (error: any) {
+                    const fs = require('fs');
+                    fs.appendFileSync('auth_log.txt', `[${new Date().toISOString()}] NEXTAUTH FETCH ERROR: ${error.message}\n${error.stack}\n`);
                     console.error("NextAuth Auth Error:", error);
                     return null;
                 }

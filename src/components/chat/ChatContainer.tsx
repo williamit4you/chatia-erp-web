@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import apiClient from "@/lib/api-client";
 import ChatBox from "./ChatBox";
 import ChatInput from "./ChatInput";
@@ -16,6 +17,7 @@ interface ChatContainerProps {
 
 export default function ChatContainer({ sessionId, initialMessages, initialPrompt }: ChatContainerProps) {
     const router = useRouter();
+    const { data: session } = useSession();
     const [messages, setMessages] = useState<Message[]>(
         initialMessages || [
             {
@@ -27,6 +29,9 @@ export default function ChatContainer({ sessionId, initialMessages, initialPromp
     );
     const [isLoading, setIsLoading] = useState(false);
     const hasStartedRef = useRef(false);
+
+    const userRole = (session?.user as any)?.role;
+    const isAdmin = userRole === 'TENANT_ADMIN' || userRole === 'SUPER_ADMIN' || userRole === 'ADMIN';
 
     useEffect(() => {
         if (initialPrompt && !hasStartedRef.current) {
@@ -53,6 +58,7 @@ export default function ChatContainer({ sessionId, initialMessages, initialPromp
                 id: (Date.now() + 1).toString(),
                 role: "model",
                 content: data.reply,
+                sqlQueries: data.sqlQueries || undefined,
             };
 
             setMessages((prev) => [...prev, aiMessage]);
@@ -86,7 +92,7 @@ export default function ChatContainer({ sessionId, initialMessages, initialPromp
     return (
         <div className="flex flex-col h-full bg-white md:border-x border-neutral-200">
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
-                <ChatBox messages={messages} isLoading={isLoading} onFavorite={handleFavorite} />
+                <ChatBox messages={messages} isLoading={isLoading} onFavorite={handleFavorite} isAdmin={isAdmin} />
             </div>
             <div className="p-4 bg-white border-t border-neutral-100">
                 <ChatInput onSend={handleSendMessage} disabled={isLoading} />

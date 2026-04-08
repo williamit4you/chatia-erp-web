@@ -8,6 +8,7 @@ import ChatInput from "./ChatInput";
 import { useRouter } from "next/navigation";
 import { chatService, Message } from "@/services/chat.service";
 import { toast } from "sonner";
+import { Info } from "lucide-react";
 
 interface ChatContainerProps {
     sessionId?: string;
@@ -28,10 +29,19 @@ export default function ChatContainer({ sessionId, initialMessages, initialPromp
         ]
     );
     const [isLoading, setIsLoading] = useState(false);
+    const [contextUsage, setContextUsage] = useState(0);
     const hasStartedRef = useRef(false);
 
     const userRole = (session?.user as any)?.role;
     const isAdmin = userRole === 'TENANT_ADMIN' || userRole === 'SUPER_ADMIN' || userRole === 'ADMIN';
+
+    // Estimate initial context usage
+    useEffect(() => {
+        if (messages.length > 0) {
+            const totalChars = messages.reduce((acc, m) => acc + (m.content?.length || 0), 0);
+            setContextUsage(Math.min(100, Math.round((totalChars / 240000) * 100)));
+        }
+    }, [messages.length]);
 
     useEffect(() => {
         if (initialPrompt && !hasStartedRef.current) {
@@ -62,6 +72,10 @@ export default function ChatContainer({ sessionId, initialMessages, initialPromp
             };
 
             setMessages((prev) => [...prev, aiMessage]);
+            
+            if (data.contextUsageScore !== undefined) {
+                setContextUsage(data.contextUsageScore);
+            }
 
             if (!sessionId && data.sessionId) {
                 router.push(`/chat/${data.sessionId}`);
@@ -94,7 +108,37 @@ export default function ChatContainer({ sessionId, initialMessages, initialPromp
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
                 <ChatBox messages={messages} isLoading={isLoading} onFavorite={handleFavorite} isAdmin={isAdmin} />
             </div>
+            
             <div className="p-4 bg-white border-t border-neutral-100">
+                {/* Context Progress Bar */}
+                <div className="max-w-4xl mx-auto mb-3 px-1">
+                    <div className="flex items-center justify-between mb-1 group relative">
+                        <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-tight text-neutral-400">
+                            <span>Contexto da IA</span>
+                            <Info size={12} className="text-neutral-300" />
+                            
+                            {/* Pro Tooltip */}
+                            <div className="absolute bottom-full left-0 mb-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 bg-neutral-900 text-white text-[10px] py-2 px-3 rounded-lg shadow-xl whitespace-nowrap z-50">
+                                Ao atingir 100% a IA tende a alucinar
+                                <div className="absolute top-full left-4 border-4 border-transparent border-t-neutral-900"></div>
+                            </div>
+                        </div>
+                        <span className={`text-[10px] font-black ${
+                            contextUsage > 80 ? "text-red-500" : contextUsage > 50 ? "text-amber-500" : "text-emerald-500"
+                        }`}>
+                            {contextUsage}%
+                        </span>
+                    </div>
+                    <div className="h-1.5 w-full bg-neutral-100 rounded-full overflow-hidden border border-neutral-200/30">
+                        <div 
+                            className={`h-full transition-all duration-700 ease-out ${
+                                contextUsage > 80 ? "bg-red-500" : contextUsage > 50 ? "bg-amber-500" : "bg-emerald-500"
+                            }`}
+                            style={{ width: `${contextUsage}%` }}
+                        />
+                    </div>
+                </div>
+
                 <ChatInput onSend={handleSendMessage} disabled={isLoading} />
             </div>
         </div>

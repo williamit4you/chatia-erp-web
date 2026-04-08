@@ -22,8 +22,6 @@ export const authOptions: NextAuthOptions = {
 
                 try {
                     const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5217'}/api/auth/login`;
-                    const fs = require('fs');
-                    fs.appendFileSync('auth_log.txt', `\n[${new Date().toISOString()}] Attempting login for ${credentials.email} at ${apiUrl}\n`);
 
                     const res = await fetch(apiUrl, {
                         method: "POST",
@@ -34,10 +32,7 @@ export const authOptions: NextAuthOptions = {
                         headers: { "Content-Type": "application/json" }
                     });
 
-                    fs.appendFileSync('auth_log.txt', `[${new Date().toISOString()}] API Response Status: ${res.status}\n`);
-
                     const user = await res.json();
-                    fs.appendFileSync('auth_log.txt', `[${new Date().toISOString()}] API Response Body: ${JSON.stringify(user)}\n`);
 
                     if (res.ok && user) {
                         return {
@@ -57,8 +52,6 @@ export const authOptions: NextAuthOptions = {
                     }
                     return null;
                 } catch (error: any) {
-                    const fs = require('fs');
-                    fs.appendFileSync('auth_log.txt', `[${new Date().toISOString()}] NEXTAUTH FETCH ERROR: ${error.message}\n${error.stack}\n`);
                     console.error("NextAuth Auth Error:", error);
                     return null;
                 }

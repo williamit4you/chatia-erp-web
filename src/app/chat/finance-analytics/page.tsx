@@ -730,6 +730,11 @@ export default function FinanceAnalyticsDashboard() {
                     onClose={() => setAnalysisChartId(null)}
                     initialStartDate={startDate}
                     initialEndDate={endDate}
+                    onDateChange={async (start, end) => {
+                        setStartDate(start);
+                        setEndDate(end);
+                        await fetchData(start, end);
+                    }}
                 />
             )}
 

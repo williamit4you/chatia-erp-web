@@ -22,6 +22,7 @@ interface ChartAnalysisViewProps {
     onClose: () => void;
     initialStartDate?: string;
     initialEndDate?: string;
+    onDateChange?: (startDate: string, endDate: string) => Promise<void>;
 }
 
 function SqlViewer({ sqlQueries }: { sqlQueries: string }) {
@@ -58,7 +59,7 @@ function SqlViewer({ sqlQueries }: { sqlQueries: string }) {
     );
 }
 
-export default function ChartAnalysisView({ id, title, description: propDescription, chartComponent, data, onClose, initialStartDate, initialEndDate }: ChartAnalysisViewProps) {
+export default function ChartAnalysisView({ id, title, description: propDescription, chartComponent, data, onClose, initialStartDate, initialEndDate, onDateChange }: ChartAnalysisViewProps) {
     const { data: session } = useSession();
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState("");
@@ -75,7 +76,10 @@ export default function ChartAnalysisView({ id, title, description: propDescript
     const [endDate, setEndDate] = useState<string>(initialEndDate || new Date().toISOString().split('T')[0]);
     const [isReloading, setIsReloading] = useState(false);
     const [localData, setLocalData] = useState<any>(data);
-    const [localChartComponent, setLocalChartComponent] = useState<ReactNode>(chartComponent);
+
+    useEffect(() => {
+        setLocalData(data);
+    }, [data]);
 
     // Admin detection
     const userRole = (session?.user as any)?.role;
@@ -141,10 +145,12 @@ export default function ChartAnalysisView({ id, title, description: propDescript
     const handleDateFilter = async () => {
         setIsReloading(true);
         try {
-            const advancedData = await financeAnalyticsService.getAdvancedAnalytics(startDate, endDate);
-            setLocalData(advancedData);
-            // The parent component will handle re-rendering the chart with new data
-            // For now, we update the local data which the AI will use
+            if (onDateChange) {
+                await onDateChange(startDate, endDate);
+            } else {
+                const advancedData = await financeAnalyticsService.getAdvancedAnalytics(startDate, endDate);
+                setLocalData(advancedData);
+            }
         } catch (error) {
             console.error("Erro ao recarregar dados:", error);
         } finally {

@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { chatService, Message } from "@/services/chat.service";
 import { toast } from "sonner";
 import { Info } from "lucide-react";
+import { getDisplayContextUsage } from "@/lib/contextUtils";
 
 interface ChatContainerProps {
     sessionId?: string;
@@ -39,7 +40,8 @@ export default function ChatContainer({ sessionId, initialMessages, initialPromp
     useEffect(() => {
         if (messages.length > 0) {
             const totalChars = messages.reduce((acc, m) => acc + (m.content?.length || 0), 0);
-            setContextUsage(Math.min(100, Math.round((totalChars / 240000) * 100)));
+            const actualUsage = Math.min(100, Math.round((totalChars / 240000) * 100));
+            setContextUsage(getDisplayContextUsage(actualUsage));
         }
     }, [messages.length]);
 
@@ -74,7 +76,17 @@ export default function ChatContainer({ sessionId, initialMessages, initialPromp
             setMessages((prev) => [...prev, aiMessage]);
             
             if (data.contextUsageScore !== undefined) {
-                setContextUsage(data.contextUsageScore);
+                const displayContext = getDisplayContextUsage(data.contextUsageScore);
+                setContextUsage(displayContext);
+
+                if (displayContext >= 100) {
+                    toast.error("Limite de memória atingido para manter a qualidade desta conversa. Redirecionando para um novo chat...", { duration: 4000 });
+                    setTimeout(() => {
+                        router.push('/chat');
+                        router.refresh();
+                    }, 2000);
+                    return; // Interrompe para evitar o redirecionamento abaixo
+                }
             }
 
             if (!sessionId && data.sessionId) {

@@ -5,6 +5,8 @@ import { useSession } from "next-auth/react";
 import { Bot, User, X, Send, Loader2, ArrowLeft, Info, MessageSquare, Sparkles, Calendar, Database, ChevronDown, ChevronUp, RefreshCw, PlusCircle, History, Trash2 } from "lucide-react";
 import financeAnalyticsService from "@/services/finance-analytics.service";
 import { getChartHint } from "@/lib/chartHints";
+import { toast } from "sonner";
+import { getDisplayContextUsage } from "@/lib/contextUtils";
 
 interface ChatMessage {
     id: string;
@@ -124,7 +126,8 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                 
                 // Estimate context usage for loaded history
                 const totalChars = res.data.reduce((acc: number, m: any) => acc + (m.content?.length || 0), 0);
-                setContextUsage(Math.min(100, Math.round((totalChars / 240000) * 100)));
+                const actualUsage = Math.min(100, Math.round((totalChars / 240000) * 100));
+                setContextUsage(getDisplayContextUsage(actualUsage));
             }
         } catch (error) {
             console.error("Erro ao carregar mensagens:", error);
@@ -264,7 +267,15 @@ export default function ChartAnalysisView({ id, title, description: propDescript
             }
 
             if (response.contextUsageScore !== undefined) {
-                setContextUsage(response.contextUsageScore);
+                const displayContext = getDisplayContextUsage(response.contextUsageScore);
+                setContextUsage(displayContext);
+
+                if (displayContext >= 100) {
+                    toast.error("O limite de memória desta conversa foi atingido. Uma nova análise será iniciada para manter a qualidade.", { duration: 4000 });
+                    setTimeout(() => {
+                        startNewConversation();
+                    }, 2500);
+                }
             }
         } catch (error) {
             console.error("Erro na análise da IA:", error);

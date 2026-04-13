@@ -51,7 +51,17 @@ export default async function SuperAdminDashboard() {
                         <h1 className="text-3xl font-bold tracking-tight text-white">Empresas Cadastradas</h1>
                         <p className="text-neutral-400 mt-1">Gerencie os inquilinos e seus tokens do ERP.</p>
                     </div>
-                    <div>
+                    <div className="flex gap-3">
+                        <Link
+                            href="/superadmin/rag-memory"
+                            className="inline-flex items-center gap-2 bg-neutral-800 hover:bg-neutral-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-lg shadow-neutral-900/20 border border-neutral-700"
+                        >
+                            <svg className="h-5 w-5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M12 2a10 10 0 1 0 10 10H12V2z" />
+                                <path d="M12 12 2.1 7.1" />
+                            </svg>
+                            Gerenciar Memória RAG
+                        </Link>
                         <Link
                             href="/superadmin/tenants/new"
                             className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-lg shadow-emerald-600/20 border border-emerald-500"

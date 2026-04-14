@@ -5,6 +5,9 @@ export type Message = {
     role: "user" | "model" | "system";
     content: string;
     sqlQueries?: string;
+    exportId?: string;
+    exportTotal?: number;
+    exportValor?: number;
 };
 
 export const chatService = {

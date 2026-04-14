@@ -1,13 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { User, Bot, Server, Star, Database, ChevronDown, ChevronUp } from "lucide-react";
+import { User, Bot, Server, Star, Database, ChevronDown, ChevronUp, Download, FileSpreadsheet } from "lucide-react";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 type Message = {
     id: string;
     role: "user" | "model" | "system";
     content: string;
     sqlQueries?: string;
+    exportId?: string;
+    exportTotal?: number;
+    exportValor?: number;
 };
 
 function SqlViewer({ sqlQueries }: { sqlQueries: string }) {
@@ -91,6 +96,24 @@ export default function ChatBox({ messages, isLoading, onFavorite, isAdmin = fal
                             <p className="text-sm leading-relaxed">{msg.content}</p>
                             {isAdmin && msg.role === "model" && msg.sqlQueries && (
                                 <SqlViewer sqlQueries={msg.sqlQueries} />
+                            )}
+                            {/* Botão de download Excel — aparece quando há export disponível */}
+                            {msg.exportId && (
+                                <a
+                                    href={`${API_URL}/api/chat/export/${msg.exportId}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 mt-3 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-semibold rounded-xl transition-all duration-150 shadow-sm"
+                                >
+                                    <FileSpreadsheet size={14} />
+                                    <span>Baixar Excel</span>
+                                    {msg.exportTotal && (
+                                        <span className="bg-emerald-500 px-2 py-0.5 rounded-lg text-[10px] font-bold">
+                                            {msg.exportTotal.toLocaleString("pt-BR")} registros
+                                        </span>
+                                    )}
+                                    <Download size={12} className="ml-0.5" />
+                                </a>
                             )}
                         </div>
                     </div>

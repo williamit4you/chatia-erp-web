@@ -71,6 +71,9 @@ export default function ChatContainer({ sessionId, initialMessages, initialPromp
                 role: "model",
                 content: data.reply,
                 sqlQueries: data.sqlQueries || undefined,
+                exportId: data.exportId || undefined,
+                exportTotal: data.exportTotalLinhas || undefined,
+                exportValor: data.exportValorTotal || undefined,
             };
 
             setMessages((prev) => [...prev, aiMessage]);

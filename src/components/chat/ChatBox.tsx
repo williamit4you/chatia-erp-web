@@ -1,9 +1,37 @@
 "use client";
 
 import { useState } from "react";
-import { User, Bot, Server, Star, Database, ChevronDown, ChevronUp, Download, FileSpreadsheet } from "lucide-react";
+import { User, Bot, Server, Star, Database, ChevronDown, ChevronUp, Download, FileSpreadsheet, Loader2 } from "lucide-react";
+import apiClient from "@/lib/api-client";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
+/** Baixa o Excel via apiClient (envia JWT no header) e abre dialog de save no browser */
+async function downloadExport(exportId: string, onStart: () => void, onEnd: () => void) {
+    onStart();
+    try {
+        const response = await apiClient.get(`/api/chat/export/${exportId}`, {
+            responseType: "blob",
+        });
+        const blob = new Blob([response.data], {
+            type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        // Tenta pegar o nome do arquivo do header Content-Disposition
+        const disposition = response.headers["content-disposition"] ?? "";
+        const match = disposition.match(/filename[^;=\n]*=(['"]?)([^'"\n;]+)\1/);
+        link.download = match ? match[2] : `relatorio_${exportId.slice(0, 8)}.xlsx`;
+        link.href = url;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    } catch (err) {
+        console.error("[download] Erro ao baixar export:", err);
+        alert("Erro ao baixar o relatório. O arquivo pode ter expirado (30 min). Solicite novamente.");
+    } finally {
+        onEnd();
+    }
+}
 
 type Message = {
     id: string;
@@ -46,6 +74,30 @@ function SqlViewer({ sqlQueries }: { sqlQueries: string }) {
                 </div>
             )}
         </div>
+    );
+}
+
+function ExportButton({ exportId, exportTotal }: { exportId: string; exportTotal?: number }) {
+    const [loading, setLoading] = useState(false);
+    return (
+        <button
+            onClick={() => downloadExport(exportId, () => setLoading(true), () => setLoading(false))}
+            disabled={loading}
+            className="inline-flex items-center gap-2 mt-3 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-wait active:scale-95 text-white text-xs font-semibold rounded-xl transition-all duration-150 shadow-sm"
+        >
+            {loading ? (
+                <Loader2 size={14} className="animate-spin" />
+            ) : (
+                <FileSpreadsheet size={14} />
+            )}
+            <span>{loading ? "Gerando download..." : "Baixar Excel"}</span>
+            {exportTotal && !loading && (
+                <span className="bg-emerald-500 px-2 py-0.5 rounded-lg text-[10px] font-bold">
+                    {exportTotal.toLocaleString("pt-BR")} registros
+                </span>
+            )}
+            {!loading && <Download size={12} className="ml-0.5" />}
+        </button>
     );
 }
 
@@ -99,21 +151,7 @@ export default function ChatBox({ messages, isLoading, onFavorite, isAdmin = fal
                             )}
                             {/* Botão de download Excel — aparece quando há export disponível */}
                             {msg.exportId && (
-                                <a
-                                    href={`${API_URL}/api/chat/export/${msg.exportId}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 mt-3 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-semibold rounded-xl transition-all duration-150 shadow-sm"
-                                >
-                                    <FileSpreadsheet size={14} />
-                                    <span>Baixar Excel</span>
-                                    {msg.exportTotal && (
-                                        <span className="bg-emerald-500 px-2 py-0.5 rounded-lg text-[10px] font-bold">
-                                            {msg.exportTotal.toLocaleString("pt-BR")} registros
-                                        </span>
-                                    )}
-                                    <Download size={12} className="ml-0.5" />
-                                </a>
+                                <ExportButton exportId={msg.exportId} exportTotal={msg.exportTotal} />
                             )}
                         </div>
                     </div>

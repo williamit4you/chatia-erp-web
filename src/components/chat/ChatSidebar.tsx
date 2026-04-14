@@ -137,10 +137,15 @@ export default function ChatSidebar({ sessions, user }: ChatSidebarProps) {
                                                     onClick={() => setIsOpen(false)}
                                                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-neutral-800/50 transition-colors"
                                                 >
-                                                    <MessageSquare className="h-4 w-4 text-neutral-500 group-hover:text-emerald-400 transition-colors" />
-                                                    <span className="text-sm font-medium truncate flex-1 text-neutral-300 group-hover:text-white mr-6">
-                                                        {session.title || "Conversa Sem Título"}
-                                                    </span>
+                                                    <MessageSquare className="h-4 w-4 text-neutral-500 group-hover:text-emerald-400 transition-colors shrink-0" />
+                                                    <div className="flex flex-col flex-1 truncate mr-6">
+                                                        <span className="text-sm font-medium text-neutral-300 group-hover:text-white transition-colors">
+                                                            {session.createdAt ? new Date(session.createdAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : "Recente"}
+                                                        </span>
+                                                        <span className="text-xs text-neutral-500 truncate group-hover:text-neutral-400 transition-colors">
+                                                            {session.title || "Conversa Sem Título"}
+                                                        </span>
+                                                    </div>
                                                 </Link>
                                                 <button
                                                     onClick={(e) => {
@@ -172,10 +177,15 @@ export default function ChatSidebar({ sessions, user }: ChatSidebarProps) {
                                                         onClick={() => setIsOpen(false)}
                                                         className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-neutral-800/50 transition-colors"
                                                     >
-                                                        <LineChart className="h-4 w-4 text-neutral-500 group-hover:text-indigo-400 transition-colors" />
-                                                        <span className="text-sm font-medium truncate flex-1 text-neutral-300 group-hover:text-white mr-6">
-                                                            {session.title?.replace('Análise: ', '') || "Análise de Gráfico"}
-                                                        </span>
+                                                        <LineChart className="h-4 w-4 text-neutral-500 group-hover:text-indigo-400 transition-colors shrink-0" />
+                                                        <div className="flex flex-col flex-1 truncate mr-6">
+                                                            <span className="text-sm font-medium text-neutral-300 group-hover:text-white transition-colors">
+                                                                {session.createdAt ? new Date(session.createdAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : "Recente"}
+                                                            </span>
+                                                            <span className="text-xs text-neutral-500 truncate group-hover:text-neutral-400 transition-colors">
+                                                                {session.title?.replace('Análise: ', '') || "Análise de Gráfico"}
+                                                            </span>
+                                                        </div>
                                                     </Link>
                                                     <button
                                                         onClick={(e) => {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { User, Bot, Server, Star, Database, ChevronDown, ChevronUp, Download, FileSpreadsheet, Loader2 } from "lucide-react";
+import { User, Bot, Server, Star, Database, ChevronDown, ChevronUp, Download, FileSpreadsheet, FileText, Loader2 } from "lucide-react";
 import apiClient from "@/lib/api-client";
 
 /** Baixa o Excel via apiClient (envia JWT no header) e abre dialog de save no browser */
@@ -16,7 +16,6 @@ async function downloadExport(exportId: string, onStart: () => void, onEnd: () =
         });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
-        // Tenta pegar o nome do arquivo do header Content-Disposition
         const disposition = response.headers["content-disposition"] ?? "";
         const match = disposition.match(/filename[^;=\n]*=(['"]?)([^'"\n;]+)\1/);
         link.download = match ? match[2] : `relatorio_${exportId.slice(0, 8)}.xlsx`;
@@ -28,6 +27,32 @@ async function downloadExport(exportId: string, onStart: () => void, onEnd: () =
     } catch (err) {
         console.error("[download] Erro ao baixar export:", err);
         alert("Erro ao baixar o relatório. O arquivo pode ter expirado (30 min). Solicite novamente.");
+    } finally {
+        onEnd();
+    }
+}
+
+/** Baixa o PDF via apiClient (gerado on-demand no servidor) */
+async function downloadExportPdf(exportId: string, onStart: () => void, onEnd: () => void) {
+    onStart();
+    try {
+        const response = await apiClient.get(`/api/chat/export/${exportId}/pdf`, {
+            responseType: "blob",
+        });
+        const blob = new Blob([response.data], { type: "application/pdf" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        const disposition = response.headers["content-disposition"] ?? "";
+        const match = disposition.match(/filename[^;=\n]*=(['"]?)([^'"\n;]+)\1/);
+        link.download = match ? match[2] : `relatorio_${exportId.slice(0, 8)}.pdf`;
+        link.href = url;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    } catch (err) {
+        console.error("[download-pdf] Erro ao baixar PDF:", err);
+        alert("Erro ao gerar o PDF. O arquivo pode ter expirado (30 min). Solicite novamente.");
     } finally {
         onEnd();
     }
@@ -77,27 +102,39 @@ function SqlViewer({ sqlQueries }: { sqlQueries: string }) {
     );
 }
 
-function ExportButton({ exportId, exportTotal }: { exportId: string; exportTotal?: number }) {
-    const [loading, setLoading] = useState(false);
+function ExportButtons({ exportId, exportTotal }: { exportId: string; exportTotal?: number }) {
+    const [loadingXlsx, setLoadingXlsx] = useState(false);
+    const [loadingPdf, setLoadingPdf] = useState(false);
+
     return (
-        <button
-            onClick={() => downloadExport(exportId, () => setLoading(true), () => setLoading(false))}
-            disabled={loading}
-            className="inline-flex items-center gap-2 mt-3 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-wait active:scale-95 text-white text-xs font-semibold rounded-xl transition-all duration-150 shadow-sm"
-        >
-            {loading ? (
-                <Loader2 size={14} className="animate-spin" />
-            ) : (
-                <FileSpreadsheet size={14} />
-            )}
-            <span>{loading ? "Gerando download..." : "Baixar Excel"}</span>
-            {exportTotal && !loading && (
-                <span className="bg-emerald-500 px-2 py-0.5 rounded-lg text-[10px] font-bold">
-                    {exportTotal.toLocaleString("pt-BR")} registros
-                </span>
-            )}
-            {!loading && <Download size={12} className="ml-0.5" />}
-        </button>
+        <div className="flex flex-wrap items-center gap-2 mt-3">
+            {/* Excel */}
+            <button
+                onClick={() => downloadExport(exportId, () => setLoadingXlsx(true), () => setLoadingXlsx(false))}
+                disabled={loadingXlsx || loadingPdf}
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-wait active:scale-95 text-white text-xs font-semibold rounded-xl transition-all duration-150 shadow-sm"
+            >
+                {loadingXlsx ? <Loader2 size={14} className="animate-spin" /> : <FileSpreadsheet size={14} />}
+                <span>{loadingXlsx ? "Gerando download..." : "Baixar Excel"}</span>
+                {exportTotal && !loadingXlsx && (
+                    <span className="bg-emerald-500 px-2 py-0.5 rounded-lg text-[10px] font-bold">
+                        {exportTotal.toLocaleString("pt-BR")} reg.
+                    </span>
+                )}
+                {!loadingXlsx && <Download size={12} className="ml-0.5" />}
+            </button>
+
+            {/* PDF */}
+            <button
+                onClick={() => downloadExportPdf(exportId, () => setLoadingPdf(true), () => setLoadingPdf(false))}
+                disabled={loadingXlsx || loadingPdf}
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-60 disabled:cursor-wait active:scale-95 text-white text-xs font-semibold rounded-xl transition-all duration-150 shadow-sm"
+            >
+                {loadingPdf ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
+                <span>{loadingPdf ? "Gerando PDF..." : "Baixar PDF"}</span>
+                {!loadingPdf && <Download size={12} className="ml-0.5" />}
+            </button>
+        </div>
     );
 }
 
@@ -149,9 +186,9 @@ export default function ChatBox({ messages, isLoading, onFavorite, isAdmin = fal
                             {isAdmin && msg.role === "model" && msg.sqlQueries && (
                                 <SqlViewer sqlQueries={msg.sqlQueries} />
                             )}
-                            {/* Botão de download Excel — aparece quando há export disponível */}
+                            {/* Botões de download Excel e PDF — aparecem quando há export disponível */}
                             {msg.exportId && (
-                                <ExportButton exportId={msg.exportId} exportTotal={msg.exportTotal} />
+                                <ExportButtons exportId={msg.exportId} exportTotal={msg.exportTotal} />
                             )}
                         </div>
                     </div>

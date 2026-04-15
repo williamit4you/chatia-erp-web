@@ -10,6 +10,7 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
 
     // Tokens Form State
     const [iaToken, setIaToken] = useState(tenant.iaToken || "");
+    const [chatAiToken, setChatAiToken] = useState(tenant.chatAiToken || "");
     const [erpToken, setErpToken] = useState(tenant.erpToken || "");
     const [tokensLoading, setTokensLoading] = useState(false);
     const [tokensMsg, setTokensMsg] = useState("");
@@ -38,7 +39,7 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
         setTokensMsg("");
 
         try {
-            await superAdminService.updateTenant(tenant.id, { iaToken, erpToken });
+            await superAdminService.updateTenant(tenant.id, { iaToken, erpToken, chatAiToken });
             setTokensMsg("Tokens atualizados com sucesso!");
             router.refresh();
         } catch (error: any) {
@@ -121,15 +122,29 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
                                 </div>
                             )}
                             <div>
-                                <label className="block text-sm font-medium text-neutral-300 mb-2">Token de Inteligência Artificial</label>
+                                <label className="block text-sm font-medium text-neutral-300 mb-2">Token Memória RAG</label>
                                 <div className="relative">
                                     <Key className="absolute left-3 top-3 h-5 w-5 text-neutral-500" />
                                     <input
                                         type="text"
-                                        placeholder="Insira a API Key da IA..."
+                                        placeholder="Insira a API Key para Memória RAG..."
                                         className="pl-10 appearance-none block w-full px-4 py-3 bg-neutral-950 border border-neutral-700 rounded-xl placeholder-neutral-600 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                                         value={iaToken}
                                         onChange={(e) => setIaToken(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-neutral-300 mb-2">Token IA para consulta e chat</label>
+                                <div className="relative">
+                                    <Key className="absolute left-3 top-3 h-5 w-5 text-neutral-500" />
+                                    <input
+                                        type="text"
+                                        placeholder="Insira a API Key para Chat..."
+                                        className="pl-10 appearance-none block w-full px-4 py-3 bg-neutral-950 border border-neutral-700 rounded-xl placeholder-neutral-600 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-inner"
+                                        value={chatAiToken}
+                                        onChange={(e) => setChatAiToken(e.target.value)}
                                     />
                                 </div>
                             </div>

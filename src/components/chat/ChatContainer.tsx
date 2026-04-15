@@ -31,6 +31,7 @@ export default function ChatContainer({ sessionId, initialMessages, initialPromp
     );
     const [isLoading, setIsLoading] = useState(false);
     const [contextUsage, setContextUsage] = useState(0);
+    const [hasWarnedHalfway, setHasWarnedHalfway] = useState(false);
     const hasStartedRef = useRef(false);
 
     const userRole = (session?.user as any)?.role;
@@ -81,6 +82,15 @@ export default function ChatContainer({ sessionId, initialMessages, initialPromp
             if (data.contextUsageScore !== undefined) {
                 const displayContext = getDisplayContextUsage(data.contextUsageScore);
                 setContextUsage(displayContext);
+                
+                // Notificação de 50% (equivalente a 35% real com a regra de 70%)
+                if (displayContext >= 50 && !hasWarnedHalfway && displayContext < 100) {
+                    toast.info("Você chegou na metade do contexto desta conversa.", { 
+                        icon: <Info size={16} />,
+                        duration: 5000 
+                    });
+                    setHasWarnedHalfway(true);
+                }
 
                 if (displayContext >= 100) {
                     toast.error("Limite de memória atingido para manter a qualidade desta conversa. Redirecionando para um novo chat...", { duration: 4000 });

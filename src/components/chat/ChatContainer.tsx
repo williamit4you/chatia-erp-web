@@ -134,7 +134,7 @@ export default function ChatContainer({ sessionId, initialMessages, initialPromp
                             
                             {/* Pro Tooltip */}
                             <div className="absolute bottom-full left-0 mb-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 bg-neutral-900 text-white text-[10px] py-2 px-3 rounded-lg shadow-xl whitespace-nowrap z-50">
-                                Ao atingir 100% a IA tende a alucinar
+                                Ao atingir 100% será iniciada uma nova conversa automaticamente
                                 <div className="absolute top-full left-4 border-4 border-transparent border-t-neutral-900"></div>
                             </div>
                         </div>

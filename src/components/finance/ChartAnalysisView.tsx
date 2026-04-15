@@ -423,7 +423,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                                 <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-tighter">
                                     <span className="text-neutral-400">Contexto da IA</span>
                                     <span className={contextUsage > 80 ? "text-red-500" : contextUsage > 50 ? "text-amber-500" : "text-emerald-500"}>
-                                        {contextUsage}% {contextUsage > 85 ? "(Risco de Alucinação)" : ""}
+                                        {contextUsage}%
                                     </span>
                                 </div>
                                 <div className="h-1 w-full bg-neutral-100 rounded-full overflow-hidden">

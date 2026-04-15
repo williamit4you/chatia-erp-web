@@ -140,7 +140,7 @@ export default function ChatSidebar({ sessions, user }: ChatSidebarProps) {
                                                     <MessageSquare className="h-4 w-4 text-neutral-500 group-hover:text-emerald-400 transition-colors shrink-0" />
                                                     <div className="flex flex-col flex-1 truncate mr-6">
                                                         <span className="text-sm font-medium text-neutral-300 group-hover:text-white transition-colors">
-                                                            {session.createdAt ? new Date(session.createdAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : "Recente"}
+                                                            {session.createdAt ? new Date(session.createdAt.endsWith('Z') ? session.createdAt : session.createdAt + 'Z').toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Sao_Paulo' }) : "Recente"}
                                                         </span>
                                                         <span className="text-xs text-neutral-500 truncate group-hover:text-neutral-400 transition-colors">
                                                             {session.title || "Conversa Sem Título"}
@@ -154,7 +154,7 @@ export default function ChatSidebar({ sessions, user }: ChatSidebarProps) {
                                                         setSessionToDelete(session.id);
                                                     }}
                                                     className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-neutral-500 hover:text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                                                    title="Excluir"
+                                                    title="Ocultar"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </button>
@@ -180,7 +180,7 @@ export default function ChatSidebar({ sessions, user }: ChatSidebarProps) {
                                                         <LineChart className="h-4 w-4 text-neutral-500 group-hover:text-indigo-400 transition-colors shrink-0" />
                                                         <div className="flex flex-col flex-1 truncate mr-6">
                                                             <span className="text-sm font-medium text-neutral-300 group-hover:text-white transition-colors">
-                                                                {session.createdAt ? new Date(session.createdAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : "Recente"}
+                                                                {session.createdAt ? new Date(session.createdAt.endsWith('Z') ? session.createdAt : session.createdAt + 'Z').toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Sao_Paulo' }) : "Recente"}
                                                             </span>
                                                             <span className="text-xs text-neutral-500 truncate group-hover:text-neutral-400 transition-colors">
                                                                 {session.title?.replace('Análise: ', '') || "Análise de Gráfico"}
@@ -194,7 +194,7 @@ export default function ChatSidebar({ sessions, user }: ChatSidebarProps) {
                                                             setSessionToDelete(session.id);
                                                         }}
                                                         className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-neutral-500 hover:text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                                                        title="Excluir"
+                                                        title="Ocultar"
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                     </button>
@@ -256,10 +256,10 @@ export default function ChatSidebar({ sessions, user }: ChatSidebarProps) {
                             <Trash2 className="w-8 h-8" />
                         </div>
                         <h3 className="text-xl font-bold text-white mb-2">
-                            Excluir Conversa?
+                            Ocultar Conversa?
                         </h3>
                         <p className="text-neutral-400 text-sm mb-8 leading-relaxed">
-                            Esta conversa será removida do seu histórico recente. Esta ação pode ser acessada pela gestão para análise futura.
+                            Esta conversa será ocultada do seu histórico. Os dados são mantidos internamente e podem ser acessados pela gestão para análise futura.
                         </p>
                         <div className="flex flex-col gap-3">
                             <button
@@ -267,7 +267,7 @@ export default function ChatSidebar({ sessions, user }: ChatSidebarProps) {
                                 disabled={isDeleting}
                                 className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-rose-900/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {isDeleting ? "EXCLUINDO..." : "SIM, EXCLUIR AGORA"}
+                                {isDeleting ? "OCULTANDO..." : "SIM, OCULTAR AGORA"}
                             </button>
                             <button
                                 onClick={() => setSessionToDelete(null)}

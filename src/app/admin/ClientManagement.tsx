@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/api-client';
+import { adminService } from '@/services/admin.service';
 import { toast } from 'sonner';
-import { Key, Server, UserPlus, Users, Edit2, Eye, EyeOff, AlertTriangle, Database, Calendar, ChevronDown, ChevronUp, Search } from 'lucide-react';
+import { Key, Server, UserPlus, Users, Edit2, Eye, EyeOff, AlertTriangle, Database, Calendar, ChevronDown, ChevronUp, Search, BarChart3, TrendingUp, Clock } from 'lucide-react';
 
 export default function ClientManagement({ initialUsers, initialSettings, currentUser, isTenantAdmin }: any) {
     const [users, setUsers] = useState(initialUsers || []);
@@ -32,9 +33,15 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
     const [editPassword, setEditPassword] = useState('');
 
     // Tabs & SQL Logs state
-    const [activeTab, setActiveTab] = useState<'users' | 'sql-logs'>('users');
+    const [activeTab, setActiveTab] = useState<'users' | 'sql-logs' | 'usage-history'>('users');
     const [sqlLogs, setSqlLogs] = useState<any[]>([]);
     const [sqlLogsLoading, setSqlLogsLoading] = useState(false);
+    
+    // Usage History state
+    const [usageHistory, setUsageHistory] = useState<{ monthlyUsage: any[], detailedUsage: any[] } | null>(null);
+    const [usageLoading, setUsageLoading] = useState(false);
+    const [usageFilterMonth, setUsageFilterMonth] = useState<number | ''>('');
+    const [usageFilterYear, setUsageFilterYear] = useState<number | ''>('');
     const [sqlFilterUserId, setSqlFilterUserId] = useState('');
     const [sqlFilterStart, setSqlFilterStart] = useState('');
     const [sqlFilterEnd, setSqlFilterEnd] = useState('');
@@ -108,6 +115,25 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
         }
     };
 
+    const fetchUsageHistory = async () => {
+        setUsageLoading(true);
+        try {
+            const params: any = {};
+            if (usageFilterMonth) params.month = usageFilterMonth;
+            if (usageFilterYear) params.year = usageFilterYear;
+            if (sqlFilterStart) params.startDate = sqlFilterStart;
+            if (sqlFilterEnd) params.endDate = sqlFilterEnd;
+
+            const res = await adminService.getUsageHistory(params);
+            setUsageHistory(res);
+        } catch (error) {
+            console.error('Erro ao buscar histórico de utilização:', error);
+            toast.error('Erro ao buscar histórico de utilização.');
+        } finally {
+            setUsageLoading(false);
+        }
+    };
+
     const fetchSqlLogs = async () => {
         setSqlLogsLoading(true);
         try {
@@ -151,16 +177,16 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                 </button>
                 <button
                     onClick={() => {
-                        setActiveTab('sql-logs');
-                        if (sqlLogs.length === 0) fetchSqlLogs();
+                        setActiveTab('usage-history');
+                        if (!usageHistory) fetchUsageHistory();
                     }}
-                    className={`px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'sql-logs'
+                    className={`px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'usage-history'
                         ? 'bg-white text-neutral-900 shadow-sm'
                         : 'text-neutral-500 hover:text-neutral-700'
                     }`}
                 >
-                    <Database className="w-4 h-4" />
-                    Log de Consultas SQL
+                    <BarChart3 className="w-4 h-4" />
+                    Histórico de Utilização
                 </button>
             </div>
 
@@ -608,6 +634,121 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                         })}
                     </div>
                 </section>
+            )}
+
+            {activeTab === 'usage-history' && (
+                <div className="space-y-8 animate-in fade-in duration-500">
+                    <section className="bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden">
+                        <div className="px-6 py-5 border-b border-neutral-100 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <TrendingUp className="text-emerald-600 h-5 w-5" />
+                                <h3 className="text-lg font-semibold text-neutral-900">Resumo Mensal</h3>
+                            </div>
+                            <div className="flex gap-3">
+                                <input 
+                                    type="date" 
+                                    value={sqlFilterStart} 
+                                    onChange={e => setSqlFilterStart(e.target.value)} 
+                                    className="bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-emerald-400" 
+                                />
+                                <input 
+                                    type="date" 
+                                    value={sqlFilterEnd} 
+                                    onChange={e => setSqlFilterEnd(e.target.value)} 
+                                    className="bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-emerald-400" 
+                                />
+                                <button 
+                                    onClick={fetchUsageHistory}
+                                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors"
+                                >
+                                    Filtrar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse text-sm">
+                                <thead>
+                                    <tr className="bg-neutral-50/80 text-neutral-500 border-b border-neutral-200 text-center">
+                                        <th className="py-4 px-6 font-bold text-xs uppercase tracking-wider text-left">Mês</th>
+                                        <th className="py-4 px-6 font-bold text-xs uppercase tracking-wider">Quantidade</th>
+                                        <th className="py-2 px-6 font-bold text-[10px] uppercase tracking-wider bg-neutral-100/50 border-x border-neutral-200" colSpan={6}>Módulo</th>
+                                    </tr>
+                                    <tr className="bg-neutral-50/30 text-[9px] uppercase font-bold text-neutral-400 border-b border-neutral-200 text-center">
+                                        <th className="py-1"></th>
+                                        <th className="py-1"></th>
+                                        <th className="py-1 border-l border-neutral-200">Financeiro</th>
+                                        <th className="py-1">Estoque</th>
+                                        <th className="py-1">Vendas</th>
+                                        <th className="py-1">Produção</th>
+                                        <th className="py-1">Contrato</th>
+                                        <th className="py-1 border-r border-neutral-200">Projetos</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {usageLoading && <tr><td colSpan={8} className="py-10 text-center text-neutral-400">Carregando dados...</td></tr>}
+                                    {!usageLoading && usageHistory?.monthlyUsage.map((m: any, i: number) => (
+                                        <tr key={i} className="border-b border-neutral-100 hover:bg-neutral-50/50 transition-colors">
+                                            <td className="py-4 px-6 font-bold text-neutral-800">{m.month}</td>
+                                            <td className="py-4 px-6 text-center font-black text-emerald-600">{m.totalCount}</td>
+                                            <td className="py-4 px-6 text-center text-neutral-500 border-l border-neutral-50">{m.moduleCounts['Financeiro'] || 0}</td>
+                                            <td className="py-4 px-6 text-center text-neutral-500">{m.moduleCounts['Estoque'] || 0}</td>
+                                            <td className="py-4 px-6 text-center text-neutral-500">{m.moduleCounts['Vendas'] || 0}</td>
+                                            <td className="py-4 px-6 text-center text-neutral-500">{m.moduleCounts['Produção'] || 0}</td>
+                                            <td className="py-4 px-6 text-center text-neutral-500">{m.moduleCounts['Contrato'] || 0}</td>
+                                            <td className="py-4 px-6 text-center text-neutral-500 border-r border-neutral-50">{m.moduleCounts['Projetos'] || 0}</td>
+                                        </tr>
+                                    ))}
+                                    {!usageLoading && (!usageHistory || usageHistory.monthlyUsage.length === 0) && (
+                                        <tr><td colSpan={8} className="py-10 text-center text-neutral-400">Nenhum dado encontrado para o período.</td></tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <section className="bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden">
+                        <div className="px-6 py-5 border-b border-neutral-100 bg-neutral-50/50">
+                            <h3 className="text-lg font-bold text-neutral-900">Detalhes por Usuário</h3>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse text-sm">
+                                <thead>
+                                    <tr className="bg-neutral-50/80 text-neutral-500 border-b border-neutral-200 text-center">
+                                        <th className="py-4 px-6 font-bold text-xs uppercase tracking-wider text-left">Usuário</th>
+                                        <th className="py-4 px-6 font-bold text-xs uppercase tracking-wider">Quantidade</th>
+                                        <th className="py-2 px-6 font-bold text-[10px] uppercase tracking-wider bg-neutral-100/50 border-x border-neutral-200" colSpan={6}>Módulo</th>
+                                    </tr>
+                                    <tr className="bg-neutral-50/30 text-[9px] uppercase font-bold text-neutral-400 border-b border-neutral-200 text-center">
+                                        <th className="py-1"></th>
+                                        <th className="py-1"></th>
+                                        <th className="py-1 border-l border-neutral-200">Financeiro</th>
+                                        <th className="py-1">Estoque</th>
+                                        <th className="py-1">Vendas</th>
+                                        <th className="py-1">Produção</th>
+                                        <th className="py-1">Contrato</th>
+                                        <th className="py-1 border-r border-neutral-200">Projetos</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {usageLoading && <tr><td colSpan={8} className="py-10 text-center text-neutral-400">Carregando detalhes...</td></tr>}
+                                    {!usageLoading && usageHistory?.detailedUsage.map((du: any, i: number) => (
+                                        <tr key={i} className="border-b border-neutral-100 hover:bg-neutral-50/50 transition-colors">
+                                            <td className="py-4 px-6 font-semibold text-neutral-800">{du.userName}</td>
+                                            <td className="py-4 px-6 text-center font-bold text-indigo-600">{du.totalCount}</td>
+                                            <td className="py-4 px-6 text-center text-neutral-500 border-l border-neutral-50">{du.moduleCounts['Financeiro'] || 0}</td>
+                                            <td className="py-4 px-6 text-center text-neutral-500">{du.moduleCounts['Estoque'] || 0}</td>
+                                            <td className="py-4 px-6 text-center text-neutral-500">{du.moduleCounts['Vendas'] || 0}</td>
+                                            <td className="py-4 px-6 text-center text-neutral-500">{du.moduleCounts['Produção'] || 0}</td>
+                                            <td className="py-4 px-6 text-center text-neutral-500">{du.moduleCounts['Contrato'] || 0}</td>
+                                            <td className="py-4 px-6 text-center text-neutral-500 border-r border-neutral-50">{du.moduleCounts['Projetos'] || 0}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
             )}
 
         </div>

@@ -16,5 +16,13 @@ export const adminService = {
     async createUser(data: any) {
         const response = await apiClient.post("/api/admin/users", data);
         return response.data;
+    },
+    async updateUser(userId: string, data: any) {
+        const response = await apiClient.put(`/api/admin/users/${userId}`, data);
+        return response.data;
+    },
+    async getUsageHistory(params?: { month?: number, year?: number, startDate?: string, endDate?: string }) {
+        const response = await apiClient.get("/api/admin/usage-history", { params });
+        return response.data;
     }
 };

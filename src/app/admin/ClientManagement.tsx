@@ -45,6 +45,7 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
     const [sqlFilterUserId, setSqlFilterUserId] = useState('');
     const [sqlFilterStart, setSqlFilterStart] = useState('');
     const [sqlFilterEnd, setSqlFilterEnd] = useState('');
+    const [selectedYearPreset, setSelectedYearPreset] = useState('none');
     const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
 
 
@@ -115,14 +116,19 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
         }
     };
 
-    const fetchUsageHistory = async () => {
+    const fetchUsageHistory = async (customStart?: string, customEnd?: string) => {
         setUsageLoading(true);
         try {
             const params: any = {};
             if (usageFilterMonth) params.month = usageFilterMonth;
             if (usageFilterYear) params.year = usageFilterYear;
-            if (sqlFilterStart) params.startDate = sqlFilterStart;
-            if (sqlFilterEnd) params.endDate = sqlFilterEnd;
+            
+            // Use provided dates or state values
+            const startDate = customStart || sqlFilterStart;
+            const endDate = customEnd || sqlFilterEnd;
+
+            if (startDate) params.startDate = startDate;
+            if (endDate) params.endDate = endDate;
 
             const res = await adminService.getUsageHistory(params);
             setUsageHistory(res);
@@ -132,6 +138,29 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
         } finally {
             setUsageLoading(false);
         }
+    };
+
+    const handleApplyPeriodPreset = (preset: string) => {
+        setSelectedYearPreset(preset);
+        if (preset === 'none') return;
+
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        
+        let start = '';
+        let end = '';
+
+        if (preset === 'all') {
+            start = '2025-01-01';
+            end = todayStr;
+        } else {
+            start = `${preset}-01-01`;
+            end = `${preset}-12-31`;
+        }
+
+        setSqlFilterStart(start);
+        setSqlFilterEnd(end);
+        fetchUsageHistory(start, end);
     };
 
     const fetchSqlLogs = async () => {
@@ -657,25 +686,52 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                                 <TrendingUp className="text-emerald-600 h-5 w-5" />
                                 <h3 className="text-lg font-semibold text-neutral-900">Resumo Mensal</h3>
                             </div>
-                            <div className="flex gap-3">
-                                <input 
-                                    type="date" 
-                                    value={sqlFilterStart} 
-                                    onChange={e => setSqlFilterStart(e.target.value)} 
-                                    className="bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-emerald-400" 
-                                />
-                                <input 
-                                    type="date" 
-                                    value={sqlFilterEnd} 
-                                    onChange={e => setSqlFilterEnd(e.target.value)} 
-                                    className="bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-emerald-400" 
-                                />
-                                <button 
-                                    onClick={fetchUsageHistory}
-                                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors"
-                                >
-                                    Filtrar
-                                </button>
+                            <div className="flex items-center gap-3">
+                                <div>
+                                    <label className="block text-[9px] font-bold text-neutral-400 uppercase mb-1">Ano / Período</label>
+                                    <select 
+                                        value={selectedYearPreset}
+                                        onChange={(e) => handleApplyPeriodPreset(e.target.value)}
+                                        className="bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-emerald-400 font-bold text-neutral-700"
+                                    >
+                                        <option value="none">Selecionar...</option>
+                                        <option value="all">Todo período</option>
+                                        <option value="2025">2025</option>
+                                        <option value="2026">2026</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-[9px] font-bold text-neutral-400 uppercase mb-1">De</label>
+                                    <input 
+                                        type="date" 
+                                        value={sqlFilterStart} 
+                                        onChange={e => {
+                                            setSqlFilterStart(e.target.value);
+                                            setSelectedYearPreset('none');
+                                        }} 
+                                        className="bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-emerald-400" 
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[9px] font-bold text-neutral-400 uppercase mb-1">Até</label>
+                                    <input 
+                                        type="date" 
+                                        value={sqlFilterEnd} 
+                                        onChange={e => {
+                                            setSqlFilterEnd(e.target.value);
+                                            setSelectedYearPreset('none');
+                                        }} 
+                                        className="bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-emerald-400" 
+                                    />
+                                </div>
+                                <div className="self-end">
+                                    <button 
+                                        onClick={() => fetchUsageHistory()}
+                                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-colors shadow-sm"
+                                    >
+                                        Filtrar
+                                    </button>
+                                </div>
                             </div>
                         </div>
 

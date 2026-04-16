@@ -32,11 +32,17 @@ export const authOptions: NextAuthOptions = {
                         headers: { "Content-Type": "application/json" }
                     });
 
+                    if (!res.ok) {
+                        const errorData = await res.json().catch(() => ({}));
+                        const errorMsg = errorData.error || errorData.message || "Erro de autenticação";
+                        throw new Error(errorMsg);
+                    }
+
                     const user = await res.json();
 
-                    if (res.ok && user) {
+                    if (user) {
                         return {
-                            id: user.userId || user.id, // Ensure we have the ID correctly
+                            id: user.userId || user.id,
                             name: user.name,
                             email: user.email,
                             tenantId: user.tenantId,
@@ -47,13 +53,13 @@ export const authOptions: NextAuthOptions = {
                             hasReceivableDashboardAccess: user.hasReceivableDashboardAccess,
                             hasBankingChatAccess: user.hasBankingChatAccess,
                             hasBankingDashboardAccess: user.hasBankingDashboardAccess,
-                            accessToken: user.token, // Store the C# JWT
+                            accessToken: user.token,
                         };
                     }
                     return null;
                 } catch (error: any) {
-                    console.error("NextAuth Auth Error:", error);
-                    return null;
+                    console.error("NextAuth Auth Error:", error.message);
+                    throw error; // Passing error up so it reaching signIn().error
                 }
             }
         })

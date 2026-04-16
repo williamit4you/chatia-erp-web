@@ -32,7 +32,13 @@ function LoginForm() {
             });
 
             if (res?.error) {
-                setError("Email ou senha inválidos.");
+                // If it's a specific message we sent from the backend, show it.
+                // Otherwise show the generic one.
+                if (res.error === "CredentialsSignin") {
+                    setError("Email ou senha inválidos.");
+                } else {
+                    setError(res.error);
+                }
             } else {
                 router.push(callbackUrl);
             }

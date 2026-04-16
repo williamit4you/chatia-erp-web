@@ -277,12 +277,15 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                     }, 2500);
                 }
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Erro na análise da IA:", error);
+            const backendMessage = error.response?.data?.message || error.response?.data?.error || error.response?.data?.Message;
+            const errorMessage = backendMessage || "Desculpe, tive um problema ao analisar estes dados agora. Verifique sua conexão ou tente novamente mais tarde.";
+            
             const errorMsg: ChatMessage = {
                 id: (Date.now() + 1).toString(),
                 role: "assistant",
-                content: "Desculpe, tive um problema ao analisar estes dados agora. Poderia tentar novamente?"
+                content: errorMessage
             };
             setMessages(prev => [...prev, errorMsg]);
         } finally {

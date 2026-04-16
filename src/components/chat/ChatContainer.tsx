@@ -107,11 +107,14 @@ export default function ChatContainer({ sessionId, initialMessages, initialPromp
                 router.refresh();
             }
 
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
+            const backendMessage = error.response?.data?.message || error.response?.data?.error || error.response?.data?.Message;
+            const errorMessage = backendMessage || "Erro ao comunicar com a IA. Verifique as configurações de token nas configurações da empresa.";
+            
             setMessages((prev) => [
                 ...prev,
-                { id: Date.now().toString(), role: "system", content: "Erro ao comunicar com a IA. Verifique as configurações de token nas configurações da empresa." }
+                { id: Date.now().toString(), role: "system", content: errorMessage }
             ]);
         } finally {
             setIsLoading(false);

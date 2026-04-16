@@ -157,7 +157,7 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
 
     const handleUnblockUser = async (user: any) => {
         try {
-            await adminService.updateUser(user.id, { blockedUntil: null });
+            await adminService.updateUser(user.id, { unblock: true });
             
             setUsers((prev: any[]) => prev.map((u: any) => 
                 u.id === user.id ? { ...u, blockedUntil: null } : u

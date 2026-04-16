@@ -177,6 +177,19 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                 </button>
                 <button
                     onClick={() => {
+                        setActiveTab('sql-logs');
+                        if (sqlLogs.length === 0) fetchSqlLogs();
+                    }}
+                    className={`px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'sql-logs'
+                        ? 'bg-white text-neutral-900 shadow-sm'
+                        : 'text-neutral-500 hover:text-neutral-700'
+                    }`}
+                >
+                    <Database className="w-4 h-4" />
+                    Log de Consultas SQL
+                </button>
+                <button
+                    onClick={() => {
                         setActiveTab('usage-history');
                         if (!usageHistory) fetchUsageHistory();
                     }}

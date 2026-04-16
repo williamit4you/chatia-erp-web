@@ -659,43 +659,52 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                             </div>
                         </div>
                         <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
+                            <table className="w-full text-left border-collapse min-w-[1000px]">
                                 <thead>
                                     <tr className="bg-neutral-50 text-neutral-500 border-b border-neutral-200">
-                                        <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider">Usuário</th>
-                                        <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center">Mês/Ano</th>
-                                        <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center">Módulo</th>
-                                        <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center">Consultas</th>
+                                        <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider sticky left-0 bg-neutral-50 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Usuário</th>
+                                        <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center bg-emerald-50/50 text-emerald-700 font-black">Total</th>
+                                        <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center">Financeiro</th>
+                                        <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center">Estoque</th>
+                                        <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center">Vendas</th>
+                                        <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center">Produção</th>
+                                        <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center">Contrato</th>
+                                        <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center">Projetos</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-neutral-100">
                                     {!usageLoading && usageHistory?.detailedUsage.map((row: any, idx: number) => (
                                         <tr key={idx} className="hover:bg-neutral-50 transition-colors">
-                                            <td className="py-4 px-6">
-                                                <div className="font-bold text-neutral-900 text-sm">{row.userName}</div>
-                                                <div className="text-[10px] text-neutral-400 tracking-tight">{row.userEmail}</div>
+                                            <td className="py-4 px-6 sticky left-0 bg-white z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                                                <div className="font-bold text-neutral-900 text-sm whitespace-nowrap">{row.userName}</div>
+                                                <div className="text-[10px] text-neutral-400 tracking-tight whitespace-nowrap">{(users.find((u: any) => u.name === row.userName)?.email) || '---'}</div>
+                                            </td>
+                                            <td className="py-4 px-6 text-center bg-emerald-50/20">
+                                                <span className="text-sm font-black text-emerald-600">{row.totalCount}</span>
+                                            </td>
+                                            <td className="py-4 px-6 text-center text-sm font-medium text-neutral-600 border-l border-neutral-50">
+                                                {row.moduleCounts?.Financeiro || 0}
                                             </td>
                                             <td className="py-4 px-6 text-center text-sm font-medium text-neutral-600">
-                                                {row.monthName || row.month} / {row.year}
+                                                {row.moduleCounts?.Estoque || 0}
                                             </td>
-                                            <td className="py-4 px-6 text-center">
-                                                <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-black ${
-                                                    row.module === 'RECEBER' ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' :
-                                                    row.module === 'PAGAR' ? 'bg-orange-50 text-orange-600 border border-orange-100' :
-                                                    row.module === 'BANCARIO' ? 'bg-blue-50 text-blue-600 border border-blue-100' :
-                                                    'bg-neutral-50 text-neutral-600 border border-neutral-100'
-                                                }`}>
-                                                    {row.module || 'Geral'}
-                                                </span>
+                                            <td className="py-4 px-6 text-center text-sm font-medium text-neutral-600">
+                                                {row.moduleCounts?.Vendas || 0}
                                             </td>
-                                            <td className="py-4 px-6 text-center">
-                                                <span className="text-sm font-black text-neutral-900">{row.count || row.totalCount}</span>
+                                            <td className="py-4 px-6 text-center text-sm font-medium text-neutral-600">
+                                                {row.moduleCounts?.Produção || 0}
+                                            </td>
+                                            <td className="py-4 px-6 text-center text-sm font-medium text-neutral-600">
+                                                {row.moduleCounts?.Contrato || 0}
+                                            </td>
+                                            <td className="py-4 px-6 text-center text-sm font-medium text-neutral-600">
+                                                {row.moduleCounts?.Projetos || 0}
                                             </td>
                                         </tr>
                                     ))}
                                     {!usageLoading && (!usageHistory || usageHistory.detailedUsage.length === 0) && (
                                         <tr>
-                                            <td colSpan={4} className="py-12 text-center text-neutral-400 text-sm font-medium">Nenhum detalhe disponível.</td>
+                                            <td colSpan={8} className="py-12 text-center text-neutral-400 text-sm font-medium">Nenhum detalhe disponível.</td>
                                         </tr>
                                     )}
                                 </tbody>

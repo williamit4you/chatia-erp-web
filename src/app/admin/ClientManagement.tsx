@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react';
 import apiClient from '@/lib/api-client';
 import { adminService } from '@/services/admin.service';
 import { toast } from 'sonner';
-import { Key, Server, UserPlus, Users, Edit2, Eye, EyeOff, AlertTriangle, Database, Calendar, ChevronDown, ChevronUp, Search, BarChart3, TrendingUp, Clock } from 'lucide-react';
+import { Key, Server, UserPlus, Users, Edit2, Eye, EyeOff, AlertTriangle, Database, Calendar, ChevronDown, ChevronUp, Search, BarChart3, TrendingUp, Clock, Lock, Unlock, UserMinus, UserCheck, X } from 'lucide-react';
 
 export default function ClientManagement({ initialUsers, initialSettings, currentUser, isTenantAdmin }: any) {
     const [users, setUsers] = useState(initialUsers || []);
-    const [settings, setSettings] = useState(initialSettings || { iaToken: '', erpToken: '' });
+    const [settings, setSettings] = useState(initialSettings || { iaToken: '', erpToken: '', chatAiToken: '' });
 
     // User Modals State
     const [loading, setLoading] = useState(false);
@@ -47,6 +47,10 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
     const [sqlFilterEnd, setSqlFilterEnd] = useState('');
     const [selectedYearPreset, setSelectedYearPreset] = useState('none');
     const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
+
+    // User Blocking State
+    const [blockingUser, setBlockingUser] = useState<any>(null);
+    const [blockDate, setBlockDate] = useState("");
 
 
 
@@ -103,7 +107,8 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                 hasReceivableChatAccess: editingUser.hasReceivableChatAccess,
                 hasReceivableDashboardAccess: editingUser.hasReceivableDashboardAccess,
                 hasBankingChatAccess: editingUser.hasBankingChatAccess,
-                hasBankingDashboardAccess: editingUser.hasBankingDashboardAccess
+                hasBankingDashboardAccess: editingUser.hasBankingDashboardAccess,
+                isInactive: editingUser.isInactive
             });
             const res = await apiClient.get('/api/admin/users');
             setUsers(res.data);
@@ -114,6 +119,59 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleToggleInactivate = async (user: any) => {
+        try {
+            const newIsInactive = !user.isInactive;
+            await adminService.updateUser(user.id, { isInactive: newIsInactive });
+            
+            setUsers((prev: any[]) => prev.map((u: any) => 
+                u.id === user.id ? { ...u, isInactive: newIsInactive } : u
+            ));
+            
+            toast.success(newIsInactive ? `Usuário ${user.name} inativado` : `Usuário ${user.name} ativado`);
+        } catch (error) {
+            toast.error("Erro ao atualizar status do usuário");
+        }
+    };
+
+    const handleBlockUser = async () => {
+        if (!blockingUser || !blockDate) return;
+
+        try {
+            const date = new Date(blockDate);
+            await adminService.updateUser(blockingUser.id, { blockedUntil: date.toISOString() });
+            
+            setUsers((prev: any[]) => prev.map((u: any) => 
+                u.id === blockingUser.id ? { ...u, blockedUntil: date.toISOString() } : u
+            ));
+            
+            toast.success(`Usuário ${blockingUser.name} bloqueado até ${date.toLocaleDateString("pt-BR")}`);
+            setBlockingUser(null);
+            setBlockDate("");
+        } catch (error) {
+            toast.error("Erro ao bloquear usuário");
+        }
+    };
+
+    const handleUnblockUser = async (user: any) => {
+        try {
+            await adminService.updateUser(user.id, { blockedUntil: null });
+            
+            setUsers((prev: any[]) => prev.map((u: any) => 
+                u.id === user.id ? { ...u, blockedUntil: null } : u
+            ));
+            
+            toast.success(`Usuário ${user.name} desbloqueado`);
+        } catch (error) {
+            toast.error("Erro ao desbloquear usuário");
+        }
+    };
+
+    const isBlocked = (user: any) => {
+        if (!user.blockedUntil) return false;
+        return new Date(user.blockedUntil) > new Date();
     };
 
     const fetchUsageHistory = async (customStart?: string, customEnd?: string) => {
@@ -239,9 +297,9 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                         <Server className="text-emerald-500 h-5 w-5" />
                         <h3 className="text-lg font-semibold text-neutral-900">Tokens da Empresa</h3>
                     </div>
-                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <div>
-                            <label className="block font-medium text-neutral-700 mb-2">Token de Inteligência Artificial</label>
+                            <label className="block font-medium text-neutral-700 mb-2">Token Memória RAG</label>
                             <div className="relative">
                                 <Key className="absolute left-3 top-2.5 h-4 w-4 text-neutral-400" />
                                 <input
@@ -249,6 +307,19 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                                     readOnly
                                     className="pl-9 appearance-none block w-full px-4 py-2 bg-neutral-50 border border-neutral-200 rounded-lg text-neutral-600 focus:outline-none"
                                     value={settings.iaToken || 'Nenhum token configurado'}
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block font-medium text-neutral-700 mb-2">Token IA para Consulta e Chat</label>
+                            <div className="relative">
+                                <Key className="absolute left-3 top-2.5 h-4 w-4 text-blue-400" />
+                                <input
+                                    type="text"
+                                    readOnly
+                                    className="pl-9 appearance-none block w-full px-4 py-2 bg-neutral-50 border border-neutral-200 rounded-lg text-neutral-600 focus:outline-none"
+                                    value={settings.chatAiToken || 'Nenhum token configurado'}
                                 />
                             </div>
                         </div>
@@ -268,9 +339,7 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                     </div>
                 </section>
 
-            {activeTab === 'users' && (
-            <>
-                {/* Users List Section - Full Width */}
+                {activeTab === 'users' && (
                 <section className="bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden">
                     <div className="px-6 py-5 border-b border-neutral-100 flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -349,21 +418,55 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                                             {renderAccessCell(user.hasBankingDashboardAccess)}
 
                                             <td className="py-4 px-6 text-center">
-                                                <span className={`px-2 py-1 text-[10px] uppercase font-bold rounded-full border transition-colors ${user.isActive
-                                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                                    : 'bg-red-50 text-red-700 border-red-200'
-                                                    }`}>
-                                                    {user.isActive ? 'Ativo' : 'Inativo'}
-                                                </span>
+                                                <div className="flex flex-col items-center gap-1">
+                                                    <span className={`px-2 py-1 text-[10px] uppercase font-bold rounded-full border transition-colors ${user.isInactive
+                                                        ? 'bg-red-50 text-red-700 border-red-200'
+                                                        : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                                        }`}>
+                                                        {user.isInactive ? 'Inativo' : 'Ativo'}
+                                                    </span>
+                                                    {isBlocked(user) && (
+                                                        <span className="px-2 py-1 text-[9px] uppercase font-bold rounded-full bg-orange-100 text-orange-700 border border-orange-200">
+                                                            Bloq. até {new Date(user.blockedUntil).toLocaleDateString("pt-BR")}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </td>
-                                            <td className="py-4 px-6 text-center">
-                                                <button
-                                                    onClick={() => handleOpenEditUser(user)}
-                                                    className="p-1.5 rounded-lg text-neutral-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
-                                                    title="Editar Usuário"
-                                                >
-                                                    <Edit2 className="h-4 w-4" />
-                                                </button>
+                                            <td className="py-4 px-6">
+                                                <div className="flex items-center justify-center gap-1">
+                                                    <button
+                                                        onClick={() => handleOpenEditUser(user)}
+                                                        className="p-1.5 rounded-lg text-neutral-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                                                        title="Editar Usuário"
+                                                    >
+                                                        <Edit2 className="h-4 w-4" />
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleToggleInactivate(user)}
+                                                        className={`p-1.5 rounded-lg transition-colors ${user.isInactive ? "text-emerald-400 hover:text-emerald-600 hover:bg-emerald-50" : "text-red-300 hover:text-red-600 hover:bg-red-50"}`}
+                                                        title={user.isInactive ? "Ativar Usuário" : "Inativar Usuário"}
+                                                    >
+                                                        {user.isInactive ? <UserCheck className="w-4 h-4" /> : <UserMinus className="w-4 h-4" />}
+                                                    </button>
+
+                                                    {isBlocked(user) ? (
+                                                        <button 
+                                                            onClick={() => handleUnblockUser(user)}
+                                                            className="p-1.5 text-blue-400 rounded-lg hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                                                            title="Desbloquear Usuário"
+                                                        >
+                                                            <Unlock className="w-4 h-4" />
+                                                        </button>
+                                                    ) : (
+                                                        <button 
+                                                            onClick={() => setBlockingUser(user)}
+                                                            className="p-1.5 text-orange-400 rounded-lg hover:text-orange-600 hover:bg-orange-50 transition-colors"
+                                                            title="Bloquear Usuário"
+                                                        >
+                                                            <Lock className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     );
@@ -372,6 +475,236 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                         </table>
                     </div>
                 </section>
+            )}
+
+                {/* Log de Consultas SQL Tab */}
+                {activeTab === 'sql-logs' && (
+                    <section className="bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden">
+                        <div className="px-6 py-5 border-b border-neutral-100 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <Database className="text-indigo-600 h-5 w-5" />
+                                <h3 className="text-lg font-semibold text-neutral-900">Log de Consultas SQL da IA</h3>
+                            </div>
+                        </div>
+
+                        {/* Filters */}
+                        <div className="p-6 border-b border-neutral-100 flex flex-wrap items-end gap-4">
+                            <div>
+                                <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Usuário</label>
+                                <select 
+                                    value={sqlFilterUserId} 
+                                    onChange={e => setSqlFilterUserId(e.target.value)}
+                                    className="bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-2 text-sm w-48 outline-none focus:border-indigo-400"
+                                >
+                                    <option value="">Todos</option>
+                                    {users.map((u: any) => (
+                                        <option key={u.id} value={u.id}>{u.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Data Início</label>
+                                <input type="date" value={sqlFilterStart} onChange={e => setSqlFilterStart(e.target.value)} className="bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-400" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Data Fim</label>
+                                <input type="date" value={sqlFilterEnd} onChange={e => setSqlFilterEnd(e.target.value)} className="bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-400" />
+                            </div>
+                            <button 
+                                onClick={fetchSqlLogs}
+                                disabled={sqlLogsLoading}
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg text-sm font-bold transition-colors inline-flex items-center gap-1.5 disabled:opacity-50"
+                            >
+                                <Search className="w-4 h-4" />
+                                Buscar
+                            </button>
+                        </div>
+
+                        {/* Results */}
+                        <div className="divide-y divide-neutral-100">
+                            {sqlLogsLoading && (
+                                <div className="p-12 text-center text-neutral-400 text-sm font-medium">Carregando logs...</div>
+                            )}
+                            {!sqlLogsLoading && sqlLogs.length === 0 && (
+                                <div className="p-12 text-center text-neutral-400 text-sm font-medium">Nenhum log de SQL encontrado. As consultas SQL serão registradas a partir de agora.</div>
+                            )}
+                            {!sqlLogsLoading && sqlLogs.map((log: any) => {
+                                const isExpanded = expandedLogId === log.messageId;
+                                let queries: string[] = [];
+                                try { queries = JSON.parse(log.sqlQueries); } catch { queries = [log.sqlQueries]; }
+
+                                return (
+                                    <div key={log.messageId} className="px-6 py-4 hover:bg-neutral-50 transition-colors">
+                                        <div className="flex items-center justify-between cursor-pointer" onClick={() => setExpandedLogId(isExpanded ? null : log.messageId)}>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-3 mb-1">
+                                                    <span className="text-[11px] text-neutral-400 font-mono">{new Date(log.date).toLocaleString('pt-BR')}</span>
+                                                    <span className="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">{log.userName}</span>
+                                                    <span className="text-[10px] text-neutral-300">{log.userEmail}</span>
+                                                </div>
+                                                <p className="text-sm font-medium text-neutral-800 truncate">{log.userQuestion}</p>
+                                            </div>
+                                            <div className="flex items-center gap-2 ml-4 shrink-0">
+                                                <span className="text-[10px] font-bold text-neutral-400 bg-neutral-100 px-2 py-1 rounded-lg">{queries.length} SQL</span>
+                                                {isExpanded ? <ChevronUp className="w-4 h-4 text-neutral-400" /> : <ChevronDown className="w-4 h-4 text-neutral-400" />}
+                                            </div>
+                                        </div>
+                                        {isExpanded && (
+                                            <div className="mt-4 space-y-3 animate-in slide-in-from-top-2 duration-200">
+                                                <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-200">
+                                                    <h5 className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-2">Resposta da IA</h5>
+                                                    <p className="text-sm text-neutral-700 whitespace-pre-wrap leading-relaxed">{log.aiReply.length > 500 ? log.aiReply.substring(0, 500) + '...' : log.aiReply}</p>
+                                                </div>
+                                                <div>
+                                                    <h5 className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-2">Queries Executadas</h5>
+                                                    <div className="space-y-2">
+                                                        {queries.map((q: string, i: number) => (
+                                                            <pre key={i} className="text-[11px] bg-neutral-900 text-green-400 p-3 rounded-xl overflow-x-auto font-mono leading-relaxed whitespace-pre-wrap break-all">{q}</pre>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </section>
+                )}
+
+                {/* Usage History Tab */}
+                {activeTab === 'usage-history' && (
+                <div className="space-y-8 animate-in fade-in duration-500">
+                    <section className="bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden">
+                        <div className="px-6 py-5 border-b border-neutral-100 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <TrendingUp className="text-emerald-600 h-5 w-5" />
+                                <h3 className="text-lg font-semibold text-neutral-900">Resumo Mensal</h3>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <div>
+                                    <label className="block text-[9px] font-bold text-neutral-400 uppercase mb-1">Ano / Período</label>
+                                    <select 
+                                        value={selectedYearPreset}
+                                        onChange={(e) => handleApplyPeriodPreset(e.target.value)}
+                                        className="bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-emerald-400 font-bold text-neutral-700"
+                                    >
+                                        <option value="none">Selecione...</option>
+                                        <option value="all">Todo período (2025+)</option>
+                                        <option value="2025">Ano 2025</option>
+                                        <option value="2026">Ano 2026</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-[9px] font-bold text-neutral-400 uppercase mb-1">Início</label>
+                                    <input 
+                                        type="date" 
+                                        value={sqlFilterStart} 
+                                        onChange={e => {
+                                            setSqlFilterStart(e.target.value);
+                                            setSelectedYearPreset('none');
+                                        }} 
+                                        className="bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-emerald-400" 
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[9px] font-bold text-neutral-400 uppercase mb-1">Fim</label>
+                                    <input 
+                                        type="date" 
+                                        value={sqlFilterEnd} 
+                                        onChange={e => {
+                                            setSqlFilterEnd(e.target.value);
+                                            setSelectedYearPreset('none');
+                                        }} 
+                                        className="bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-emerald-400" 
+                                    />
+                                </div>
+                                <button 
+                                    onClick={() => fetchUsageHistory()}
+                                    disabled={usageLoading}
+                                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1.5 disabled:opacity-50 mt-4"
+                                >
+                                    <Search className="w-3 h-3" />
+                                    Filtrar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="p-12 text-center">
+                            {usageLoading && <div className="text-neutral-400 text-sm font-medium">Carregando dados...</div>}
+                            {!usageLoading && (!usageHistory || usageHistory.monthlyUsage.length === 0) && (
+                                <div className="text-neutral-400 text-sm font-medium">Nenhum dado encontrado para o período selecionado.</div>
+                            )}
+                            {!usageLoading && usageHistory && usageHistory.monthlyUsage.length > 0 && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    {usageHistory.monthlyUsage.map((item: any, idx: number) => (
+                                        <div key={idx} className="bg-neutral-50 border border-neutral-100 rounded-2xl p-5 flex flex-col gap-1 items-center justify-center hover:bg-white hover:shadow-md transition-all">
+                                            <span className="text-[10px] uppercase font-black text-neutral-400 tracking-widest">{item.monthName || item.month} / {item.year}</span>
+                                            <span className="text-3xl font-black text-emerald-600">{item.count || item.totalCount}</span>
+                                            <span className="text-[10px] font-bold text-neutral-500 uppercase">Consultas</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </section>
+                    <section className="bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden">
+                        <div className="px-6 py-5 border-b border-neutral-100 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <Users className="text-emerald-600 h-5 w-5" />
+                                <h3 className="text-lg font-semibold text-neutral-900">Histórico por Usuário e Módulo</h3>
+                            </div>
+                            <div className="text-[10px] font-bold text-neutral-400 uppercase bg-neutral-100 px-3 py-1 rounded-full">
+                                {usageHistory?.detailedUsage.length || 0} Registros
+                            </div>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="bg-neutral-50 text-neutral-500 border-b border-neutral-200">
+                                        <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider">Usuário</th>
+                                        <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center">Mês/Ano</th>
+                                        <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center">Módulo</th>
+                                        <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center">Consultas</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-neutral-100">
+                                    {!usageLoading && usageHistory?.detailedUsage.map((row: any, idx: number) => (
+                                        <tr key={idx} className="hover:bg-neutral-50 transition-colors">
+                                            <td className="py-4 px-6">
+                                                <div className="font-bold text-neutral-900 text-sm">{row.userName}</div>
+                                                <div className="text-[10px] text-neutral-400 tracking-tight">{row.userEmail}</div>
+                                            </td>
+                                            <td className="py-4 px-6 text-center text-sm font-medium text-neutral-600">
+                                                {row.monthName || row.month} / {row.year}
+                                            </td>
+                                            <td className="py-4 px-6 text-center">
+                                                <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-black ${
+                                                    row.module === 'RECEBER' ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' :
+                                                    row.module === 'PAGAR' ? 'bg-orange-50 text-orange-600 border border-orange-100' :
+                                                    row.module === 'BANCARIO' ? 'bg-blue-50 text-blue-600 border border-blue-100' :
+                                                    'bg-neutral-50 text-neutral-600 border border-neutral-100'
+                                                }`}>
+                                                    {row.module || 'Geral'}
+                                                </span>
+                                            </td>
+                                            <td className="py-4 px-6 text-center">
+                                                <span className="text-sm font-black text-neutral-900">{row.count || row.totalCount}</span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {!usageLoading && (!usageHistory || usageHistory.detailedUsage.length === 0) && (
+                                        <tr>
+                                            <td colSpan={4} className="py-12 text-center text-neutral-400 text-sm font-medium">Nenhum detalhe disponível.</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+            )}
+            </div> {/* Grid Close */}
 
             {/* Modal Novo Usuário */}
             {showNewUserModal && (
@@ -466,7 +799,7 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                 </div>
             )}
 
-            {/* Modal Editar Senha Usuário */}
+            {/* Modal Editar Usuário */}
             {showEditUserModal && editingUser && (
                 <div className="fixed inset-0 bg-neutral-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-neutral-100">
@@ -490,9 +823,9 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                                         <input
                                             type="checkbox"
                                             id="editIsActive"
-                                            checked={editingUser.isActive}
+                                            checked={!editingUser.isInactive}
                                             disabled={editingUser.id === currentUser.id}
-                                            onChange={e => setEditingUser({ ...editingUser, isActive: e.target.checked })}
+                                            onChange={e => setEditingUser({ ...editingUser, isInactive: !e.target.checked })}
                                             className="h-4 w-4 text-emerald-600 border-neutral-300 rounded"
                                         />
                                         <label htmlFor="editIsActive" className="text-xs font-semibold text-neutral-700 cursor-pointer">
@@ -579,247 +912,55 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                 </div>
             )}
 
-            </>
-            )}
-
-            </div>
-
-            {activeTab === 'sql-logs' && (
-                <section className="bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden">
-                    <div className="px-6 py-5 border-b border-neutral-100 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <Database className="text-indigo-600 h-5 w-5" />
-                            <h3 className="text-lg font-semibold text-neutral-900">Log de Consultas SQL da IA</h3>
+            {/* Modal de Bloqueio */}
+            {blockingUser && (
+                <div className="fixed inset-0 bg-neutral-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200 border border-neutral-100">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-bold text-neutral-900">Bloquear Usuário</h3>
+                            <button onClick={() => setBlockingUser(null)} className="text-neutral-400 hover:text-neutral-600 transition">
+                                <X className="w-6 h-6" />
+                            </button>
                         </div>
-                    </div>
+                        
+                        <p className="text-sm text-neutral-600 mb-6 leading-relaxed">
+                            Selecione até quando o usuário <strong>{blockingUser.name}</strong> ficará bloqueado de efetuar consultas no chat.
+                        </p>
 
-                    {/* Filters */}
-                    <div className="p-6 border-b border-neutral-100 flex flex-wrap items-end gap-4">
-                        <div>
-                            <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Usuário</label>
-                            <select 
-                                value={sqlFilterUserId} 
-                                onChange={e => setSqlFilterUserId(e.target.value)}
-                                className="bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-2 text-sm w-48 outline-none focus:border-indigo-400"
-                            >
-                                <option value="">Todos</option>
-                                {users.map((u: any) => (
-                                    <option key={u.id} value={u.id}>{u.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Data Início</label>
-                            <input type="date" value={sqlFilterStart} onChange={e => setSqlFilterStart(e.target.value)} className="bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-400" />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Data Fim</label>
-                            <input type="date" value={sqlFilterEnd} onChange={e => setSqlFilterEnd(e.target.value)} className="bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-400" />
-                        </div>
-                        <button 
-                            onClick={fetchSqlLogs}
-                            disabled={sqlLogsLoading}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg text-sm font-bold transition-colors inline-flex items-center gap-1.5 disabled:opacity-50"
-                        >
-                            <Search className="w-4 h-4" />
-                            Buscar
-                        </button>
-                    </div>
-
-                    {/* Results */}
-                    <div className="divide-y divide-neutral-100">
-                        {sqlLogsLoading && (
-                            <div className="p-12 text-center text-neutral-400 text-sm font-medium">Carregando logs...</div>
-                        )}
-                        {!sqlLogsLoading && sqlLogs.length === 0 && (
-                            <div className="p-12 text-center text-neutral-400 text-sm font-medium">Nenhum log de SQL encontrado. As consultas SQL serão registradas a partir de agora.</div>
-                        )}
-                        {!sqlLogsLoading && sqlLogs.map((log: any) => {
-                            const isExpanded = expandedLogId === log.messageId;
-                            let queries: string[] = [];
-                            try { queries = JSON.parse(log.sqlQueries); } catch { queries = [log.sqlQueries]; }
-
-                            return (
-                                <div key={log.messageId} className="px-6 py-4 hover:bg-neutral-50 transition-colors">
-                                    <div className="flex items-center justify-between cursor-pointer" onClick={() => setExpandedLogId(isExpanded ? null : log.messageId)}>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-3 mb-1">
-                                                <span className="text-[11px] text-neutral-400 font-mono">{new Date(log.date).toLocaleString('pt-BR')}</span>
-                                                <span className="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">{log.userName}</span>
-                                                <span className="text-[10px] text-neutral-300">{log.userEmail}</span>
-                                            </div>
-                                            <p className="text-sm font-medium text-neutral-800 truncate">{log.userQuestion}</p>
-                                        </div>
-                                        <div className="flex items-center gap-2 ml-4 shrink-0">
-                                            <span className="text-[10px] font-bold text-neutral-400 bg-neutral-100 px-2 py-1 rounded-lg">{queries.length} SQL</span>
-                                            {isExpanded ? <ChevronUp className="w-4 h-4 text-neutral-400" /> : <ChevronDown className="w-4 h-4 text-neutral-400" />}
-                                        </div>
-                                    </div>
-                                    {isExpanded && (
-                                        <div className="mt-4 space-y-3 animate-in slide-in-from-top-2 duration-200">
-                                            <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-200">
-                                                <h5 className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-2">Resposta da IA</h5>
-                                                <p className="text-sm text-neutral-700 whitespace-pre-wrap leading-relaxed">{log.aiReply.length > 500 ? log.aiReply.substring(0, 500) + '...' : log.aiReply}</p>
-                                            </div>
-                                            <div>
-                                                <h5 className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-2">Queries Executadas</h5>
-                                                <div className="space-y-2">
-                                                    {queries.map((q: string, i: number) => (
-                                                        <pre key={i} className="text-[11px] bg-neutral-900 text-green-400 p-3 rounded-xl overflow-x-auto font-mono leading-relaxed whitespace-pre-wrap break-all">{q}</pre>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                </section>
-            )}
-
-            {activeTab === 'usage-history' && (
-                <div className="space-y-8 animate-in fade-in duration-500">
-                    <section className="bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden">
-                        <div className="px-6 py-5 border-b border-neutral-100 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <TrendingUp className="text-emerald-600 h-5 w-5" />
-                                <h3 className="text-lg font-semibold text-neutral-900">Resumo Mensal</h3>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <div>
-                                    <label className="block text-[9px] font-bold text-neutral-400 uppercase mb-1">Ano / Período</label>
-                                    <select 
-                                        value={selectedYearPreset}
-                                        onChange={(e) => handleApplyPeriodPreset(e.target.value)}
-                                        className="bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-emerald-400 font-bold text-neutral-700"
-                                    >
-                                        <option value="none">Selecionar...</option>
-                                        <option value="all">Todo período</option>
-                                        <option value="2025">2025</option>
-                                        <option value="2026">2026</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-[9px] font-bold text-neutral-400 uppercase mb-1">De</label>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Bloquear até:</label>
+                                <div className="relative">
+                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                                     <input 
                                         type="date" 
-                                        value={sqlFilterStart} 
-                                        onChange={e => {
-                                            setSqlFilterStart(e.target.value);
-                                            setSelectedYearPreset('none');
-                                        }} 
-                                        className="bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-emerald-400" 
+                                        className="w-full pl-10 pr-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition outline-none text-sm"
+                                        value={blockDate}
+                                        onChange={(e) => setBlockDate(e.target.value)}
+                                        min={new Date().toISOString().split("T")[0]}
                                     />
-                                </div>
-                                <div>
-                                    <label className="block text-[9px] font-bold text-neutral-400 uppercase mb-1">Até</label>
-                                    <input 
-                                        type="date" 
-                                        value={sqlFilterEnd} 
-                                        onChange={e => {
-                                            setSqlFilterEnd(e.target.value);
-                                            setSelectedYearPreset('none');
-                                        }} 
-                                        className="bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-emerald-400" 
-                                    />
-                                </div>
-                                <div className="self-end">
-                                    <button 
-                                        onClick={() => fetchUsageHistory()}
-                                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-colors shadow-sm"
-                                    >
-                                        Filtrar
-                                    </button>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse text-sm">
-                                <thead>
-                                    <tr className="bg-neutral-50/80 text-neutral-500 border-b border-neutral-200 text-center">
-                                        <th className="py-4 px-6 font-bold text-xs uppercase tracking-wider text-left">Mês</th>
-                                        <th className="py-4 px-6 font-bold text-xs uppercase tracking-wider">Quantidade</th>
-                                        <th className="py-2 px-6 font-bold text-[10px] uppercase tracking-wider bg-neutral-100/50 border-x border-neutral-200" colSpan={6}>Módulo</th>
-                                    </tr>
-                                    <tr className="bg-neutral-50/30 text-[9px] uppercase font-bold text-neutral-400 border-b border-neutral-200 text-center">
-                                        <th className="py-1"></th>
-                                        <th className="py-1"></th>
-                                        <th className="py-1 border-l border-neutral-200">Financeiro</th>
-                                        <th className="py-1">Estoque</th>
-                                        <th className="py-1">Vendas</th>
-                                        <th className="py-1">Produção</th>
-                                        <th className="py-1">Contrato</th>
-                                        <th className="py-1 border-r border-neutral-200">Projetos</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {usageLoading && <tr><td colSpan={8} className="py-10 text-center text-neutral-400">Carregando dados...</td></tr>}
-                                    {!usageLoading && usageHistory?.monthlyUsage.map((m: any, i: number) => (
-                                        <tr key={i} className="border-b border-neutral-100 hover:bg-neutral-50/50 transition-colors">
-                                            <td className="py-4 px-6 font-bold text-neutral-800">{m.month}</td>
-                                            <td className="py-4 px-6 text-center font-black text-emerald-600">{m.totalCount}</td>
-                                            <td className="py-4 px-6 text-center text-neutral-500 border-l border-neutral-50">{m.moduleCounts['Financeiro'] || 0}</td>
-                                            <td className="py-4 px-6 text-center text-neutral-500">{m.moduleCounts['Estoque'] || 0}</td>
-                                            <td className="py-4 px-6 text-center text-neutral-500">{m.moduleCounts['Vendas'] || 0}</td>
-                                            <td className="py-4 px-6 text-center text-neutral-500">{m.moduleCounts['Produção'] || 0}</td>
-                                            <td className="py-4 px-6 text-center text-neutral-500">{m.moduleCounts['Contrato'] || 0}</td>
-                                            <td className="py-4 px-6 text-center text-neutral-500 border-r border-neutral-50">{m.moduleCounts['Projetos'] || 0}</td>
-                                        </tr>
-                                    ))}
-                                    {!usageLoading && (!usageHistory || usageHistory.monthlyUsage.length === 0) && (
-                                        <tr><td colSpan={8} className="py-10 text-center text-neutral-400">Nenhum dado encontrado para o período.</td></tr>
-                                    )}
-                                </tbody>
-                            </table>
+                            <div className="flex gap-3 pt-4">
+                                <button 
+                                    onClick={() => setBlockingUser(null)}
+                                    className="flex-1 px-4 py-3 border border-neutral-200 text-neutral-600 rounded-xl text-sm font-bold hover:bg-neutral-50 transition"
+                                >
+                                    Cancelar
+                                </button>
+                                <button 
+                                    onClick={handleBlockUser}
+                                    disabled={!blockDate}
+                                    className="flex-1 px-4 py-3 bg-orange-600 text-white rounded-xl text-sm font-bold hover:bg-orange-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                                >
+                                    Bloquear Agora
+                                </button>
+                            </div>
                         </div>
-                    </section>
-
-                    <section className="bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden">
-                        <div className="px-6 py-5 border-b border-neutral-100 bg-neutral-50/50">
-                            <h3 className="text-lg font-bold text-neutral-900">Detalhes por Usuário</h3>
-                        </div>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse text-sm">
-                                <thead>
-                                    <tr className="bg-neutral-50/80 text-neutral-500 border-b border-neutral-200 text-center">
-                                        <th className="py-4 px-6 font-bold text-xs uppercase tracking-wider text-left">Usuário</th>
-                                        <th className="py-4 px-6 font-bold text-xs uppercase tracking-wider">Quantidade</th>
-                                        <th className="py-2 px-6 font-bold text-[10px] uppercase tracking-wider bg-neutral-100/50 border-x border-neutral-200" colSpan={6}>Módulo</th>
-                                    </tr>
-                                    <tr className="bg-neutral-50/30 text-[9px] uppercase font-bold text-neutral-400 border-b border-neutral-200 text-center">
-                                        <th className="py-1"></th>
-                                        <th className="py-1"></th>
-                                        <th className="py-1 border-l border-neutral-200">Financeiro</th>
-                                        <th className="py-1">Estoque</th>
-                                        <th className="py-1">Vendas</th>
-                                        <th className="py-1">Produção</th>
-                                        <th className="py-1">Contrato</th>
-                                        <th className="py-1 border-r border-neutral-200">Projetos</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {usageLoading && <tr><td colSpan={8} className="py-10 text-center text-neutral-400">Carregando detalhes...</td></tr>}
-                                    {!usageLoading && usageHistory?.detailedUsage.map((du: any, i: number) => (
-                                        <tr key={i} className="border-b border-neutral-100 hover:bg-neutral-50/50 transition-colors">
-                                            <td className="py-4 px-6 font-semibold text-neutral-800">{du.userName}</td>
-                                            <td className="py-4 px-6 text-center font-bold text-indigo-600">{du.totalCount}</td>
-                                            <td className="py-4 px-6 text-center text-neutral-500 border-l border-neutral-50">{du.moduleCounts['Financeiro'] || 0}</td>
-                                            <td className="py-4 px-6 text-center text-neutral-500">{du.moduleCounts['Estoque'] || 0}</td>
-                                            <td className="py-4 px-6 text-center text-neutral-500">{du.moduleCounts['Vendas'] || 0}</td>
-                                            <td className="py-4 px-6 text-center text-neutral-500">{du.moduleCounts['Produção'] || 0}</td>
-                                            <td className="py-4 px-6 text-center text-neutral-500">{du.moduleCounts['Contrato'] || 0}</td>
-                                            <td className="py-4 px-6 text-center text-neutral-500 border-r border-neutral-50">{du.moduleCounts['Projetos'] || 0}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </section>
+                    </div>
                 </div>
             )}
-
         </div>
     );
 }

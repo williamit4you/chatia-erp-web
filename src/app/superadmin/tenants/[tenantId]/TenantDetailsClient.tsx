@@ -2,51 +2,60 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Key, Save, UserPlus, Server, Users, Edit2, X, Eye, EyeOff } from "lucide-react";
+import { Key, Save, UserPlus, Server, Users, Edit2, X, Eye, EyeOff, Info, Database, Shield, LayoutGrid } from "lucide-react";
 import { superAdminService } from "@/services/superadmin.service";
 
 export default function TenantDetailsClient({ tenant }: { tenant: any }) {
     const router = useRouter();
 
-    // Tokens Form State
+    // Settings State (Tokens + DB)
     const [iaToken, setIaToken] = useState(tenant.iaToken || "");
     const [chatAiToken, setChatAiToken] = useState(tenant.chatAiToken || "");
     const [erpToken, setErpToken] = useState(tenant.erpToken || "");
-    const [tokensLoading, setTokensLoading] = useState(false);
-    const [tokensMsg, setTokensMsg] = useState("");
+    
+    const [dbIp, setDbIp] = useState(tenant.dbIp || "");
+    const [dbName, setDbName] = useState(tenant.dbName || "");
+    const [dbType, setDbType] = useState(tenant.dbType || "SQL Server");
+    const [dbUser, setDbUser] = useState(tenant.dbUser || "");
+    const [dbPassword, setDbPassword] = useState(tenant.dbPassword || "");
+    const [showDbPassword, setShowDbPassword] = useState(false);
+
+    const [loading, setLoading] = useState(false);
+    const [msg, setMsg] = useState({ text: "", type: "success" });
 
     // User Form State
+    const [isAddUserOpen, setIsAddUserOpen] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [role, setRole] = useState("TENANT_USER");
     const [userLoading, setUserLoading] = useState(false);
     const [userMsg, setUserMsg] = useState("");
+    const [showPasswordAdd, setShowPasswordAdd] = useState(false);
 
     // Edit User State
     const [editingUserId, setEditingUserId] = useState<string | null>(null);
     const [editEmail, setEditEmail] = useState("");
     const [editPassword, setEditPassword] = useState("");
     const [editRole, setEditRole] = useState("TENANT_USER");
-    const [editLoading, setEditLoading] = useState(false);
-    const [editMsg, setEditMsg] = useState("");
-
-    const [showPasswordAdd, setShowPasswordAdd] = useState(false);
     const [showPasswordEdit, setShowPasswordEdit] = useState(false);
 
-    const updateTokens = async (e: React.FormEvent) => {
+    const saveSettings = async (e: React.FormEvent) => {
         e.preventDefault();
-        setTokensLoading(true);
-        setTokensMsg("");
+        setLoading(true);
+        setMsg({ text: "", type: "" });
 
         try {
-            await superAdminService.updateTenant(tenant.id, { iaToken, erpToken, chatAiToken });
-            setTokensMsg("Tokens atualizados com sucesso!");
+            await superAdminService.updateTenant(tenant.id, { 
+                iaToken, erpToken, chatAiToken,
+                dbIp, dbName, dbType, dbUser, dbPassword
+            });
+            setMsg({ text: "Configurações atualizadas com sucesso!", type: "success" });
             router.refresh();
         } catch (error: any) {
-            setTokensMsg(error.response?.data?.message || error.message);
+            setMsg({ text: error.response?.data?.message || error.message, type: "error" });
         } finally {
-            setTokensLoading(false);
-            setTimeout(() => setTokensMsg(""), 3000);
+            setLoading(false);
+            setTimeout(() => setMsg({ text: "", type: "" }), 3000);
         }
     };
 
@@ -58,15 +67,18 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
         try {
             await superAdminService.createTenantUser(tenant.id, { email, password, role });
             setUserMsg(`Usuário adicionado com sucesso!`);
-            setEmail("");
-            setPassword("");
-            setRole("TENANT_USER");
+            setTimeout(() => {
+                setIsAddUserOpen(false);
+                setEmail("");
+                setPassword("");
+                setRole("TENANT_USER");
+                setUserMsg("");
+            }, 1500);
             router.refresh();
         } catch (error: any) {
             setUserMsg(error.response?.data?.message || error.message);
         } finally {
             setUserLoading(false);
-            setTimeout(() => setUserMsg(""), 3000);
         }
     };
 
@@ -74,298 +86,381 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
         setEditingUserId(user.id);
         setEditEmail(user.email || "");
         setEditRole(user.role || "TENANT_USER");
-        setEditPassword(""); // reset password input on edit
-        setEditMsg("");
+        setEditPassword("");
+        setIsAddUserOpen(true); // Reuses the overlay card for editing
     };
 
     const cancelEdit = () => {
         setEditingUserId(null);
-        setEditMsg("");
+        setIsAddUserOpen(false);
+        setEditEmail("");
+        setEditPassword("");
     };
 
-    const saveUser = async (user: any) => {
-        setEditLoading(true);
-        setEditMsg("");
+    const updateEditedUser = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setUserLoading(true);
+        setUserMsg("");
 
         try {
             const data: any = { email: editEmail, role: editRole };
-            if (editPassword) {
-                data.password = editPassword;
-            }
-            await superAdminService.updateTenantUser(tenant.id, user.id, data);
-
-            // Sucesso
-            setEditingUserId(null); // Fecha a edição
+            if (editPassword) data.password = editPassword;
+            
+            await superAdminService.updateTenantUser(tenant.id, editingUserId!, data);
+            setUserMsg("Usuário atualizado com sucesso!");
+            setTimeout(() => {
+                cancelEdit();
+                setUserMsg("");
+            }, 1000);
             router.refresh();
         } catch (error: any) {
-            setEditMsg(error.response?.data?.message || error.message);
+            setUserMsg(error.response?.data?.message || error.message);
         } finally {
-            setEditLoading(false);
+            setUserLoading(false);
         }
     };
 
     return (
-        <div className="space-y-8">
-            {/* Top row: Tokens and Add User form */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Tokens Section */}
-                <section className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden shadow-xl self-start">
-                    <div className="px-6 py-5 border-b border-neutral-800 flex items-center gap-3">
-                        <Server className="text-emerald-500 h-5 w-5" />
-                        <h3 className="text-lg font-semibold text-white">Configuração de Tokens</h3>
+        <div className="flex flex-col gap-10 pb-20">
+            {/* 1. GERAL SECTION */}
+            <section className="bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden shadow-2xl">
+                <div className="px-8 py-6 border-b border-neutral-800 flex items-center justify-between bg-gradient-to-r from-neutral-900 to-neutral-800/50">
+                    <div className="flex items-center gap-4">
+                        <div className="bg-neutral-800 p-2.5 rounded-xl border border-neutral-700">
+                            <Info className="text-emerald-400 h-6 w-6" />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold text-white">Geral</h3>
+                            <p className="text-sm text-neutral-400">Dados básicos da empresa</p>
+                        </div>
                     </div>
-                    <div className="p-6">
-                        <form onSubmit={updateTokens} className="space-y-5">
-                            {tokensMsg && (
-                                <div className={`p-4 rounded-xl text-sm font-medium border ${tokensMsg.includes("sucesso") ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"}`}>
-                                    {tokensMsg}
-                                </div>
-                            )}
-                            <div>
-                                <label className="block text-sm font-medium text-neutral-300 mb-2">Token Memória RAG</label>
-                                <div className="relative">
-                                    <Key className="absolute left-3 top-3 h-5 w-5 text-neutral-500" />
-                                    <input
-                                        type="text"
-                                        placeholder="Insira a API Key para Memória RAG..."
-                                        className="pl-10 appearance-none block w-full px-4 py-3 bg-neutral-950 border border-neutral-700 rounded-xl placeholder-neutral-600 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-                                        value={iaToken}
-                                        onChange={(e) => setIaToken(e.target.value)}
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-neutral-300 mb-2">Token IA para consulta e chat</label>
-                                <div className="relative">
-                                    <Key className="absolute left-3 top-3 h-5 w-5 text-neutral-500" />
-                                    <input
-                                        type="text"
-                                        placeholder="Insira a API Key para Chat..."
-                                        className="pl-10 appearance-none block w-full px-4 py-3 bg-neutral-950 border border-neutral-700 rounded-xl placeholder-neutral-600 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-inner"
-                                        value={chatAiToken}
-                                        onChange={(e) => setChatAiToken(e.target.value)}
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-neutral-300 mb-2">Token ERP / Bearer</label>
-                                <div className="relative">
-                                    <Key className="absolute left-3 top-3 h-5 w-5 text-neutral-500" />
-                                    <input
-                                        type="text"
-                                        placeholder="Insira a API Key do ERP..."
-                                        className="pl-10 appearance-none block w-full px-4 py-3 bg-neutral-950 border border-neutral-700 rounded-xl placeholder-neutral-600 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-                                        value={erpToken}
-                                        onChange={(e) => setErpToken(e.target.value)}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="pt-2">
-                                <button
-                                    type="submit"
-                                    disabled={tokensLoading}
-                                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white border border-neutral-700 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
-                                >
-                                    <Save className="h-4 w-4" />
-                                    {tokensLoading ? "Salvando..." : "Salvar Tokens"}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </section>
-
-                {/* Add User */}
-                <section className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden shadow-xl self-start">
-                    <div className="px-6 py-5 border-b border-neutral-800 flex items-center gap-3">
-                        <UserPlus className="text-blue-500 h-5 w-5" />
-                        <h3 className="text-lg font-semibold text-white">Adicionar Usuário</h3>
-                    </div>
-                    <div className="p-6">
-                        <form onSubmit={createUser} className="space-y-5">
-                            {userMsg && (
-                                <div className={`p-4 rounded-xl text-sm font-medium border ${userMsg.includes("sucesso") ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"}`}>
-                                    {userMsg}
-                                </div>
-                            )}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-neutral-300 mb-2">Email</label>
-                                    <input
-                                        type="email"
-                                        required
-                                        placeholder="email@empresa.com"
-                                        className="appearance-none block w-full px-4 py-3 bg-neutral-950 border border-neutral-700 rounded-xl placeholder-neutral-600 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-neutral-300 mb-2">Senha</label>
-                                    <div className="relative">
-                                        <input
-                                            type={showPasswordAdd ? "text" : "password"}
-                                            required
-                                            placeholder="******"
-                                            className="appearance-none block w-full px-4 py-3 pr-12 bg-neutral-950 border border-neutral-700 rounded-xl placeholder-neutral-600 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPasswordAdd(!showPasswordAdd)}
-                                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-neutral-500 hover:text-emerald-500 transition-colors"
-                                        >
-                                            {showPasswordAdd ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-neutral-300 mb-2">Função</label>
-                                <select
-                                    className="appearance-none block w-full px-4 py-3 bg-neutral-950 border border-neutral-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all custom-select"
-                                    value={role}
-                                    onChange={(e) => setRole(e.target.value)}
-                                >
-                                    <option value="TENANT_USER">Usuário Chat</option>
-                                    <option value="TENANT_ADMIN">Administrador da Empresa</option>
-                                </select>
-                            </div>
-
-                            <div className="pt-2">
-                                <button
-                                    type="submit"
-                                    disabled={userLoading}
-                                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
-                                >
-                                    <UserPlus className="h-4 w-4" />
-                                    {userLoading ? "Adicionando..." : "Criar Usuário"}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </section>
-            </div>
-
-            {/* List Users (Full Width) */}
-            <section className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden shadow-xl">
-                <div className="px-6 py-5 border-b border-neutral-800 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <Users className="text-amber-500 h-5 w-5" />
-                        <h3 className="text-lg font-semibold text-white">Usuários da Empresa</h3>
-                    </div>
-                    <span className="bg-neutral-800 text-neutral-300 py-1 px-3 rounded-full text-xs font-medium">
-                        {tenant.users?.length || 0} total
-                    </span>
                 </div>
-                {(!tenant.users || tenant.users.length === 0) ? (
-                    <div className="p-8 text-center">
-                        <p className="text-neutral-500 text-sm">Nenhum usuário cadastrado nesta empresa ainda.</p>
+                <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-1">
+                        <label className="text-[11px] font-black uppercase text-neutral-500 tracking-widest pl-1">Nome Fantasia</label>
+                        <div className="bg-neutral-950/50 border border-neutral-800 px-5 py-3.5 rounded-2xl text-white font-semibold">
+                            {tenant.name}
+                        </div>
                     </div>
-                ) : (
-                    <ul className="divide-y divide-neutral-800">
-                        {tenant.users.map((user: any) => (
-                            <li key={user.id} className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-neutral-800/20">
-                                {editingUserId === user.id ? (
-                                    <div className="w-full space-y-4">
-                                        {editMsg && (
-                                            <div className="p-3 rounded-lg text-sm font-medium border bg-red-500/10 text-red-500 border-red-500/20">
-                                                {editMsg}
-                                            </div>
-                                        )}
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                            <div>
-                                                <label className="block text-xs text-neutral-400 mb-1">Email</label>
-                                                <input
-                                                    type="email"
-                                                    value={editEmail}
-                                                    onChange={(e) => setEditEmail(e.target.value)}
-                                                    className="w-full px-3 py-2 bg-neutral-900 border border-neutral-700 rounded-lg text-white text-sm"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs text-neutral-400 mb-1">Nova Senha</label>
-                                                <div className="relative">
-                                                    <input
-                                                        type={showPasswordEdit ? "text" : "password"}
-                                                        placeholder="Deixe em branco para manter"
-                                                        value={editPassword}
-                                                        onChange={(e) => setEditPassword(e.target.value)}
-                                                        className="w-full px-3 py-2 pr-10 bg-neutral-900 border border-neutral-700 rounded-lg text-white text-sm"
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setShowPasswordEdit(!showPasswordEdit)}
-                                                        className="absolute inset-y-0 right-0 pr-2 flex items-center text-neutral-500 hover:text-emerald-500 transition-colors"
-                                                    >
-                                                        {showPasswordEdit ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs text-neutral-400 mb-1">Função</label>
-                                                <select
-                                                    value={editRole}
-                                                    onChange={(e) => setEditRole(e.target.value)}
-                                                    className="w-full px-3 py-2 bg-neutral-900 border border-neutral-700 rounded-lg text-white text-sm custom-select"
-                                                >
-                                                    <option value="TENANT_USER">Usuário Chat</option>
-                                                    <option value="TENANT_ADMIN">Administrador</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div className="flex gap-2 justify-end">
-                                            <button
-                                                onClick={cancelEdit}
-                                                disabled={editLoading}
-                                                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
-                                            >
-                                                Cancelar
-                                            </button>
-                                            <button
-                                                onClick={() => saveUser(user)}
-                                                disabled={editLoading}
-                                                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-500 flex items-center gap-1"
-                                            >
-                                                <Save className="h-3 w-3" />
-                                                {editLoading ? "Salvando..." : "Salvar"}
-                                            </button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <div>
-                                            <p className="font-medium text-white">{user.email}</p>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <span className="text-xs text-neutral-500">
-                                                    Consultas: <strong className="text-neutral-300">{user.queryCount}</strong>
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                            <span className={`inline-flex px-2 py-1 rounded text-xs font-semibold ${(user.role === 'TENANT_ADMIN' || user.role === 'ADMIN') ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'bg-neutral-800 text-neutral-400'}`}>
-                                                {(user.role === 'TENANT_ADMIN' || user.role === 'ADMIN') ? 'Admin' : 'Membro'}
-                                            </span>
-                                            <button
-                                                onClick={() => startEdit(user)}
-                                                className="p-1.5 rounded-lg text-neutral-500 hover:text-emerald-400 hover:bg-neutral-800 transition-colors"
-                                                title="Editar Usuário"
-                                            >
-                                                <Edit2 className="h-4 w-4" />
-                                            </button>
-                                        </div>
-                                    </>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
-                )}
+                    <div className="space-y-1">
+                        <label className="text-[11px] font-black uppercase text-neutral-500 tracking-widest pl-1">CNPJ</label>
+                        <div className="bg-neutral-950/50 border border-neutral-800 px-5 py-3.5 rounded-2xl text-neutral-300 font-mono">
+                            {tenant.cnpj}
+                        </div>
+                    </div>
+                </div>
             </section>
 
+            {/* 2. TOKENS SECTION */}
+            <section className="bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden shadow-2xl">
+                <div className="px-8 py-6 border-b border-neutral-800 flex items-center justify-between bg-gradient-to-r from-neutral-900 to-neutral-800/50">
+                    <div className="flex items-center gap-4">
+                        <div className="bg-neutral-800 p-2.5 rounded-xl border border-neutral-700">
+                            <Shield className="text-blue-400 h-6 w-6" />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold text-white">Configuração de Tokens</h3>
+                            <p className="text-sm text-neutral-400">Gerencie chaves de API e integrações</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="p-8 space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-neutral-400">Token Memória RAG</label>
+                            <div className="relative group">
+                                <Key className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-500 group-focus-within:text-emerald-500 transition-colors" />
+                                <input
+                                    type="text"
+                                    className="block w-full pl-12 pr-4 py-4 bg-neutral-950 border border-neutral-800 rounded-2xl text-sm text-white placeholder-neutral-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+                                    placeholder="sk-proj-..."
+                                    value={iaToken}
+                                    onChange={(e) => setIaToken(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-neutral-400">Token IA para consulta e chat</label>
+                            <div className="relative group">
+                                <Key className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-500 group-focus-within:text-emerald-500 transition-colors" />
+                                <input
+                                    type="text"
+                                    className="block w-full pl-12 pr-4 py-4 bg-neutral-950 border border-neutral-800 rounded-2xl text-sm text-white placeholder-neutral-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+                                    placeholder="gsk-..."
+                                    value={chatAiToken}
+                                    onChange={(e) => setChatAiToken(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-neutral-400">Token ERP / Bearer</label>
+                        <div className="relative group">
+                            <Key className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-500 group-focus-within:text-emerald-500 transition-colors" />
+                            <input
+                                type="text"
+                                className="block w-full pl-12 pr-4 py-4 bg-neutral-950 border border-neutral-800 rounded-2xl text-sm text-white placeholder-neutral-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+                                placeholder="..."
+                                value={erpToken}
+                                onChange={(e) => setErpToken(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* 3. BANCO DE DADOS SECTION */}
+            <section className="bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden shadow-2xl">
+                <div className="px-8 py-6 border-b border-neutral-800 flex items-center justify-between bg-gradient-to-r from-neutral-900 to-neutral-800/50">
+                    <div className="flex items-center gap-4">
+                        <div className="bg-neutral-800 p-2.5 rounded-xl border border-neutral-700">
+                            <Database className="text-amber-400 h-6 w-6" />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold text-white">Banco de Dados</h3>
+                            <p className="text-sm text-neutral-400">Conexão direta com o sistema legado</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="p-8 space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-neutral-400">Servidor / IP</label>
+                            <input
+                                type="text"
+                                className="block w-full px-4 py-4 bg-neutral-950 border border-neutral-800 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                                placeholder="192.168..."
+                                value={dbIp}
+                                onChange={(e) => setDbIp(e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-neutral-400">Nome da Base</label>
+                            <input
+                                type="text"
+                                className="block w-full px-4 py-4 bg-neutral-950 border border-neutral-800 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                                placeholder="PROD_DB"
+                                value={dbName}
+                                onChange={(e) => setDbName(e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-neutral-400">Tipo de Banco</label>
+                            <select
+                                className="block w-full px-4 py-4 bg-neutral-950 border border-neutral-800 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50 appearance-none custom-select"
+                                value={dbType}
+                                onChange={(e) => setDbType(e.target.value)}
+                            >
+                                <option value="SQL Server">SQL Server</option>
+                                <option value="Oracle">Oracle</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-neutral-400">Usuário do Banco</label>
+                            <input
+                                type="text"
+                                className="block w-full px-4 py-4 bg-neutral-950 border border-neutral-800 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                                value={dbUser}
+                                onChange={(e) => setDbUser(e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-neutral-400">Senha do Banco</label>
+                            <div className="relative">
+                                <input
+                                    type={showDbPassword ? "text" : "password"}
+                                    className="block w-full pr-14 pl-4 py-4 bg-neutral-950 border border-neutral-800 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                                    value={dbPassword}
+                                    onChange={(e) => setDbPassword(e.target.value)}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowDbPassword(!showDbPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-amber-400 transition-colors"
+                                >
+                                    {showDbPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Global Save Button for Token & DB */}
+                <div className="px-8 pb-8 flex flex-col items-center">
+                    {msg.text && (
+                        <div className={`mb-4 w-full p-4 rounded-2xl text-center text-sm font-bold border transition-all ${msg.type === "success" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"}`}>
+                            {msg.text}
+                        </div>
+                    )}
+                    <button
+                        onClick={saveSettings}
+                        disabled={loading}
+                        className="w-full sm:w-64 py-4 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg shadow-emerald-500/10 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                    >
+                        <Save className="h-5 w-5" />
+                        {loading ? "Salvando..." : "Salvar Configurações"}
+                    </button>
+                </div>
+            </section>
+
+            {/* 4. USUÁRIOS SECTION */}
+            <section className="bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden shadow-2xl relative">
+                <div className="px-8 py-6 border-b border-neutral-800 flex items-center justify-between bg-gradient-to-r from-neutral-900 to-neutral-800/50">
+                    <div className="flex items-center gap-4">
+                        <div className="bg-neutral-800 p-2.5 rounded-xl border border-neutral-700">
+                            <Users className="text-blue-400 h-6 w-6" />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold text-white">Usuários</h3>
+                            <p className="text-sm text-neutral-400">Gerencie acessos de funcionários</p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => setIsAddUserOpen(true)}
+                        className="bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-600/20 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 transition-all active:scale-95"
+                    >
+                        <UserPlus className="h-4 w-4" />
+                        Adicionar
+                    </button>
+                </div>
+
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="border-b border-neutral-800 text-[10px] uppercase tracking-wider text-neutral-500 font-black">
+                                <th className="px-8 py-4">Usuário</th>
+                                <th className="px-8 py-4">Função</th>
+                                <th className="px-8 py-4 text-center">Consultas</th>
+                                <th className="px-8 py-4 text-center">Status</th>
+                                <th className="px-8 py-4 text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-neutral-800/50">
+                            {tenant.users?.map((user: any) => (
+                                <tr key={user.id} className="hover:bg-neutral-800/20 transition-colors group">
+                                    <td className="px-8 py-5">
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-bold text-white">{user.email}</span>
+                                            <span className="text-[10px] text-neutral-500 uppercase tracking-tight">{user.name || "N/A"}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-8 py-5">
+                                        <span className={`text-[10px] font-black tracking-widest uppercase px-3 py-1 rounded-lg ${user.role.includes('ADMIN') ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'bg-neutral-800 text-neutral-400'}`}>
+                                            {user.role}
+                                        </span>
+                                    </td>
+                                    <td className="px-8 py-5 text-center">
+                                        <span className="text-sm font-mono text-neutral-300">{user.queryCount}</span>
+                                    </td>
+                                    <td className="px-8 py-5 text-center">
+                                        <div className="flex items-center justify-center">
+                                            {user.isActive ? (
+                                                <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" />
+                                            ) : (
+                                                <div className="h-2 w-2 rounded-full bg-red-500" />
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td className="px-8 py-5 text-right">
+                                        <button
+                                            onClick={() => startEdit(user)}
+                                            className="p-2.5 rounded-xl bg-neutral-800 text-neutral-500 hover:text-blue-400 hover:bg-neutral-700 transition-all border border-transparent hover:border-blue-400/20"
+                                        >
+                                            <Edit2 className="h-4 w-4" />
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* OVERLAY CARD FOR ADDD/EDIT USER */}
+                {isAddUserOpen && (
+                    <div className="absolute inset-0 z-20 bg-neutral-950/80 backdrop-blur-sm flex items-center justify-center p-8">
+                        <div className="bg-neutral-900 border border-neutral-700 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+                            <div className="px-8 py-6 border-b border-neutral-800 flex items-center justify-between">
+                                <h4 className="text-lg font-bold text-white uppercase tracking-wider flex items-center gap-3">
+                                    <LayoutGrid className="text-blue-400 h-5 w-5" />
+                                    {editingUserId ? "Editar Usuário" : "Novo Usuário"}
+                                </h4>
+                                <button onClick={cancelEdit} className="p-2 hover:bg-neutral-800 rounded-xl transition-colors">
+                                    <X className="h-5 w-5 text-neutral-500" />
+                                </button>
+                            </div>
+                            <form onSubmit={editingUserId ? updateEditedUser : createUser} className="p-8 space-y-6">
+                                {userMsg && (
+                                    <div className={`p-4 rounded-2xl text-center text-sm font-bold border ${userMsg.includes("sucesso") ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"}`}>
+                                        {userMsg}
+                                    </div>
+                                )}
+                                <div className="space-y-4">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black uppercase text-neutral-500 tracking-widest pl-1">E-mail de Acesso</label>
+                                        <input
+                                            type="email"
+                                            required
+                                            className="w-full px-5 py-3.5 bg-neutral-950 border border-neutral-800 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                                            value={editingUserId ? editEmail : email}
+                                            onChange={(e) => editingUserId ? setEditEmail(e.target.value) : setEmail(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black uppercase text-neutral-500 tracking-widest pl-1">
+                                            {editingUserId ? "Alterar Senha (opcional)" : "Senha Inicial"}
+                                        </label>
+                                        <div className="relative">
+                                            <input
+                                                type={editingUserId ? (showPasswordEdit ? "text" : "password") : (showPasswordAdd ? "text" : "password")}
+                                                required={!editingUserId}
+                                                className="w-full pr-14 pl-5 py-3.5 bg-neutral-950 border border-neutral-800 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                                                value={editingUserId ? editPassword : password}
+                                                onChange={(e) => editingUserId ? setEditPassword(e.target.value) : setPassword(e.target.value)}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => editingUserId ? setShowPasswordEdit(!showPasswordEdit) : setShowPasswordAdd(!showPasswordAdd)}
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-blue-400 transition-colors"
+                                            >
+                                                {editingUserId ? (showPasswordEdit ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />) : (showPasswordAdd ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />)}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black uppercase text-neutral-500 tracking-widest pl-1">Função / Perfil</label>
+                                        <select
+                                            className="w-full px-5 py-3.5 bg-neutral-950 border border-neutral-800 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none custom-select"
+                                            value={editingUserId ? editRole : role}
+                                            onChange={(e) => editingUserId ? setEditRole(e.target.value) : setRole(e.target.value)}
+                                        >
+                                            <option value="TENANT_USER">Usuário Chat</option>
+                                            <option value="TENANT_ADMIN">Administrador da Empresa</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="pt-2 flex gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={cancelEdit}
+                                        className="flex-1 py-4 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-2xl font-black text-xs uppercase tracking-widest transition-all"
+                                    >
+                                        Descartar
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={userLoading}
+                                        className="flex-1 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-500/10 transition-all disabled:opacity-50"
+                                    >
+                                        {userLoading ? "Processando..." : (editingUserId ? "Atualizar" : "Cadastrar")}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+            </section>
         </div>
     );
 }

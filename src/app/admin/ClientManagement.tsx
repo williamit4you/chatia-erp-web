@@ -646,56 +646,66 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                             </div>
                         </div>
 
-                        <div className="p-6">
+                        <div className="p-0">
                             {usageLoading && <div className="p-12 text-center text-neutral-400 text-sm font-medium">Carregando dados...</div>}
                             {!usageLoading && (!usageHistory || usageHistory.monthlyUsage.length === 0) && (
                                 <div className="p-12 text-center text-neutral-400 text-sm font-medium">Nenhum dado encontrado para o período selecionado.</div>
                             )}
                             {!usageLoading && usageHistory && usageHistory.monthlyUsage.length > 0 && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                    {usageHistory.monthlyUsage.map((item: any, idx: number) => {
-                                        const isSelected = selectedMonthKey === item.month;
-                                        const modulesOrder = ["Financeiro", "Estoque", "Vendas", "Produção", "Contrato", "Projetos"];
-                                        const getMonthNumber = (name: string) => {
-                                            const months: any = { 'jan': 1, 'fev': 2, 'mar': 3, 'abr': 4, 'mai': 5, 'jun': 6, 'jul': 7, 'ago': 8, 'set': 9, 'out': 10, 'nov': 11, 'dez': 12 };
-                                            return months[name.toLowerCase()] || 0;
-                                        };
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left border-collapse min-w-[1000px]">
+                                        <thead>
+                                            <tr className="bg-neutral-50 text-neutral-500 border-b border-neutral-200">
+                                                <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider sticky left-0 bg-neutral-50 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Mês / Ano</th>
+                                                <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center bg-emerald-50/50 text-emerald-700 font-black">Total</th>
+                                                <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center">Financeiro</th>
+                                                <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center">Estoque</th>
+                                                <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center">Vendas</th>
+                                                <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center">Produção</th>
+                                                <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center">Contrato</th>
+                                                <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider text-center">Projetos</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-neutral-100">
+                                            {usageHistory.monthlyUsage.map((item: any, idx: number) => {
+                                                const isSelected = selectedMonthKey === item.month;
+                                                const modulesOrder = ["Financeiro", "Estoque", "Vendas", "Produção", "Contrato", "Projetos"];
+                                                const getMonthNumber = (name: string) => {
+                                                    const months: any = { 'jan': 1, 'fev': 2, 'mar': 3, 'abr': 4, 'mai': 5, 'jun': 6, 'jul': 7, 'ago': 8, 'set': 9, 'out': 10, 'nov': 11, 'dez': 12 };
+                                                    return months[name.toLowerCase()] || 0;
+                                                };
 
-                                        return (
-                                            <div 
-                                                key={idx} 
-                                                onClick={() => {
-                                                    const [mStr, yStr] = item.month.split('/');
-                                                    const m = getMonthNumber(mStr);
-                                                    const y = 2000 + parseInt(yStr);
-                                                    setSelectedMonthKey(item.month);
-                                                    fetchUsageHistory(undefined, undefined, m, y);
-                                                }}
-                                                className={`bg-white border text-left cursor-pointer hover:shadow-md transition-all ${isSelected ? 'border-emerald-500 ring-2 ring-emerald-500/20 shadow-sm' : 'border-neutral-200'} rounded-2xl p-4 flex flex-col gap-4 group`}
-                                            >
-                                                <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[10px] uppercase font-black text-neutral-400 tracking-wider">Mês / Ano</span>
-                                                        <span className={`text-base font-black transition-colors ${isSelected ? 'text-emerald-600' : 'text-neutral-900 group-hover:text-emerald-600'}`}>{item.month.toUpperCase()}</span>
-                                                    </div>
-                                                    <div className={`flex flex-col items-end px-3 py-1.5 rounded-xl transition-colors ${isSelected ? 'bg-emerald-600 text-white' : 'bg-neutral-50 text-neutral-500 group-hover:bg-emerald-50 group-hover:text-emerald-700'}`}>
-                                                        <span className="text-[16px] font-black leading-tight">{item.totalCount}</span>
-                                                        <span className="text-[8px] uppercase font-bold tracking-tight">Consultas</span>
-                                                    </div>
-                                                </div>
-                                                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                                                    {modulesOrder.map(m => (
-                                                        <div key={m} className="flex items-center justify-between">
-                                                            <span className="text-[9px] uppercase font-bold text-neutral-400 truncate">{m}</span>
-                                                            <span className={`text-[10px] font-bold ${item.moduleCounts[m] > 0 ? 'text-neutral-900' : 'text-neutral-300'}`}>
+                                                return (
+                                                    <tr 
+                                                        key={idx} 
+                                                        onClick={() => {
+                                                            const [mStr, yStr] = item.month.split('/');
+                                                            const m = getMonthNumber(mStr);
+                                                            const y = 2000 + parseInt(yStr);
+                                                            setSelectedMonthKey(item.month);
+                                                            fetchUsageHistory(undefined, undefined, m, y);
+                                                        }}
+                                                        className={`cursor-pointer group transition-all ${isSelected ? 'bg-emerald-50/40' : 'hover:bg-neutral-50'}`}
+                                                    >
+                                                        <td className={`py-4 px-6 sticky left-0 z-10 transition-colors shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ${isSelected ? 'bg-emerald-50/10' : 'bg-white group-hover:bg-neutral-50'}`}>
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`w-1 h-6 rounded-full transition-colors ${isSelected ? 'bg-emerald-500' : 'bg-transparent group-hover:bg-neutral-200'}`} />
+                                                                <span className={`text-sm font-black tracking-tight ${isSelected ? 'text-emerald-700' : 'text-neutral-900'}`}>{item.month.toUpperCase()}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-4 px-6 text-center bg-emerald-50/20">
+                                                            <span className={`text-sm font-black ${isSelected ? 'text-emerald-600' : 'text-emerald-400'}`}>{item.totalCount}</span>
+                                                        </td>
+                                                        {modulesOrder.map(m => (
+                                                            <td key={m} className={`py-4 px-6 text-center text-sm font-medium border-l border-neutral-50/50 ${item.moduleCounts[m] > 0 ? (isSelected ? 'text-emerald-700' : 'text-neutral-700') : 'text-neutral-300'}`}>
                                                                 {item.moduleCounts[m] || 0}
-                                                            </span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
+                                                            </td>
+                                                        ))}
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
                                 </div>
                             )}
                         </div>

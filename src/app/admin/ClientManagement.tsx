@@ -47,6 +47,7 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
     const [sqlFilterEnd, setSqlFilterEnd] = useState('');
     const [selectedYearPreset, setSelectedYearPreset] = useState('none');
     const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
+    const [selectedMonthKey, setSelectedMonthKey] = useState<string | ''>('');
 
     // User Blocking State
     const [blockingUser, setBlockingUser] = useState<any>(null);
@@ -174,12 +175,17 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
         return new Date(user.blockedUntil) > new Date();
     };
 
-    const fetchUsageHistory = async (customStart?: string, customEnd?: string) => {
+    const fetchUsageHistory = async (customStart?: string, customEnd?: string, specificMonth?: number, specificYear?: number) => {
         setUsageLoading(true);
         try {
             const params: any = {};
-            if (usageFilterMonth) params.month = usageFilterMonth;
-            if (usageFilterYear) params.year = usageFilterYear;
+            
+            // Priority: provided specificMonth OR state
+            const month = specificMonth;
+            const year = specificYear;
+
+            if (month) params.month = month;
+            if (year) params.year = year;
             
             // Use provided dates or state values
             const startDate = customStart || sqlFilterStart;
@@ -197,6 +203,19 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
             setUsageLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (activeTab === 'usage-history' && !sqlFilterStart && !sqlFilterEnd && !usageHistory) {
+            const sixMonthsAgo = new Date();
+            sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+            sixMonthsAgo.setDate(1);
+            const startStr = sixMonthsAgo.toISOString().split('T')[0];
+            const endStr = new Date().toISOString().split('T')[0];
+            setSqlFilterStart(startStr);
+            setSqlFilterEnd(endStr);
+            fetchUsageHistory(startStr, endStr);
+        }
+    }, [activeTab]);
 
     const handleApplyPeriodPreset = (preset: string) => {
         setSelectedYearPreset(preset);
@@ -276,10 +295,7 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                     Log de Consultas SQL
                 </button>
                 <button
-                    onClick={() => {
-                        setActiveTab('usage-history');
-                        if (!usageHistory) fetchUsageHistory();
-                    }}
+                    onClick={() => setActiveTab('usage-history')}
                     className={`px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'usage-history'
                         ? 'bg-white text-neutral-900 shadow-sm'
                         : 'text-neutral-500 hover:text-neutral-700'
@@ -630,29 +646,72 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                             </div>
                         </div>
 
-                        <div className="p-12 text-center">
-                            {usageLoading && <div className="text-neutral-400 text-sm font-medium">Carregando dados...</div>}
+                        <div className="p-6">
+                            {usageLoading && <div className="p-12 text-center text-neutral-400 text-sm font-medium">Carregando dados...</div>}
                             {!usageLoading && (!usageHistory || usageHistory.monthlyUsage.length === 0) && (
-                                <div className="text-neutral-400 text-sm font-medium">Nenhum dado encontrado para o período selecionado.</div>
+                                <div className="p-12 text-center text-neutral-400 text-sm font-medium">Nenhum dado encontrado para o período selecionado.</div>
                             )}
                             {!usageLoading && usageHistory && usageHistory.monthlyUsage.length > 0 && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                    {usageHistory.monthlyUsage.map((item: any, idx: number) => (
-                                        <div key={idx} className="bg-neutral-50 border border-neutral-100 rounded-2xl p-5 flex flex-col gap-1 items-center justify-center hover:bg-white hover:shadow-md transition-all">
-                                            <span className="text-[10px] uppercase font-black text-neutral-400 tracking-widest">{item.monthName || item.month} / {item.year}</span>
-                                            <span className="text-3xl font-black text-emerald-600">{item.count || item.totalCount}</span>
-                                            <span className="text-[10px] font-bold text-neutral-500 uppercase">Consultas</span>
-                                        </div>
-                                    ))}
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                    {usageHistory.monthlyUsage.map((item: any, idx: number) => {
+                                        const isSelected = selectedMonthKey === item.month;
+                                        const modulesOrder = ["Financeiro", "Estoque", "Vendas", "Produção", "Contrato", "Projetos"];
+                                        const getMonthNumber = (name: string) => {
+                                            const months: any = { 'jan': 1, 'fev': 2, 'mar': 3, 'abr': 4, 'mai': 5, 'jun': 6, 'jul': 7, 'ago': 8, 'set': 9, 'out': 10, 'nov': 11, 'dez': 12 };
+                                            return months[name.toLowerCase()] || 0;
+                                        };
+
+                                        return (
+                                            <div 
+                                                key={idx} 
+                                                onClick={() => {
+                                                    const [mStr, yStr] = item.month.split('/');
+                                                    const m = getMonthNumber(mStr);
+                                                    const y = 2000 + parseInt(yStr);
+                                                    setSelectedMonthKey(item.month);
+                                                    fetchUsageHistory(undefined, undefined, m, y);
+                                                }}
+                                                className={`bg-white border text-left cursor-pointer hover:shadow-md transition-all ${isSelected ? 'border-emerald-500 ring-2 ring-emerald-500/20 shadow-sm' : 'border-neutral-200'} rounded-2xl p-4 flex flex-col gap-4 group`}
+                                            >
+                                                <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[10px] uppercase font-black text-neutral-400 tracking-wider">Mês / Ano</span>
+                                                        <span className={`text-base font-black transition-colors ${isSelected ? 'text-emerald-600' : 'text-neutral-900 group-hover:text-emerald-600'}`}>{item.month.toUpperCase()}</span>
+                                                    </div>
+                                                    <div className={`flex flex-col items-end px-3 py-1.5 rounded-xl transition-colors ${isSelected ? 'bg-emerald-600 text-white' : 'bg-neutral-50 text-neutral-500 group-hover:bg-emerald-50 group-hover:text-emerald-700'}`}>
+                                                        <span className="text-[16px] font-black leading-tight">{item.totalCount}</span>
+                                                        <span className="text-[8px] uppercase font-bold tracking-tight">Consultas</span>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                                                    {modulesOrder.map(m => (
+                                                        <div key={m} className="flex items-center justify-between">
+                                                            <span className="text-[9px] uppercase font-bold text-neutral-400 truncate">{m}</span>
+                                                            <span className={`text-[10px] font-bold ${item.moduleCounts[m] > 0 ? 'text-neutral-900' : 'text-neutral-300'}`}>
+                                                                {item.moduleCounts[m] || 0}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>
                     </section>
                     <section className="bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden">
                         <div className="px-6 py-5 border-b border-neutral-100 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-4">
                                 <Users className="text-emerald-600 h-5 w-5" />
-                                <h3 className="text-lg font-semibold text-neutral-900">Histórico por Usuário e Módulo</h3>
+                                <h3 className="text-lg font-semibold text-neutral-900 flex items-center gap-2">
+                                    Histórico por Usuário e Módulo
+                                    {selectedMonthKey && (
+                                        <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100 uppercase tracking-tighter">
+                                            Período: {selectedMonthKey}
+                                        </span>
+                                    )}
+                                </h3>
                             </div>
                             <div className="text-[10px] font-bold text-neutral-400 uppercase bg-neutral-100 px-3 py-1 rounded-full">
                                 {usageHistory?.detailedUsage.length || 0} Registros

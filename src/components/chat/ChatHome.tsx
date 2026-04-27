@@ -1,18 +1,33 @@
 "use client";
 
-import { Mic, Send, Sparkles } from "lucide-react";
+import {
+  BarChart3,
+  Box,
+  ClipboardList,
+  DollarSign,
+  Factory,
+  FileText,
+  Mic,
+  Send,
+  Sparkles,
+  ArrowRight,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import SidebarToggle from "@/components/chat/SidebarToggle";
 import ChatCompanyDropdown from "@/components/chat/ChatCompanyDropdown";
+import type { LucideIcon } from "lucide-react";
 
 type ModuleCard = {
   key: string;
   title: string;
   description: string;
   enabled: boolean;
-  accent: string;
-  bg: string;
+  accent: string; // text color
+  border: string;
+  bg: string; // card background
+  iconBg: string;
+  Icon: LucideIcon;
 };
 
 export default function ChatHome() {
@@ -27,15 +42,21 @@ export default function ChatHome() {
         description: "Caixa, contas a pagar/receber, fluxo de caixa e inadimplência.",
         enabled: true,
         accent: "text-emerald-700",
+        border: "border-emerald-200/60",
         bg: "from-emerald-50 to-white",
+        iconBg: "from-emerald-600 to-emerald-500",
+        Icon: DollarSign,
       },
       {
         key: "estoque",
         title: "Estoque",
         description: "Produtos, estoque mínimo, giro, ruptura, compras e necessidades.",
         enabled: false,
-        accent: "text-sky-700",
-        bg: "from-sky-50 to-white",
+        accent: "text-blue-700",
+        border: "border-blue-200/60",
+        bg: "from-blue-50 to-white",
+        iconBg: "from-blue-600 to-blue-500",
+        Icon: Box,
       },
       {
         key: "vendas",
@@ -43,7 +64,10 @@ export default function ChatHome() {
         description: "Vendas, faturamento, clientes, oportunidades e performance.",
         enabled: false,
         accent: "text-violet-700",
+        border: "border-violet-200/60",
         bg: "from-violet-50 to-white",
+        iconBg: "from-violet-600 to-violet-500",
+        Icon: BarChart3,
       },
       {
         key: "producao",
@@ -51,7 +75,10 @@ export default function ChatHome() {
         description: "Ordens, eficiência, apontamentos e custos.",
         enabled: false,
         accent: "text-rose-700",
+        border: "border-rose-200/60",
         bg: "from-rose-50 to-white",
+        iconBg: "from-rose-600 to-rose-500",
+        Icon: Factory,
       },
       {
         key: "contrato",
@@ -59,7 +86,10 @@ export default function ChatHome() {
         description: "Contratos, prazos, renovações e indicadores.",
         enabled: false,
         accent: "text-amber-700",
+        border: "border-amber-200/60",
         bg: "from-amber-50 to-white",
+        iconBg: "from-amber-600 to-amber-500",
+        Icon: FileText,
       },
       {
         key: "projetos",
@@ -67,19 +97,49 @@ export default function ChatHome() {
         description: "Tarefas, status, custos e acompanhamento.",
         enabled: false,
         accent: "text-teal-700",
+        border: "border-teal-200/60",
         bg: "from-teal-50 to-white",
+        iconBg: "from-teal-600 to-teal-500",
+        Icon: ClipboardList,
       },
     ],
     []
   );
 
-  const quickSuggestions = useMemo(
+  const quickSuggestions = useMemo<
+    { text: string; Icon: LucideIcon; iconClass: string; iconBg: string }[]
+  >(
     () => [
-      "Quanto temos a receber esta semana?",
-      "Quais clientes estão inadimplentes?",
-      "Qual meu fluxo de caixa para 30 dias?",
-      "Produtos com estoque abaixo do mínimo",
-      "Maiores compradores do mês",
+      {
+        text: "Quanto temos a receber esta semana?",
+        Icon: DollarSign,
+        iconClass: "text-emerald-700",
+        iconBg: "bg-emerald-50 border-emerald-100",
+      },
+      {
+        text: "Quais clientes estão inadimplentes?",
+        Icon: BarChart3,
+        iconClass: "text-violet-700",
+        iconBg: "bg-violet-50 border-violet-100",
+      },
+      {
+        text: "Qual meu fluxo de caixa para 30 dias?",
+        Icon: BarChart3,
+        iconClass: "text-blue-700",
+        iconBg: "bg-blue-50 border-blue-100",
+      },
+      {
+        text: "Produtos com estoque abaixo do mínimo",
+        Icon: Box,
+        iconClass: "text-amber-700",
+        iconBg: "bg-amber-50 border-amber-100",
+      },
+      {
+        text: "Maiores compradores do mês",
+        Icon: BarChart3,
+        iconClass: "text-violet-700",
+        iconBg: "bg-violet-50 border-violet-100",
+      },
     ],
     []
   );
@@ -180,11 +240,20 @@ export default function ChatHome() {
                 key={m.key}
                 type="button"
                 onClick={() => goToChat(`Quero ajuda com ${m.title}.`)}
-                className={`group relative text-left rounded-2xl border border-neutral-200 bg-gradient-to-b ${m.bg} p-6 shadow-sm hover:shadow-md transition`}
+                className={`group relative text-left rounded-2xl border ${m.border} bg-gradient-to-b ${m.bg} p-6 shadow-sm hover:shadow-md transition`}
               >
-                <div
-                  className={`text-lg font-black tracking-tight ${m.accent}`}
-                >
+                <div className="flex items-center justify-center">
+                  <div className="relative">
+                    <div className="absolute inset-0 rounded-full blur-lg opacity-25 bg-current" />
+                    <div
+                      className={`h-14 w-14 rounded-full bg-gradient-to-b ${m.iconBg} text-white flex items-center justify-center shadow-sm`}
+                    >
+                      <m.Icon className="h-7 w-7" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className={`mt-4 text-lg font-black tracking-tight text-center ${m.accent}`}>
                   {m.title}
                 </div>
                 <p className="mt-2 text-sm text-neutral-500 leading-relaxed">
@@ -199,8 +268,11 @@ export default function ChatHome() {
                   >
                     {m.enabled ? "Ativo" : "Desabilitado (por enquanto)"}
                   </span>
-                  <span className="h-9 w-9 rounded-xl bg-white border border-neutral-200 flex items-center justify-center text-neutral-700 group-hover:translate-x-0.5 transition">
-                    →
+                  <span
+                    className={`h-9 w-9 rounded-xl bg-white border border-neutral-200 flex items-center justify-center group-hover:translate-x-0.5 transition ${m.accent}`}
+                    aria-hidden
+                  >
+                    <ArrowRight className="h-5 w-5" />
                   </span>
                 </div>
 
@@ -221,12 +293,18 @@ export default function ChatHome() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             {quickSuggestions.map((s) => (
               <button
-                key={s}
+                key={s.text}
                 type="button"
-                onClick={() => goToChat(s)}
-                className="text-left rounded-2xl border border-neutral-200 bg-white hover:bg-neutral-50 transition px-4 py-3 text-sm text-neutral-700 shadow-sm"
+                onClick={() => goToChat(s.text)}
+                className="text-left rounded-2xl border border-neutral-200 bg-white hover:bg-neutral-50 transition px-4 py-3 text-sm text-neutral-700 shadow-sm flex items-center gap-3"
               >
-                {s}
+                <span
+                  className={`h-10 w-10 rounded-xl border flex items-center justify-center shrink-0 ${s.iconBg}`}
+                  aria-hidden
+                >
+                  <s.Icon className={`h-5 w-5 ${s.iconClass}`} />
+                </span>
+                <span className="leading-snug">{s.text}</span>
               </button>
             ))}
           </div>

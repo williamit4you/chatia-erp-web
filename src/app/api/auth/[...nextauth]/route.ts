@@ -9,7 +9,8 @@ export const authOptions: NextAuthOptions = {
             name: "Credentials",
             credentials: {
                 email: { label: "Email", type: "text" },
-                password: { label: "Password", type: "password" }
+                password: { label: "Password", type: "password" },
+                scope: { label: "Scope", type: "text" }
             },
             async authorize(credentials) {
                 console.log("---- NEXTAUTH AUTHORIZE CALLED ----");
@@ -21,7 +22,9 @@ export const authOptions: NextAuthOptions = {
                 }
 
                 try {
-                    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5217'}/api/auth/login`;
+                    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5217";
+                    const isSuperAdminLogin = credentials?.scope === "superadmin";
+                    const apiUrl = isSuperAdminLogin ? `${baseUrl}/api/auth/superadmin/login` : `${baseUrl}/api/auth/login`;
 
                     const res = await fetch(apiUrl, {
                         method: "POST",
@@ -35,7 +38,8 @@ export const authOptions: NextAuthOptions = {
                     if (!res.ok) {
                         const errorData = await res.json().catch(() => ({}));
                         const errorMsg = errorData.error || errorData.message || "Erro de autenticação";
-                        throw new Error(errorMsg);
+                        console.error("NextAuth authorize failed:", { apiUrl, status: res.status, errorMsg });
+                        return null;
                     }
 
                     const user = await res.json();
@@ -60,7 +64,7 @@ export const authOptions: NextAuthOptions = {
                     return null;
                 } catch (error: any) {
                     console.error("NextAuth Auth Error:", error.message);
-                    throw error; // Passing error up so it reaching signIn().error
+                    return null;
                 }
             }
         })

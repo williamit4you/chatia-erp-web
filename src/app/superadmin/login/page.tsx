@@ -32,7 +32,8 @@ function SuperAdminLoginForm() {
             const res = await signIn("credentials", {
                 redirect: false,
                 email,
-                password
+                password,
+                scope: "superadmin"
             });
 
             if (res?.error) {

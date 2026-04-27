@@ -159,6 +159,15 @@ export default function ChatHome() {
     router.push(`/chat/new?prompt=${encodeURIComponent(value)}`);
   };
 
+  const handleModuleClick = (module: ModuleCard) => {
+    if (!module.enabled) return;
+    if (module.key === "financeiro") {
+      router.push("/chat/finance-analytics");
+      return;
+    }
+    goToChat(`Quero ajuda com ${module.title}.`);
+  };
+
   return (
     <div className="h-full w-full overflow-y-auto bg-neutral-50">
       <header className="sticky top-0 z-10 bg-neutral-50/80 backdrop-blur border-b border-neutral-200">
@@ -229,62 +238,6 @@ export default function ChatHome() {
         </div>
 
         <div className="mt-10">
-          <h2 className="text-sm font-bold text-neutral-700 mb-4">
-            Dashboards estratégicos para suas decisões {" "}
-           
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {modules.map((m) => (
-              <button
-                key={m.key}
-                type="button"
-                onClick={() => goToChat(`Quero ajuda com ${m.title}.`)}
-                className={`group relative text-left rounded-2xl border ${m.border} bg-gradient-to-b ${m.bg} p-6 shadow-sm hover:shadow-md transition`}
-              >
-                <div className="flex items-center justify-center">
-                  <div className="relative">
-                    <div className="absolute inset-0 rounded-full blur-lg opacity-25 bg-current" />
-                    <div
-                      className={`h-14 w-14 rounded-full bg-gradient-to-b ${m.iconBg} text-white flex items-center justify-center shadow-sm`}
-                    >
-                      <m.Icon className="h-7 w-7" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className={`mt-4 text-lg font-black tracking-tight text-center ${m.accent}`}>
-                  {m.title}
-                </div>
-                <p className="mt-2 text-sm text-neutral-500 leading-relaxed">
-                  {m.description}
-                </p>
-
-                <div className="mt-5 flex items-center justify-between">
-                  <span
-                    className={`text-xs font-bold ${
-                      m.enabled ? "text-emerald-600" : "text-neutral-400"
-                    }`}
-                  >
-                    {m.enabled ? "Ativo" : "Desabilitado (por enquanto)"}
-                  </span>
-                  <span
-                    className={`h-9 w-9 rounded-xl bg-white border border-neutral-200 flex items-center justify-center group-hover:translate-x-0.5 transition ${m.accent}`}
-                    aria-hidden
-                  >
-                    <ArrowRight className="h-5 w-5" />
-                  </span>
-                </div>
-
-                {!m.enabled && (
-                  <div className="pointer-events-none absolute inset-0 rounded-2xl bg-white/40 backdrop-blur-[1px]" />
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-10">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-bold text-neutral-700">
               Sugestões rápidas
@@ -305,6 +258,72 @@ export default function ChatHome() {
                   <s.Icon className={`h-5 w-5 ${s.iconClass}`} />
                 </span>
                 <span className="leading-snug">{s.text}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-10">
+          <h2 className="text-sm font-bold text-neutral-700 mb-4">
+            Dashboards estratégicos para suas decisões
+          </h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {modules.map((m) => (
+              <button
+                key={m.key}
+                type="button"
+                disabled={!m.enabled}
+                onClick={() => handleModuleClick(m)}
+                className={`group relative text-left rounded-2xl border ${
+                  m.border
+                } bg-gradient-to-b ${m.bg} p-6 shadow-sm transition ${
+                  m.enabled
+                    ? "hover:shadow-md cursor-pointer"
+                    : "cursor-not-allowed opacity-70"
+                }`}
+              >
+                <div className="flex items-center justify-center">
+                  <div className="relative">
+                    <div className="absolute inset-0 rounded-full blur-lg opacity-25 bg-current" />
+                    <div
+                      className={`h-14 w-14 rounded-full bg-gradient-to-b ${m.iconBg} text-white flex items-center justify-center shadow-sm`}
+                    >
+                      <m.Icon className="h-7 w-7" />
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  className={`mt-4 text-lg font-black tracking-tight text-center ${m.accent}`}
+                >
+                  {m.title}
+                </div>
+                <p className="mt-2 text-sm text-neutral-500 leading-relaxed">
+                  {m.description}
+                </p>
+
+                <div className="mt-5 flex items-center justify-between">
+                  <span
+                    className={`text-xs font-bold ${
+                      m.enabled ? "text-emerald-600" : "text-neutral-400"
+                    }`}
+                  >
+                    {m.enabled ? "Ativo" : "Desabilitado (por enquanto)"}
+                  </span>
+                  <span
+                    className={`h-9 w-9 rounded-xl bg-white border border-neutral-200 flex items-center justify-center transition ${m.accent} ${
+                      m.enabled ? "group-hover:translate-x-0.5" : ""
+                    }`}
+                    aria-hidden
+                  >
+                    <ArrowRight className="h-5 w-5" />
+                  </span>
+                </div>
+
+                {!m.enabled && (
+                  <div className="pointer-events-none absolute inset-0 rounded-2xl bg-white/40 backdrop-blur-[1px]" />
+                )}
               </button>
             ))}
           </div>

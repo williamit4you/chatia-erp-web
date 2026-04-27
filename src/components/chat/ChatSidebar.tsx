@@ -3,12 +3,8 @@
 import Link from "next/link";
 import {
   Home,
-  Bot,
   LayoutDashboard,
-  Boxes,
   Star,
-  FileText,
-  Bell,
   History,
   MessageSquare,
   Plus,
@@ -106,7 +102,10 @@ export default function ChatSidebar({ sessions, user }: ChatSidebarProps) {
 
   const handleScrollToRecent = () => {
     setIsOpen(false);
-    setTimeout(() => recentRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+    setTimeout(
+      () => recentRef.current?.scrollIntoView({ behavior: "smooth" }),
+      50
+    );
   };
 
   return (
@@ -180,15 +179,6 @@ export default function ChatSidebar({ sessions, user }: ChatSidebarProps) {
           </Link>
 
           <Link
-            href="/chat/new"
-            onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors"
-          >
-            <Bot className="h-5 w-5 text-violet-300" />
-            <span className="text-sm font-semibold">Assistente Inteligente</span>
-          </Link>
-
-          <Link
             href={canSeeDashboards ? "/chat/finance-analytics" : "/chat"}
             onClick={() => setIsOpen(false)}
             className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors ${
@@ -203,56 +193,12 @@ export default function ChatSidebar({ sessions, user }: ChatSidebarProps) {
             type="button"
             onClick={() => {
               setIsOpen(false);
-              router.push("/chat");
-            }}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors text-left opacity-70"
-            title="Em breve"
-          >
-            <Boxes className="h-5 w-5 text-violet-300" />
-            <span className="text-sm font-semibold">Módulos</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setIsOpen(false);
               setIsFavoritesOpen(true);
             }}
             className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors text-left"
           >
             <Star className="h-5 w-5 text-violet-300" />
             <span className="text-sm font-semibold">Favoritos</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setIsOpen(false);
-              router.push("/chat");
-            }}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors text-left opacity-70"
-            title="Em breve"
-          >
-            <FileText className="h-5 w-5 text-violet-300" />
-            <span className="text-sm font-semibold">Relatórios</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setIsOpen(false);
-              router.push("/chat");
-            }}
-            className="flex items-center justify-between w-full px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors text-left opacity-70"
-            title="Em breve"
-          >
-            <span className="flex items-center gap-3">
-              <Bell className="h-5 w-5 text-violet-300" />
-              <span className="text-sm font-semibold">Alertas</span>
-            </span>
-            <span className="h-6 min-w-6 px-2 rounded-full bg-violet-600 text-white text-xs font-black flex items-center justify-center">
-              8
-            </span>
           </button>
 
           <button

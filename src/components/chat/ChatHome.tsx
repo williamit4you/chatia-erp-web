@@ -230,8 +230,8 @@ export default function ChatHome() {
 
         <div className="mt-10">
           <h2 className="text-sm font-bold text-neutral-700 mb-4">
-            Escolha uma área para começar{" "}
-            <span className="text-neutral-400 font-semibold">(opcional)</span>
+            Dashboards estratégicos para suas decisões {" "}
+           
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -48,9 +48,12 @@ export default function ChatContainer({ sessionId, initialMessages, initialPromp
 
     useEffect(() => {
         if (initialPrompt && !hasStartedRef.current) {
-            hasStartedRef.current = true;
             // Delay to allow component to fully load
             const timer = setTimeout(() => {
+                // In React StrictMode (dev), effects are mounted/unmounted once to detect side effects.
+                // If we mark as started before the timeout runs, cleanup cancels the only send.
+                // Mark as started inside the timeout so the second effect run can schedule again.
+                hasStartedRef.current = true;
                 handleSendMessage(initialPrompt);
             }, 100);
             return () => clearTimeout(timer);
@@ -60,12 +63,14 @@ export default function ChatContainer({ sessionId, initialMessages, initialPromp
     const handleSendMessage = async (text: string) => {
         if (!text.trim()) return;
 
+        console.log("[ChatContainer] handleSendMessage:start", { sessionId, text, historyCount: messages.length });
         const userMessage: Message = { id: Date.now().toString(), role: "user", content: text };
         setMessages((prev) => [...prev, userMessage]);
         setIsLoading(true);
 
         try {
             const data = await chatService.sendMessage(text, messages, sessionId);
+            console.log("[ChatContainer] handleSendMessage:success", { sessionId, returnedSessionId: data?.sessionId });
 
             const aiMessage: Message = {
                 id: (Date.now() + 1).toString(),
@@ -95,7 +100,7 @@ export default function ChatContainer({ sessionId, initialMessages, initialPromp
                 if (displayContext >= 100) {
                     toast.error("Limite de memória atingido para manter a qualidade desta conversa. Redirecionando para um novo chat...", { duration: 4000 });
                     setTimeout(() => {
-                        router.push('/chat');
+                        router.push('/chat/new');
                         router.refresh();
                     }, 2000);
                     return; // Interrompe para evitar o redirecionamento abaixo
@@ -103,8 +108,13 @@ export default function ChatContainer({ sessionId, initialMessages, initialPromp
             }
 
             if (!sessionId && data.sessionId) {
-                router.push(`/chat/${data.sessionId}`);
-                router.refresh();
+                // Small delay helps UI paint + avoids race where the session/messages
+                // may not be immediately available in the next route fetch.
+                setTimeout(() => {
+                    console.log("[ChatContainer] navigating to saved session", { sessionId, toSessionId: data.sessionId });
+                    router.push(`/chat/${data.sessionId}`);
+                    router.refresh();
+                }, 300);
             }
 
         } catch (error: any) {

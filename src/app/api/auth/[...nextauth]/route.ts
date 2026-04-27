@@ -46,6 +46,7 @@ export const authOptions: NextAuthOptions = {
                             name: user.name,
                             email: user.email,
                             tenantId: user.tenantId,
+                            tenantName: user.tenantName,
                             role: user.role,
                             hasPayableChatAccess: user.hasPayableChatAccess,
                             hasPayableDashboardAccess: user.hasPayableDashboardAccess,
@@ -70,6 +71,7 @@ export const authOptions: NextAuthOptions = {
                 // Enforce tenant isolation in session context
                 (session.user as any).id = token.id;
                 (session.user as any).tenantId = token.tenantId;
+                (session.user as any).tenantName = token.tenantName;
                 (session.user as any).role = token.role;
                 (session.user as any).hasPayableChatAccess = token.hasPayableChatAccess;
                 (session.user as any).hasPayableDashboardAccess = token.hasPayableDashboardAccess;
@@ -87,6 +89,7 @@ export const authOptions: NextAuthOptions = {
             if (user) {
                 token.id = user.id;
                 token.tenantId = (user as any).tenantId;
+                token.tenantName = (user as any).tenantName;
                 token.role = (user as any).role;
                 token.hasPayableChatAccess = (user as any).hasPayableChatAccess;
                 token.hasPayableDashboardAccess = (user as any).hasPayableDashboardAccess;

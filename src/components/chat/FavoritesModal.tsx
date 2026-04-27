@@ -63,7 +63,7 @@ export default function FavoritesModal({ isOpen, onClose }: FavoritesModalProps)
 
     const handlePlay = (text: string) => {
         onClose();
-        router.push(`/chat?prompt=${encodeURIComponent(text)}`);
+        router.push(`/chat/new?prompt=${encodeURIComponent(text)}`);
     };
 
     if (!isOpen) return null;

@@ -34,7 +34,7 @@ export default function ChatInput({ onSend, disabled }: { onSend: (text: string)
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={handleKeyDown}
                 disabled={disabled}
-                placeholder="Digite sua mensagem para a IA do ERP..."
+                placeholder="Pergunte sobre contas a receber, faturamento, estoque ou qualquer indicador do seu ERP..."
                 className="w-full bg-transparent max-h-[120px] min-h-[44px] resize-none overflow-y-auto outline-none py-2.5 px-3 text-sm text-neutral-800 placeholder-neutral-400 disabled:opacity-50"
                 rows={1}
             />

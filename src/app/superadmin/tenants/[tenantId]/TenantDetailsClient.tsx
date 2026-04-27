@@ -26,6 +26,7 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
     // User Form State
     const [isAddUserOpen, setIsAddUserOpen] = useState(false);
     const [email, setEmail] = useState("");
+    const [name, setName] = useState("");
     const [password, setPassword] = useState("");
     const [role, setRole] = useState("TENANT_USER");
     const [userLoading, setUserLoading] = useState(false);
@@ -35,8 +36,18 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
     // Edit User State
     const [editingUserId, setEditingUserId] = useState<string | null>(null);
     const [editEmail, setEditEmail] = useState("");
+    const [editName, setEditName] = useState("");
     const [editPassword, setEditPassword] = useState("");
     const [editRole, setEditRole] = useState("TENANT_USER");
+    const [editIsActive, setEditIsActive] = useState(true);
+    const [editPermissions, setEditPermissions] = useState({
+        hasPayableChatAccess: false,
+        hasPayableDashboardAccess: false,
+        hasReceivableChatAccess: false,
+        hasReceivableDashboardAccess: false,
+        hasBankingChatAccess: false,
+        hasBankingDashboardAccess: false,
+    });
     const [showPasswordEdit, setShowPasswordEdit] = useState(false);
 
     const saveSettings = async (e: React.FormEvent) => {
@@ -65,11 +76,12 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
         setUserMsg("");
 
         try {
-            await superAdminService.createTenantUser(tenant.id, { email, password, role });
+            await superAdminService.createTenantUser(tenant.id, { email, password, role, name });
             setUserMsg(`Usuário adicionado com sucesso!`);
             setTimeout(() => {
                 setIsAddUserOpen(false);
                 setEmail("");
+                setName("");
                 setPassword("");
                 setRole("TENANT_USER");
                 setUserMsg("");
@@ -85,7 +97,17 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
     const startEdit = (user: any) => {
         setEditingUserId(user.id);
         setEditEmail(user.email || "");
+        setEditName(user.name || "");
         setEditRole(user.role || "TENANT_USER");
+        setEditIsActive(user.isActive ?? true);
+        setEditPermissions({
+            hasPayableChatAccess: Boolean(user.hasPayableChatAccess),
+            hasPayableDashboardAccess: Boolean(user.hasPayableDashboardAccess),
+            hasReceivableChatAccess: Boolean(user.hasReceivableChatAccess),
+            hasReceivableDashboardAccess: Boolean(user.hasReceivableDashboardAccess),
+            hasBankingChatAccess: Boolean(user.hasBankingChatAccess),
+            hasBankingDashboardAccess: Boolean(user.hasBankingDashboardAccess),
+        });
         setEditPassword("");
         setIsAddUserOpen(true); // Reuses the overlay card for editing
     };
@@ -94,6 +116,7 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
         setEditingUserId(null);
         setIsAddUserOpen(false);
         setEditEmail("");
+        setEditName("");
         setEditPassword("");
     };
 
@@ -103,7 +126,7 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
         setUserMsg("");
 
         try {
-            const data: any = { email: editEmail, role: editRole };
+            const data: any = { email: editEmail, name: editName, role: editRole, isActive: editIsActive, ...editPermissions };
             if (editPassword) data.password = editPassword;
             
             await superAdminService.updateTenantUser(tenant.id, editingUserId!, data);
@@ -398,6 +421,15 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
                                 )}
                                 <div className="space-y-4">
                                     <div className="space-y-1">
+                                        <label className="text-[10px] font-black uppercase text-neutral-500 tracking-widest pl-1">Nome</label>
+                                        <input
+                                            type="text"
+                                            className="w-full px-5 py-3.5 bg-neutral-950 border border-neutral-800 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                                            value={editingUserId ? editName : name}
+                                            onChange={(e) => editingUserId ? setEditName(e.target.value) : setName(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
                                         <label className="text-[10px] font-black uppercase text-neutral-500 tracking-widest pl-1">E-mail de Acesso</label>
                                         <input
                                             type="email"
@@ -439,6 +471,37 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
                                             <option value="TENANT_ADMIN">Administrador da Empresa</option>
                                         </select>
                                     </div>
+                                    {editingUserId && (
+                                        <div className="space-y-4 rounded-2xl border border-neutral-800 bg-neutral-950/60 p-4">
+                                            <label className="flex items-center gap-2 text-sm font-bold text-neutral-300">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={editIsActive}
+                                                    onChange={(e) => setEditIsActive(e.target.checked)}
+                                                />
+                                                Usuário ativo
+                                            </label>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-neutral-300">
+                                                {Object.entries({
+                                                    hasPayableChatAccess: "Pagar - Chat",
+                                                    hasPayableDashboardAccess: "Pagar - Dashboard",
+                                                    hasReceivableChatAccess: "Receber - Chat",
+                                                    hasReceivableDashboardAccess: "Receber - Dashboard",
+                                                    hasBankingChatAccess: "Bancos - Chat",
+                                                    hasBankingDashboardAccess: "Bancos - Dashboard",
+                                                }).map(([key, label]) => (
+                                                    <label key={key} className="flex items-center gap-2">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={(editPermissions as any)[key]}
+                                                            onChange={(e) => setEditPermissions((current) => ({ ...current, [key]: e.target.checked }))}
+                                                        />
+                                                        {label}
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="pt-2 flex gap-4">
                                     <button

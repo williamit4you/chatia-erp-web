@@ -11,6 +11,11 @@ function SuperAdminLoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const errorParam = searchParams.get("error");
+    const callbackUrlParam = searchParams.get("callbackUrl");
+    const callbackUrl =
+        callbackUrlParam && callbackUrlParam.startsWith("/") && !callbackUrlParam.startsWith("//")
+            ? callbackUrlParam
+            : "/superadmin";
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -33,7 +38,7 @@ function SuperAdminLoginForm() {
             if (res?.error) {
                 setError("Credenciais inválidas para Super Admin.");
             } else {
-                router.push("/superadmin");
+                router.push(callbackUrl);
             }
         } catch (err) {
             setError("Ocorreu um erro inesperado.");

@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Building2, Users, Receipt, PlusCircle, LogOut } from "lucide-react";
+import { Building2, Users, Receipt, PlusCircle, Mail, FileText, ListChecks } from "lucide-react";
 import SignOutButton from "./SignOutButton";
 import TestDbButton from "./TestDbButton";
 
@@ -52,6 +52,27 @@ export default async function SuperAdminDashboard() {
                         <p className="text-neutral-400 mt-1">Gerencie os inquilinos e seus tokens do ERP.</p>
                     </div>
                     <div className="flex gap-3">
+                        <Link
+                            href="/superadmin/settings/email"
+                            className="inline-flex items-center gap-2 bg-neutral-800 hover:bg-neutral-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-lg shadow-neutral-900/20 border border-neutral-700"
+                        >
+                            <Mail className="h-5 w-5 text-emerald-400" />
+                            Config E-mail
+                        </Link>
+                        <Link
+                            href="/superadmin/settings/email-templates"
+                            className="inline-flex items-center gap-2 bg-neutral-800 hover:bg-neutral-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-lg shadow-neutral-900/20 border border-neutral-700"
+                        >
+                            <FileText className="h-5 w-5 text-emerald-400" />
+                            Templates
+                        </Link>
+                        <Link
+                            href="/superadmin/email-logs"
+                            className="inline-flex items-center gap-2 bg-neutral-800 hover:bg-neutral-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-lg shadow-neutral-900/20 border border-neutral-700"
+                        >
+                            <ListChecks className="h-5 w-5 text-emerald-400" />
+                            Logs de E-mail
+                        </Link>
                         <Link
                             href="/superadmin/rag-memory"
                             className="inline-flex items-center gap-2 bg-neutral-800 hover:bg-neutral-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-lg shadow-neutral-900/20 border border-neutral-700"

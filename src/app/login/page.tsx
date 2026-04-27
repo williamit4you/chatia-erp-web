@@ -103,6 +103,12 @@ function LoginForm() {
                     </div>
                 </div>
 
+                <div className="flex justify-end">
+                    <Link href="/login/forgot-password" className="text-sm font-semibold text-emerald-700 hover:text-emerald-800">
+                        Esqueci minha senha
+                    </Link>
+                </div>
+
                 <div className="pt-2">
                     <button
                         type="submit"

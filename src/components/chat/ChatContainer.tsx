@@ -135,9 +135,14 @@ export default function ChatContainer({ sessionId, initialMessages, initialPromp
         try {
             await apiClient.post('/api/Favorites', { questionText: text });
             toast.success("Adicionado aos favoritos!");
-        } catch (error) {
+        } catch (error: any) {
             console.error("Erro ao favoritar", error);
-            toast.error("Erro ao salvar favorito.");
+            const message = error?.response?.data?.message;
+            if (error?.response?.status === 409 && message) {
+                toast.message(message);
+                return;
+            }
+            toast.error(message || "Erro ao salvar favorito.");
         }
     };
 

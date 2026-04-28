@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { X, Play, Plus, Star, Trash } from 'lucide-react';
 import apiClient from '@/lib/api-client';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface FavoritesModalProps {
     isOpen: boolean;
@@ -47,8 +48,15 @@ export default function FavoritesModal({ isOpen, onClose }: FavoritesModalProps)
             const res = await apiClient.post('/api/Favorites', { questionText: newFavorite });
             setFavorites([res.data, ...favorites]);
             setNewFavorite('');
-        } catch (error) {
+            toast.success("Adicionado aos favoritos!");
+        } catch (error: any) {
             console.error('Error adding favorite', error);
+            const message = error?.response?.data?.message;
+            if (error?.response?.status === 409 && message) {
+                toast.message(message);
+                return;
+            }
+            toast.error(message || "Erro ao salvar favorito.");
         }
     };
 

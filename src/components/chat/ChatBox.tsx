@@ -1,10 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import { User, Bot, Server, Star, Database, ChevronDown, ChevronUp, Download, FileSpreadsheet, FileText, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+    Bot,
+    ChevronDown,
+    ChevronUp,
+    Database,
+    Download,
+    FileSpreadsheet,
+    FileText,
+    Loader2,
+    Server,
+    Sparkles,
+    Star,
+    User,
+} from "lucide-react";
 import apiClient from "@/lib/api-client";
+import type { Message, ResponseAction, ResponseListItem, ResponseMetric, ResponseSection } from "@/services/chat.service";
 
-/** Baixa o Excel via apiClient (envia JWT no header) e abre dialog de save no browser */
 async function downloadExport(exportId: string, onStart: () => void, onEnd: () => void) {
     onStart();
     try {
@@ -26,13 +39,12 @@ async function downloadExport(exportId: string, onStart: () => void, onEnd: () =
         setTimeout(() => URL.revokeObjectURL(url), 10_000);
     } catch (err) {
         console.error("[download] Erro ao baixar export:", err);
-        alert("Erro ao baixar o relatório. O arquivo pode ter expirado (30 min). Solicite novamente.");
+        alert("Erro ao baixar o relatorio. O arquivo pode ter expirado (30 min). Solicite novamente.");
     } finally {
         onEnd();
     }
 }
 
-/** Baixa o PDF via apiClient (gerado on-demand no servidor) */
 async function downloadExportPdf(exportId: string, onStart: () => void, onEnd: () => void) {
     onStart();
     try {
@@ -58,15 +70,85 @@ async function downloadExportPdf(exportId: string, onStart: () => void, onEnd: (
     }
 }
 
-type Message = {
-    id: string;
-    role: "user" | "model" | "system";
-    content: string;
-    sqlQueries?: string;
-    exportId?: string;
-    exportTotal?: number;
-    exportValor?: number;
-};
+function toneClasses(tone?: string) {
+    switch (tone) {
+        case "positive":
+            return "text-emerald-700 bg-emerald-50 border-emerald-200";
+        case "warning":
+            return "text-amber-700 bg-amber-50 border-amber-200";
+        case "danger":
+            return "text-rose-700 bg-rose-50 border-rose-200";
+        default:
+            return "text-slate-700 bg-slate-50 border-slate-200";
+    }
+}
+
+function buildFallbackSections(message: Message): ResponseSection[] {
+    const sections: ResponseSection[] = [];
+    const paragraphs = message.content
+        .split(/\n{2,}/)
+        .map((chunk) => chunk.trim())
+        .filter(Boolean);
+
+    if (paragraphs.length > 0) {
+        sections.push({
+            type: "summary",
+            title: "Leitura executiva",
+            content: paragraphs[0],
+        });
+    }
+
+    if (message.exportValor || message.exportTotal) {
+        const metricItems: ResponseMetric[] = [];
+        if (message.exportValor) {
+            metricItems.push({
+                label: "Valor analisado",
+                value: message.exportValor.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                }),
+                tone: "positive",
+            });
+        }
+        if (message.exportTotal) {
+            metricItems.push({
+                label: "Registros",
+                value: message.exportTotal.toLocaleString("pt-BR"),
+                tone: "neutral",
+            });
+        }
+        sections.push({
+            type: "metrics",
+            title: "Indicadores da resposta",
+            items: metricItems,
+        });
+    }
+
+    const listLines = message.content
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => /^[-*]\s+/.test(line) || /^\d+\.\s+/.test(line));
+
+    if (listLines.length > 0) {
+        sections.push({
+            type: "list",
+            title: "Pontos destacados",
+            items: listLines.slice(0, 5).map((line) => ({
+                title: line.replace(/^[-*]\s+/, "").replace(/^\d+\.\s+/, ""),
+            })),
+        });
+    }
+
+    if (paragraphs.length > 1) {
+        sections.push({
+            type: "recommendation",
+            title: "Proxima leitura",
+            content: paragraphs.slice(1).join("\n\n"),
+        });
+    }
+
+    return sections;
+}
 
 function SqlViewer({ sqlQueries }: { sqlQueries: string }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -79,21 +161,21 @@ function SqlViewer({ sqlQueries }: { sqlQueries: string }) {
     }
 
     return (
-        <div className="mt-3 border-t border-neutral-200 pt-3">
+        <div className="mt-4 border-t border-slate-200/80 pt-4">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-1.5 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
+                className="flex items-center gap-1.5 text-[11px] font-semibold text-indigo-600 transition-colors hover:text-indigo-800"
             >
-                <Database className="w-3.5 h-3.5" />
+                <Database className="h-3.5 w-3.5" />
                 {isOpen ? "Ocultar SQL" : "Ver SQL"}
-                {isOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                <span className="text-neutral-400 font-normal">({queries.length} {queries.length === 1 ? "query" : "queries"})</span>
+                {isOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                <span className="font-normal text-slate-400">({queries.length} {queries.length === 1 ? "query" : "queries"})</span>
             </button>
             {isOpen && (
                 <div className="mt-2 space-y-2 animate-in slide-in-from-top-2 duration-200">
-                    {queries.map((q, i) => (
-                        <pre key={i} className="text-[11px] bg-neutral-900 text-green-400 p-3 rounded-xl overflow-x-auto font-mono leading-relaxed whitespace-pre-wrap break-all">
-                            {q}
+                    {queries.map((query, index) => (
+                        <pre key={index} className="overflow-x-auto rounded-2xl bg-slate-950 p-3 text-[11px] leading-relaxed text-emerald-300 whitespace-pre-wrap break-all">
+                            {query}
                         </pre>
                     ))}
                 </div>
@@ -107,28 +189,26 @@ function ExportButtons({ exportId, exportTotal }: { exportId: string; exportTota
     const [loadingPdf, setLoadingPdf] = useState(false);
 
     return (
-        <div className="flex flex-wrap items-center gap-2 mt-3">
-            {/* Excel */}
+        <div className="mt-4 flex flex-wrap items-center gap-2">
             <button
                 onClick={() => downloadExport(exportId, () => setLoadingXlsx(true), () => setLoadingXlsx(false))}
                 disabled={loadingXlsx || loadingPdf}
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-wait active:scale-95 text-white text-xs font-semibold rounded-xl transition-all duration-150 shadow-sm"
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition-all duration-150 hover:bg-emerald-700 disabled:cursor-wait disabled:opacity-60"
             >
                 {loadingXlsx ? <Loader2 size={14} className="animate-spin" /> : <FileSpreadsheet size={14} />}
                 <span>{loadingXlsx ? "Gerando download..." : "Baixar Excel"}</span>
                 {exportTotal && !loadingXlsx && (
-                    <span className="bg-emerald-500 px-2 py-0.5 rounded-lg text-[10px] font-bold">
+                    <span className="rounded-lg bg-emerald-500 px-2 py-0.5 text-[10px] font-bold">
                         {exportTotal.toLocaleString("pt-BR")} reg.
                     </span>
                 )}
                 {!loadingXlsx && <Download size={12} className="ml-0.5" />}
             </button>
 
-            {/* PDF */}
             <button
                 onClick={() => downloadExportPdf(exportId, () => setLoadingPdf(true), () => setLoadingPdf(false))}
                 disabled={loadingXlsx || loadingPdf}
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-60 disabled:cursor-wait active:scale-95 text-white text-xs font-semibold rounded-xl transition-all duration-150 shadow-sm"
+                className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200 transition-all duration-150 hover:bg-slate-50 disabled:cursor-wait disabled:opacity-60"
             >
                 {loadingPdf ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
                 <span>{loadingPdf ? "Gerando PDF..." : "Baixar PDF"}</span>
@@ -138,77 +218,223 @@ function ExportButtons({ exportId, exportTotal }: { exportId: string; exportTota
     );
 }
 
-export default function ChatBox({ messages, isLoading, onFavorite, isAdmin = false }: { messages: Message[], isLoading: boolean, onFavorite?: (text: string) => void, isAdmin?: boolean }) {
+function MetricsSection({ items }: { items: ResponseMetric[] }) {
     return (
-        <div className="flex flex-col space-y-4">
-            {messages.map((msg) => (
-                <div
-                    key={msg.id}
-                    className={`flex gap-4 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {items.map((item) => (
+                <div key={`${item.label}-${item.value}`} className={`rounded-2xl border px-4 py-3 ${toneClasses(item.tone)}`}>
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] opacity-70">{item.label}</div>
+                    <div className="mt-2 text-lg font-bold tracking-tight">{item.value}</div>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+function ListSection({ items }: { items: ResponseListItem[] }) {
+    return (
+        <div className="space-y-2">
+            {items.map((item, index) => (
+                <div key={`${item.title}-${index}`} className="flex items-start justify-between gap-3 rounded-2xl border border-slate-200 bg-white/90 px-4 py-3">
+                    <div className="min-w-0">
+                        <div className="text-sm font-semibold text-slate-800">{item.title}</div>
+                        {item.subtitle && <div className="mt-1 text-xs text-slate-500">{item.subtitle}</div>}
+                    </div>
+                    {(item.value || item.tone) && (
+                        <div className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${toneClasses(item.tone)}`}>
+                            {item.value || "Detalhe"}
+                        </div>
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+}
+
+function ActionsSection({ items }: { items: ResponseAction[] }) {
+    return (
+        <div className="flex flex-wrap gap-2">
+            {items.map((item, index) => (
+                <button
+                    key={`${item.label}-${index}`}
+                    type="button"
+                    className={`rounded-xl px-4 py-2 text-xs font-semibold transition ${
+                        item.variant === "primary"
+                            ? "bg-emerald-600 text-white shadow-sm hover:bg-emerald-700"
+                            : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"
+                    }`}
                 >
-                    {/* Avatar Area */}
-                    <div className="flex-shrink-0">
-                        {msg.role === "user" ? (
-                            <div className="h-10 w-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-700 shadow-sm border border-emerald-200">
-                                <User size={20} />
+                    {item.label}
+                </button>
+            ))}
+        </div>
+    );
+}
+
+function ModelMessageCard({ message, isAdmin }: { message: Message; isAdmin: boolean }) {
+    const sections = message.sections && message.sections.length > 0 ? message.sections : buildFallbackSections(message);
+
+    return (
+        <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_24px_80px_-40px_rgba(15,23,42,0.35)]">
+            <div className="border-b border-slate-100 bg-[radial-gradient(circle_at_top_left,_rgba(99,102,241,0.14),_transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.96),rgba(248,250,252,0.94))] px-5 py-4 sm:px-6">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-700 ring-1 ring-indigo-100">
+                            <Sparkles className="h-3.5 w-3.5" />
+                            Resposta guiada pela IA
+                        </div>
+                        <h3 className="mt-3 text-lg font-bold tracking-tight text-slate-900">Analise pronta para decisao</h3>
+                    </div>
+                    {message.responseType && (
+                        <div className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                            {message.responseType.replaceAll("_", " ")}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <div className="space-y-5 px-5 py-5 sm:px-6">
+                {sections.map((section, index) => {
+                    const title = "title" in section ? section.title : undefined;
+
+                    return (
+                        <section key={`${section.type}-${index}`} className="space-y-3">
+                            {title && <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{title}</div>}
+
+                            {section.type === "summary" && (
+                                <div className="rounded-2xl bg-slate-50 px-4 py-4 text-sm leading-7 text-slate-700">
+                                    {section.content}
+                                </div>
+                            )}
+
+                            {section.type === "metrics" && <MetricsSection items={section.items} />}
+
+                            {section.type === "list" && <ListSection items={section.items} />}
+
+                            {section.type === "recommendation" && (
+                                <div className="rounded-3xl border border-emerald-100 bg-[linear-gradient(135deg,rgba(236,253,245,0.95),rgba(240,249,255,0.95))] px-5 py-4">
+                                    <div className="text-sm leading-7 text-slate-700">{section.content}</div>
+                                </div>
+                            )}
+
+                            {section.type === "actions" && <ActionsSection items={section.items} />}
+                        </section>
+                    );
+                })}
+
+                {message.suggestions && message.suggestions.length > 0 && (
+                    <section className="space-y-3">
+                        <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Sugestoes de continuidade</div>
+                        <div className="flex flex-wrap gap-2">
+                            {message.suggestions.map((suggestion) => (
+                                <div key={suggestion} className="rounded-full bg-slate-100 px-3 py-2 text-xs font-medium text-slate-600">
+                                    {suggestion}
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {isAdmin && message.sqlQueries && <SqlViewer sqlQueries={message.sqlQueries} />}
+                {message.exportId && <ExportButtons exportId={message.exportId} exportTotal={message.exportTotal} />}
+            </div>
+        </div>
+    );
+}
+
+function MessageContent({ message, isAdmin }: { message: Message; isAdmin: boolean }) {
+    if (message.role === "model") {
+        return <ModelMessageCard message={message} isAdmin={isAdmin} />;
+    }
+
+    if (message.role === "system") {
+        return (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm italic text-slate-600 shadow-sm">
+                {message.content}
+            </div>
+        );
+    }
+
+    return (
+        <div className="rounded-[24px] bg-[linear-gradient(135deg,#4f46e5,#7c3aed)] px-5 py-4 text-sm leading-relaxed text-white shadow-[0_18px_50px_-28px_rgba(79,70,229,0.8)]">
+            {message.content}
+        </div>
+    );
+}
+
+export default function ChatBox({
+    messages,
+    isLoading,
+    onFavorite,
+    isAdmin = false,
+}: {
+    messages: Message[];
+    isLoading: boolean;
+    onFavorite?: (text: string) => void;
+    isAdmin?: boolean;
+}) {
+    const bottomRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }, [messages, isLoading]);
+
+    return (
+        <div className="flex flex-col space-y-6">
+            {messages.map((message) => (
+                <div key={message.id} className={`flex gap-4 ${message.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
+                    <div className="shrink-0">
+                        {message.role === "user" ? (
+                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700 shadow-sm ring-1 ring-indigo-200">
+                                <User size={19} />
                             </div>
-                        ) : msg.role === "model" ? (
-                            <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 shadow-sm border border-blue-200">
-                                <Bot size={20} />
+                        ) : message.role === "model" ? (
+                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-100 text-violet-700 shadow-sm ring-1 ring-violet-200">
+                                <Bot size={19} />
                             </div>
                         ) : (
-                            <div className="h-10 w-10 bg-neutral-100 rounded-full flex items-center justify-center text-neutral-600 shadow-sm border border-neutral-200">
-                                <Server size={20} />
+                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-600 shadow-sm ring-1 ring-slate-200">
+                                <Server size={19} />
                             </div>
                         )}
                     </div>
 
-                    {/* Message Bubble Area */}
-                    <div className="relative group max-w-[75%]">
-                        {msg.role === "user" && onFavorite && (
+                    <div className={`relative group ${message.role === "model" ? "max-w-[88%]" : "max-w-[72%]"}`}>
+                        {message.role === "user" && onFavorite && (
                             <button
-                                onClick={() => onFavorite(msg.content)}
-                                className="absolute -left-10 top-1/2 -translate-y-1/2 p-2 text-neutral-300 hover:text-amber-400 opacity-0 group-hover:opacity-100 transition-all hidden sm:block"
+                                onClick={() => onFavorite(message.content)}
+                                className="absolute -left-10 top-1/2 hidden -translate-y-1/2 p-2 text-slate-300 opacity-0 transition-all hover:text-amber-400 group-hover:opacity-100 sm:block"
                                 title="Salvar nos Favoritos"
                             >
-                                <Star className="w-5 h-5" />
+                                <Star className="h-5 w-5" />
                             </button>
                         )}
-                        <div
-                            className={`px-5 py-3.5 rounded-2xl ${msg.role === "user"
-                                ? "bg-emerald-600 text-white shadow-sm"
-                                : msg.role === "model"
-                                    ? "bg-white border border-neutral-200 text-neutral-800 shadow-sm whitespace-pre-wrap"
-                                    : "bg-neutral-50 border border-neutral-200 text-neutral-600 shadow-sm italic"
-                                }`}
-                        >
-                            <p className="text-sm leading-relaxed">{msg.content}</p>
-                            {isAdmin && msg.role === "model" && msg.sqlQueries && (
-                                <SqlViewer sqlQueries={msg.sqlQueries} />
-                            )}
-                            {/* Botões de download Excel e PDF — aparecem quando há export disponível */}
-                            {msg.exportId && (
-                                <ExportButtons exportId={msg.exportId} exportTotal={msg.exportTotal} />
-                            )}
-                        </div>
+                        <MessageContent message={message} isAdmin={isAdmin} />
                     </div>
                 </div>
             ))}
 
             {isLoading && (
-                <div className="flex gap-4 flex-row">
-                    <div className="flex-shrink-0">
-                        <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 shadow-sm border border-blue-200">
-                            <Bot size={20} />
+                <div className="flex gap-4">
+                    <div className="shrink-0">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-100 text-violet-700 shadow-sm ring-1 ring-violet-200">
+                            <Bot size={19} />
                         </div>
                     </div>
-                    <div className="px-5 py-3.5 rounded-2xl bg-white border border-neutral-200 shadow-sm flex items-center gap-2">
-                        <div className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                        <div className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                        <div className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce"></div>
+                    <div className="rounded-[28px] border border-slate-200 bg-white px-5 py-4 shadow-sm">
+                        <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-700">
+                            <Sparkles className="h-3.5 w-3.5" />
+                            Processando analise
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.3s]"></div>
+                            <div className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.15s]"></div>
+                            <div className="h-2 w-2 animate-bounce rounded-full bg-slate-400"></div>
+                        </div>
                     </div>
                 </div>
             )}
+            <div ref={bottomRef} />
         </div>
     );
 }

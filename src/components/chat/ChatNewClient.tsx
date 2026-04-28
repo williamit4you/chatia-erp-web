@@ -38,11 +38,11 @@ export default function ChatNewClient() {
 
   return (
     <div className="flex flex-col h-full bg-white">
-      <header className="bg-white border-b border-neutral-200 py-4 px-4 sm:px-6 shadow-sm z-10 sticky top-0 shrink-0">
+      <header className="sticky top-0 z-10 shrink-0 border-b border-neutral-200 bg-white px-4 py-3 shadow-sm sm:px-5">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <SidebarToggle />
-            <div className="bg-emerald-100 p-2 rounded-lg border border-emerald-200 hidden sm:block">
+            <div className="hidden rounded-lg border border-emerald-200 bg-emerald-100 px-3 py-2 sm:block">
               <span className="text-xl">🤖</span>
             </div>
             <div className="min-w-0">
@@ -59,7 +59,7 @@ export default function ChatNewClient() {
         </div>
       </header>
 
-      <div className="flex-1 w-full max-w-5xl mx-auto overflow-hidden">
+      <div className="flex-1 w-full max-w-7xl mx-auto overflow-hidden">
         <ChatContainer key={prompt || "new"} initialPrompt={prompt} />
       </div>
     </div>

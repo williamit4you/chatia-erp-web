@@ -8,6 +8,89 @@ export type Message = {
     exportId?: string;
     exportTotal?: number;
     exportValor?: number;
+    responseType?: string;
+    sections?: ResponseSection[];
+    suggestions?: string[];
+    rightRail?: ChatRightRail;
+};
+
+export type ChatRightRailItem = {
+    label: string;
+    action?: string;
+    metadata?: string;
+};
+
+export type ChatRightRailInsight = {
+    title: string;
+    description: string;
+    ctaLabel?: string;
+    ctaAction?: string;
+    tone?: "neutral" | "positive" | "warning" | "danger";
+};
+
+export type ChatRightRail = {
+    suggestions: ChatRightRailItem[];
+    insights: ChatRightRailInsight[];
+    favoriteQuestions: ChatRightRailItem[];
+};
+
+export type ResponseMetric = {
+    label: string;
+    value: string;
+    tone?: "neutral" | "positive" | "warning" | "danger";
+};
+
+export type ResponseListItem = {
+    title: string;
+    subtitle?: string;
+    value?: string;
+    tone?: "neutral" | "positive" | "warning" | "danger";
+};
+
+export type ResponseAction = {
+    label: string;
+    variant?: "primary" | "secondary";
+};
+
+export type ResponseSection =
+    | {
+          type: "summary";
+          title?: string;
+          content: string;
+      }
+    | {
+          type: "metrics";
+          title?: string;
+          items: ResponseMetric[];
+      }
+    | {
+          type: "list";
+          title?: string;
+          items: ResponseListItem[];
+      }
+    | {
+          type: "recommendation";
+          title?: string;
+          content: string;
+      }
+    | {
+          type: "actions";
+          title?: string;
+          items: ResponseAction[];
+      };
+
+export type ChatResponsePayload = {
+    reply: string;
+    sessionId?: string;
+    sqlQueries?: string;
+    contextUsageScore?: number;
+    exportId?: string;
+    exportTotalLinhas?: number;
+    exportValorTotal?: number;
+    responseType?: string;
+    sections?: ResponseSection[];
+    suggestions?: string[];
+    rightRail?: ChatRightRail;
 };
 
 export const chatService = {
@@ -17,6 +100,6 @@ export const chatService = {
             history,
             sessionId
         });
-        return response.data;
+        return response.data as ChatResponsePayload;
     }
 };

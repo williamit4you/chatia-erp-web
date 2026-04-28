@@ -23,10 +23,10 @@ export default async function EmailSettingsPage() {
             <Link href="/superadmin/settings/email" className="px-3 py-1.5 rounded-lg bg-neutral-900 text-white text-sm font-semibold">
               Config E-mail
             </Link>
-            <Link href="/superadmin/settings/email-templates" className="px-3 py-1.5 rounded-lg bg-white border border-neutral-200 text-neutral-800 text-sm font-semibold hover:bg-neutral-50">
+            <Link prefetch={false} href="/superadmin/settings/email-templates" className="px-3 py-1.5 rounded-lg bg-white border border-neutral-200 text-neutral-800 text-sm font-semibold hover:bg-neutral-50">
               Templates
             </Link>
-            <Link href="/superadmin/email-logs" className="px-3 py-1.5 rounded-lg bg-white border border-neutral-200 text-neutral-800 text-sm font-semibold hover:bg-neutral-50">
+            <Link prefetch={false} href="/superadmin/email-logs" className="px-3 py-1.5 rounded-lg bg-white border border-neutral-200 text-neutral-800 text-sm font-semibold hover:bg-neutral-50">
               Logs
             </Link>
           </div>

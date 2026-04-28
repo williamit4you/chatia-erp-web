@@ -1,18 +1,23 @@
 "use client";
 
-import { Menu } from "lucide-react";
+import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useSidebar } from "./SidebarContext";
 
 export default function SidebarToggle() {
-    const { setIsOpen, isOpen } = useSidebar();
+    const { toggleSidebar, isOpen, isCollapsed } = useSidebar();
 
     return (
         <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 -ml-2 text-neutral-600 hover:text-neutral-900 focus:outline-none"
-            title="Abrir Menu"
+            onClick={toggleSidebar}
+            className="rounded-xl border border-neutral-200 bg-white p-2 text-neutral-600 shadow-sm transition hover:text-neutral-900 focus:outline-none md:hidden"
+            title={isOpen || !isCollapsed ? "Recolher menu" : "Expandir menu"}
         >
-            <Menu className="h-6 w-6" />
+            <Menu className="h-5 w-5 md:hidden" />
+            {isCollapsed ? (
+                <PanelLeftOpen className="hidden h-5 w-5 md:block" />
+            ) : (
+                <PanelLeftClose className="hidden h-5 w-5 md:block" />
+            )}
         </button>
     );
 }

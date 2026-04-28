@@ -35,9 +35,6 @@ export default withAuth(
             if (!token) {
                 return NextResponse.redirect(new URL(`/login?callbackUrl=${encodeURIComponent(path)}`, req.url));
             }
-            if (token?.role === "SUPER_ADMIN") {
-                return NextResponse.redirect(new URL("/superadmin", req.url));
-            }
         }
     },
     {

@@ -11,7 +11,14 @@ function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const registered = searchParams.get("registered");
-    const callbackUrl = searchParams.get("callbackUrl") || "/chat";
+    const callbackUrlParam = searchParams.get("callbackUrl");
+    const callbackUrl =
+        callbackUrlParam &&
+        callbackUrlParam.startsWith("/") &&
+        !callbackUrlParam.startsWith("//") &&
+        !callbackUrlParam.startsWith("/superadmin")
+            ? callbackUrlParam
+            : "/chat";
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -133,7 +140,8 @@ export default function LoginPage() {
 
 function LoginContent() {
     const searchParams = useSearchParams();
-    const callbackUrl = searchParams.get("callbackUrl") || "";
+    const callbackUrlParam = searchParams.get("callbackUrl") || "";
+    const callbackUrl = callbackUrlParam.startsWith("/superadmin") ? "" : callbackUrlParam;
 
     const isAdminLogin = callbackUrl.includes("/admin");
     const isSuperAdminLogin = callbackUrl.includes("/superadmin");

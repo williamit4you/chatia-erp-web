@@ -8,6 +8,8 @@ export type Message = {
     exportId?: string;
     exportTotal?: number;
     exportValor?: number;
+    metricsTotal?: number;
+    metricsValor?: number;
     responseType?: string;
     sections?: ResponseSection[];
     suggestions?: string[];
@@ -87,6 +89,8 @@ export type ChatResponsePayload = {
     exportId?: string;
     exportTotalLinhas?: number;
     exportValorTotal?: number;
+    metricsTotalLinhas?: number;
+    metricsValorTotal?: number;
     responseType?: string;
     sections?: ResponseSection[];
     suggestions?: string[];

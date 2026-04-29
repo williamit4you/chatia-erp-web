@@ -194,6 +194,8 @@ export default function ChatContainer({ sessionId, initialMessages, initialPromp
                 exportId: data.exportId || undefined,
                 exportTotal: data.exportTotalLinhas || undefined,
                 exportValor: data.exportValorTotal || undefined,
+                metricsTotal: data.metricsTotalLinhas || undefined,
+                metricsValor: data.metricsValorTotal || undefined,
                 responseType: data.responseType || undefined,
                 sections: data.sections || undefined,
                 suggestions: data.suggestions || undefined,

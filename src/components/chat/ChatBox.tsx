@@ -238,22 +238,25 @@ function buildFallbackSections(message: Message): ResponseSection[] {
         });
     }
 
-    if (message.exportValor || message.exportTotal) {
+    const metricsValor = message.metricsValor ?? message.exportValor;
+    const metricsTotal = message.metricsTotal ?? message.exportTotal;
+
+    if (metricsValor || metricsTotal) {
         const metricItems: ResponseMetric[] = [];
-        if (message.exportValor) {
+        if (metricsValor) {
             metricItems.push({
                 label: "Valor analisado",
-                value: message.exportValor.toLocaleString("pt-BR", {
+                value: metricsValor.toLocaleString("pt-BR", {
                     style: "currency",
                     currency: "BRL",
                 }),
                 tone: "positive",
             });
         }
-        if (message.exportTotal) {
+        if (metricsTotal) {
             metricItems.push({
                 label: "Registros",
-                value: message.exportTotal.toLocaleString("pt-BR"),
+                value: metricsTotal.toLocaleString("pt-BR"),
                 tone: "neutral",
             });
         }

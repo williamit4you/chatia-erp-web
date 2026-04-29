@@ -3,7 +3,6 @@
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import {
-    Bot,
     ChevronDown,
     ChevronUp,
     Database,
@@ -18,6 +17,7 @@ import {
 } from "lucide-react";
 import apiClient from "@/lib/api-client";
 import type { Message, ResponseAction, ResponseListItem, ResponseMetric, ResponseSection } from "@/services/chat.service";
+import MiaAvatar from "./MiaAvatar";
 
 async function downloadExport(exportId: string, onStart: () => void, onEnd: () => void) {
     onStart();
@@ -532,9 +532,12 @@ export default function ChatBox({
                                 <User size={19} />
                             </div>
                         ) : message.role === "model" ? (
-                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-100 text-violet-700 shadow-sm ring-1 ring-violet-200">
-                                <Bot size={19} />
-                            </div>
+                            <MiaAvatar
+                                size={44}
+                                className="rounded-2xl border-violet-200 shadow-sm ring-1 ring-violet-100"
+                                imageClassName="scale-[1.15]"
+                                alt="Avatar da MIA"
+                            />
                         ) : (
                             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-600 shadow-sm ring-1 ring-slate-200">
                                 <Server size={19} />
@@ -560,9 +563,12 @@ export default function ChatBox({
             {isLoading && (
                 <div className="flex gap-4">
                     <div className="shrink-0">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-100 text-violet-700 shadow-sm ring-1 ring-violet-200">
-                            <Bot size={19} />
-                        </div>
+                        <MiaAvatar
+                            size={44}
+                            className="rounded-2xl border-violet-200 shadow-sm ring-1 ring-violet-100"
+                            imageClassName="scale-[1.15]"
+                            alt="Avatar da MIA"
+                        />
                     </div>
                     <div className="rounded-[28px] border border-slate-200 bg-white px-5 py-4 shadow-sm">
                         <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-700">

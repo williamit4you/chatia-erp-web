@@ -283,7 +283,7 @@ function ModelMessageCard({ message, isAdmin }: { message: Message; isAdmin: boo
                             <Sparkles className="h-3.5 w-3.5" />
                             Resposta guiada pela IA
                         </div>
-                        <h3 className="mt-3 text-lg font-bold tracking-tight text-slate-900">Analise pronta para decisao</h3>
+                        <h3 className="mt-3 text-lg font-bold tracking-tight text-slate-900">Análise pronta para decisão</h3>
                     </div>
                     {message.responseType && (
                         <div className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">

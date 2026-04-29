@@ -8,7 +8,7 @@ import { passwordService } from "@/services/password.service";
 
 function ResetPasswordContent() {
   const searchParams = useSearchParams();
-  const token = searchParams.get("token") || "";
+  const token = searchParams.get("token")?.trim() || "";
   const [validating, setValidating] = useState(true);
   const [isValid, setIsValid] = useState(false);
   const [reason, setReason] = useState("");
@@ -19,6 +19,9 @@ function ResetPasswordContent() {
 
   useEffect(() => {
     const validate = async () => {
+      setValidating(true);
+      setMessage("");
+
       if (!token) {
         setIsValid(false);
         setReason("TOKEN_INVALID");
@@ -47,19 +50,33 @@ function ResetPasswordContent() {
     setMessage("");
 
     try {
-      await passwordService.resetPassword(token, newPassword, confirmPassword);
-      setMessage("Senha alterada com sucesso. Você já pode voltar ao login.");
+      const liveToken = new URLSearchParams(window.location.search).get("token")?.trim() || "";
+      const validation = await passwordService.validateResetToken(liveToken);
+
+      if (!validation.valid) {
+        setIsValid(false);
+        setReason(validation.reason || "TOKEN_INVALID");
+        setMessage(
+          validation.reason === "TOKEN_EXPIRED"
+            ? "Este link expirou. Solicite uma nova recuperacao de senha."
+            : "Este link e invalido ou ja foi utilizado."
+        );
+        return;
+      }
+
+      await passwordService.resetPassword(liveToken, newPassword, confirmPassword);
+      setMessage("Senha alterada com sucesso. Voce ja pode voltar ao login.");
       setIsValid(false);
     } catch (error: any) {
-      setMessage(error.response?.data?.message || "Não foi possível alterar a senha.");
+      setMessage(error.response?.data?.message || "Nao foi possivel alterar a senha.");
     } finally {
       setLoading(false);
     }
   };
 
   const invalidText = reason === "TOKEN_EXPIRED"
-    ? "Este link expirou. Solicite uma nova recuperação de senha."
-    : "Este link é inválido ou já foi utilizado.";
+    ? "Este link expirou. Solicite uma nova recuperacao de senha."
+    : "Este link e invalido ou ja foi utilizado.";
 
   return (
     <div className="min-h-screen bg-neutral-50 flex items-center justify-center px-4">
@@ -68,6 +85,9 @@ function ResetPasswordContent() {
           <KeyRound className="h-6 w-6" />
         </div>
         <h1 className="text-2xl font-black text-neutral-900">Alterar senha</h1>
+        <p className="mt-2 text-sm text-neutral-500">
+          Este link de redefinicao e valido por apenas 30 minutos.
+        </p>
 
         {validating ? (
           <p className="mt-4 text-sm text-neutral-500">Validando link...</p>
@@ -122,4 +142,3 @@ export default function ResetPasswordPage() {
     </Suspense>
   );
 }
-

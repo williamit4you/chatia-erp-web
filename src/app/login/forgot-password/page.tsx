@@ -17,9 +17,9 @@ export default function ForgotPasswordPage() {
 
     try {
       const response = await passwordService.forgotPassword(email);
-      setMessage(response.message || "Se o e-mail estiver cadastrado, enviaremos instruções.");
+      setMessage(response.message || "Se o e-mail estiver cadastrado, enviaremos instrucoes.");
     } catch {
-      setMessage("Não foi possível processar a solicitação agora.");
+      setMessage("Nao foi possivel processar a solicitacao agora.");
     } finally {
       setLoading(false);
     }
@@ -39,7 +39,7 @@ export default function ForgotPasswordPage() {
           </div>
           <h1 className="text-2xl font-black text-neutral-900">Recuperar senha</h1>
           <p className="text-sm text-neutral-500 mt-2">
-            Informe seu e-mail para receber um link seguro de redefinição.
+            Informe seu e-mail para receber um link seguro de redefinicao valido por 30 minutos.
           </p>
         </div>
 
@@ -64,11 +64,10 @@ export default function ForgotPasswordPage() {
             disabled={loading}
             className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold disabled:opacity-60"
           >
-            {loading ? "Enviando..." : "Enviar instruções"}
+            {loading ? "Enviando..." : "Enviar instrucoes"}
           </button>
         </form>
       </div>
     </div>
   );
 }
-

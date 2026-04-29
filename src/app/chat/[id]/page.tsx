@@ -48,7 +48,7 @@ export default async function ChatSessionPage({
             </div>
             <div className="min-w-0">
               <h1 className="text-lg font-bold text-neutral-800 tracking-tight leading-tight truncate">
-                {"Conversa " + sessionId}
+                Conversa salva
               </h1>
               <p className="text-xs text-neutral-500 font-medium">
                 Sessão Salva

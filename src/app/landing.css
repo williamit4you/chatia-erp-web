@@ -1,0 +1,376 @@
+/* ═══════════════════════════════════════════════════════
+   Landing Page Styles — IT4You AI ERP
+   Professional SaaS landing with corporate backdrop
+   ═══════════════════════════════════════════════════════ */
+
+.landing-page {
+  color: #1d1d1f;
+  font-family: Inter, Arial, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ─── Header ──────────────────────────────────────────── */
+
+.landing-header {
+  height: 74px;
+  padding: 0 60px;
+  background: rgba(255, 255, 255, 0.85);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.landing-header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1280px;
+  margin: 0 auto;
+  height: 100%;
+  width: 100%;
+}
+
+.landing-logo {
+  display: flex;
+  align-items: center;
+}
+
+.landing-logo img {
+  height: 44px;
+  width: auto;
+  object-fit: contain;
+}
+
+.landing-header nav {
+  display: flex;
+  gap: 28px;
+  align-items: center;
+}
+
+.btn-login {
+  background: #e7f2f1;
+  color: #0c6b68;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 15px;
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+
+.btn-login:hover {
+  background: #d5ece9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(12, 107, 104, 0.15);
+}
+
+/* ─── Hero Section ────────────────────────────────────── */
+
+.landing-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 50px 60px 70px;
+  min-height: calc(100vh - 74px);
+}
+
+/* Background image layer — using existing landing-bg.png */
+.landing-hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: url("/landing-bg.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* White overlay for readability */
+.landing-hero-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.80) 0%,
+    rgba(248, 250, 252, 0.75) 40%,
+    rgba(240, 244, 248, 0.70) 100%
+  );
+}
+
+/* ─── Content wrapper ─────────────────────────────────── */
+
+.landing-content {
+  position: relative;
+  z-index: 2;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* ─── Hero top area: text + robot side by side ────────── */
+
+.landing-hero-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 50px;
+}
+
+/* ── Hero text ── */
+.landing-hero-text {
+  text-align: center;
+  max-width: 860px;
+  padding-top: 10px;
+  position: relative;
+  z-index: 2;
+}
+
+.landing-content h1 {
+  font-size: 46px;
+  line-height: 1.18;
+  font-weight: 800;
+  margin-bottom: 20px;
+  color: #1d1d1f;
+}
+
+.landing-content h1 .hl-blue {
+  color: #193e6d;
+}
+
+.landing-content h1 .hl-green {
+  color: #006a55;
+  font-weight: 900;
+  font-style: italic;
+}
+
+.landing-subtitle {
+  font-size: 19px;
+  line-height: 1.5;
+  color: #4d4d4d;
+  max-width: 620px;
+  margin: 0 auto 28px;
+}
+
+.landing-main-btn {
+  display: inline-block;
+  background: linear-gradient(135deg, #08756f, #075d59);
+  color: white;
+  padding: 17px 38px;
+  border-radius: 40px;
+  text-decoration: none;
+  font-size: 22px;
+  font-weight: 800;
+  box-shadow: 0 12px 25px rgba(0, 90, 85, 0.25);
+  transition: all 0.3s ease;
+}
+
+.landing-main-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 35px rgba(0, 90, 85, 0.35);
+}
+
+.landing-main-btn span {
+  font-weight: 400;
+}
+
+/* ─── Robot ────────────────────────────────────────────── */
+
+.landing-robot-wrapper {
+  position: absolute;
+  right: -8%;
+  top: 50px;
+  width: 650px;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.landing-robot-wrapper img {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 25px 50px rgba(0, 0, 0, 0.25));
+}
+
+/* ─── Dashboard cards ─────────────────────────────────── */
+
+.landing-dashboard {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+  position: relative;
+  z-index: 2;
+}
+
+.landing-card {
+  background: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(14px);
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.07),
+    0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.landing-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.1),
+    0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Question badge at top of card */
+.landing-question {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #eef1f7;
+  padding: 12px 16px;
+  border-radius: 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 12px;
+}
+
+.landing-question-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* Card chart image */
+.landing-card-chart {
+  width: 100%;
+  border-radius: 14px;
+  display: block;
+}
+
+/* ─── Feature cards ───────────────────────────────────── */
+
+.landing-features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+  margin-top: 30px;
+  position: relative;
+  z-index: 2;
+}
+
+.landing-feature {
+  background: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(14px);
+  border-radius: 20px;
+  padding: 32px 28px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.07),
+    0 1px 3px rgba(0, 0, 0, 0.04);
+  text-align: left;
+  min-height: 210px;
+  transition: all 0.3s ease;
+}
+
+.landing-feature:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.1),
+    0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.landing-feature-icon {
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, #e8f5f3, #ddf0ee);
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 22px;
+  font-size: 24px;
+}
+
+.landing-feature h3 {
+  font-size: 22px;
+  margin-bottom: 14px;
+  font-weight: 800;
+  color: #1d1d1f;
+}
+
+.landing-feature p {
+  color: #555;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+/* ─── Responsive ──────────────────────────────────────── */
+
+@media (max-width: 1200px) {
+  .landing-robot-wrapper {
+    width: 520px;
+    right: -10%;
+    top: 80px;
+  }
+
+  .landing-content h1 {
+    font-size: 40px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .landing-hero-top {
+    margin-bottom: 30px;
+  }
+
+  .landing-robot-wrapper {
+    position: relative;
+    right: auto;
+    top: auto;
+    width: 400px;
+    margin: 30px auto 0;
+    z-index: 1;
+  }
+
+  .landing-dashboard,
+  .landing-features {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .landing-header {
+    padding: 0 25px;
+  }
+
+  .landing-content h1 {
+    font-size: 34px;
+  }
+
+  .landing-hero {
+    padding: 40px 25px 60px;
+  }
+}
+
+@media (max-width: 640px) {
+  .landing-header {
+    padding: 0 16px;
+  }
+
+  .landing-content h1 {
+    font-size: 28px;
+  }
+
+  .landing-subtitle {
+    font-size: 17px;
+  }
+
+  .landing-main-btn {
+    font-size: 18px;
+    padding: 14px 28px;
+  }
+
+  .landing-robot-wrapper {
+    width: 200px;
+  }
+}

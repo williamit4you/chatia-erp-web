@@ -139,13 +139,6 @@ export default function LoginPage() {
 }
 
 function LoginContent() {
-    const searchParams = useSearchParams();
-    const callbackUrlParam = searchParams.get("callbackUrl") || "";
-    const callbackUrl = callbackUrlParam.startsWith("/superadmin") ? "" : callbackUrlParam;
-
-    const isAdminLogin = callbackUrl.includes("/admin");
-    const isSuperAdminLogin = callbackUrl.includes("/superadmin");
-
     return (
         <div className="min-h-screen bg-neutral-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative">
             <Link
@@ -157,12 +150,12 @@ function LoginContent() {
             </Link>
 
             <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center">
-                <img src="/logo.png" alt="IT4You Logo" className="h-24 w-auto mb-6" />
+                <img src="/it4you-landing-logo.jpeg" alt="IT4You Logo" className="h-20 w-auto mb-6" />
                 <h2 className="text-center text-3xl font-extrabold text-neutral-900 tracking-tight">
-                    {isSuperAdminLogin ? "Painel Super Admin" : isAdminLogin ? "Acessar Agente de IA" : "Acesse sua base"}
+                    Login
                 </h2>
                 <p className="mt-3 text-center text-sm text-neutral-600">
-                    {isSuperAdminLogin ? "Acesso restrito ao administrador do sistema" : isAdminLogin ? "Entre para acessar sua inteligência erp" : "Insira suas credenciais da empresa"}
+                    Insira suas credenciais para acessar o sistema
                 </p>
             </div>
 

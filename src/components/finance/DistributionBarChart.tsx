@@ -1,6 +1,6 @@
 "use client";
 
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 type BarLayout = "vertical" | "horizontal";
 
@@ -16,6 +16,8 @@ interface DistributionBarChartProps {
     layout?: BarLayout;
     maxItems?: number;
     valueKind?: "currency" | "number";
+    preserveOrder?: boolean;
+    showZeroLine?: boolean;
 }
 
 export default function DistributionBarChart({
@@ -25,6 +27,8 @@ export default function DistributionBarChart({
     layout = "vertical",
     maxItems = 10,
     valueKind = "currency",
+    preserveOrder = false,
+    showZeroLine = false,
 }: DistributionBarChartProps) {
     if (isLoading) {
         return <div className="h-[300px] w-full animate-pulse rounded-xl bg-neutral-50" />;
@@ -40,7 +44,7 @@ export default function DistributionBarChart({
 
     const visibleItems = data
         .filter((item) => Number.isFinite(item.valor))
-        .sort((a, b) => b.valor - a.valor)
+        .sort((a, b) => (preserveOrder ? 0 : b.valor - a.valor))
         .slice(0, maxItems);
 
     const chartData = visibleItems.map((item) => ({
@@ -72,6 +76,7 @@ export default function DistributionBarChart({
                                 formatter={(value: any) => formatValue(Number(value))}
                                 labelFormatter={(_, payload) => payload?.[0]?.payload?.label || ""}
                             />
+                            {showZeroLine && <ReferenceLine x={0} stroke="#94a3b8" strokeWidth={1.2} />}
                             <Bar dataKey="valor" fill={color} radius={[0, 5, 5, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
@@ -102,10 +107,10 @@ export default function DistributionBarChart({
                         formatter={(value: any) => formatValue(Number(value))}
                         labelFormatter={(_, payload) => payload?.[0]?.payload?.label || ""}
                     />
+                    {showZeroLine && <ReferenceLine y={0} stroke="#94a3b8" strokeWidth={1.2} />}
                     <Bar dataKey="valor" fill={color} radius={[5, 5, 0, 0]} />
                 </BarChart>
             </ResponsiveContainer>
         </div>
     );
 }
-

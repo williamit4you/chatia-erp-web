@@ -15,6 +15,7 @@ import AiAnalysisPanel from "@/components/finance/AiAnalysisPanel";
 import BrazilUfMapChart from "@/components/finance/BrazilUfMapChart";
 import CashProjectionChart from "@/components/finance/CashProjectionChart";
 import ChartAnalysisView from "@/components/finance/ChartAnalysisView";
+import ChartPatternLegend from "@/components/finance/ChartPatternLegend";
 import DailyBalanceChart from "@/components/finance/DailyBalanceChart";
 import DashboardSection from "@/components/finance/DashboardSection";
 import DashboardWidget from "@/components/finance/DashboardWidget";
@@ -70,6 +71,7 @@ const DEFAULT_WIDGETS: WidgetConfig[] = [
     { id: "faixa_rec", name: "Receber: Faixa Valor" },
     { id: "efficiency_kpis", name: "Gestao: KPIs Eficiencia" },
     { id: "vol_dia_mes", name: "Gestao: Vol. por Dia" },
+    { id: "vol_dia_semana", name: "Gestao: Vol. por Dia da Semana" },
     { id: "liq_empresa", name: "Gestao: Liq. por Empresa" },
     { id: "fluxo_diario_proj", name: "Gestao: Fluxo Diario Proj." },
     { id: "vol_cpf_cnpj", name: "Gestao: Vol. por CPF/CNPJ" },
@@ -160,7 +162,7 @@ const DASHBOARD_GROUPS: DashboardGroup[] = [
         description: "Gestao do fluxo projetado, volume por dia, prazo, liquidez e documentos.",
         theme: "cashflow",
         variant: "compact",
-        widgetIds: ["fluxo_diario_proj", "vol_dia_mes", "dist_faixa_prazo", "liq_empresa", "vol_cpf_cnpj"],
+        widgetIds: ["fluxo_diario_proj", "vol_dia_mes", "vol_dia_semana", "dist_faixa_prazo", "liq_empresa", "vol_cpf_cnpj"],
     },
     {
         number: 5,
@@ -332,6 +334,24 @@ export default function FinanceAnalyticsDashboard() {
     const toBarData = (items?: Array<{ label?: string; mesAno?: string; valor: number }>) =>
         items?.map((item) => ({ label: item.label || item.mesAno || "", valor: item.valor })) || [];
 
+    const getWeekdayVolumeData = () => {
+        const labels = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
+        const totals = new Array(7).fill(0) as number[];
+
+        advanced?.volumePorDia?.forEach((item) => {
+            const day = Number.parseInt(String(item.label).replace(/\D/g, ""), 10);
+            if (!Number.isFinite(day) || day < 1) return;
+
+            const referenceDate = new Date(2024, 0, day);
+            totals[referenceDate.getDay()] += item.valor;
+        });
+
+        return [1, 2, 3, 4, 5, 6, 0].map((dayIndex) => ({
+            label: labels[dayIndex],
+            valor: totals[dayIndex],
+        }));
+    };
+
     const renderWidgetContent = (id: string) => {
         const payableTheme = dashboardThemes.payable;
         const receivableTheme = dashboardThemes.receivable;
@@ -412,16 +432,35 @@ export default function FinanceAnalyticsDashboard() {
                 return <EfficiencyKpiCards data={advanced?.saudeFinanceira || null} isLoading={isLoading} />;
             case "vol_dia_mes":
                 return <DistributionPieChart title="" data={advanced?.volumePorDia || []} isLoading={isLoading} colors={cashflowTheme.chartPalette} />;
+            case "vol_dia_semana":
+                return <DistributionBarChart data={getWeekdayVolumeData()} isLoading={isLoading} color={cashflowTheme.primary} maxItems={7} preserveOrder />;
             case "liq_empresa":
-                return <DistributionPieChart title="" data={advanced?.indiceLiquidezPorEmpresa || []} isLoading={isLoading} colors={cashflowTheme.chartPalette} />;
+                return (
+                    <DistributionBarChart
+                        data={advanced?.indiceLiquidezPorEmpresa || []}
+                        isLoading={isLoading}
+                        color={cashflowTheme.primary}
+                        layout="horizontal"
+                        maxItems={8}
+                        showZeroLine
+                    />
+                );
             case "fluxo_diario_proj":
                 return <DailyBalanceChart data={advanced?.fluxoCaixaDiarioProjetado || []} isLoading={isLoading} color={cashflowTheme.primary} />;
             case "vol_cpf_cnpj":
-                return <TopAccountsList title="" data={advanced?.volumePorCpfCnpj?.map((item: any) => ({ documento: item.label, valor: item.valor })) || []} isLoading={isLoading} iconColor="text-blue-500" valueColor="text-blue-600" />;
+                return (
+                    <DistributionBarChart
+                        data={advanced?.volumePorCpfCnpj || []}
+                        isLoading={isLoading}
+                        color={cashflowTheme.primary}
+                        layout="horizontal"
+                        maxItems={8}
+                    />
+                );
             case "saldo_acumulado":
                 return <DailyBalanceChart data={advanced?.evolucaoSaldo?.map((item: any) => ({ ano: 2024, mes: 1, valor: item.saldoAcumulado, mesAno: item.data.toString().split("T")[0] })) || []} isLoading={isLoading} color="#10b981" />;
             case "dist_faixa_prazo":
-                return <DistributionPieChart title="" data={advanced?.distribuicaoFaixaPrazoVencimento || []} isLoading={isLoading} colors={cashflowTheme.chartPalette} />;
+                return <DistributionBarChart data={advanced?.distribuicaoFaixaPrazoVencimento || []} isLoading={isLoading} color={cashflowTheme.primary} maxItems={6} />;
             case "pm_rec_cli":
                 return <DistributionBarChart data={advanced?.prazoMedioRecebimentoPorCliente || []} isLoading={isLoading} color={analysisTheme.primary} />;
             case "pm_pag_for":
@@ -537,6 +576,8 @@ export default function FinanceAnalyticsDashboard() {
                             </DashboardSection>
                         );
                     })}
+
+                    <ChartPatternLegend />
                 </div>
             </div>
 

@@ -36,8 +36,8 @@ export default function AdvancedKpiCards({ data, isLoading }: AdvancedKpiCardsPr
             value: formatCurrency(data.ticketMedioPagamento),
             suffix: "",
             icon: Target,
-            color: "text-rose-600",
-            bgColor: "bg-rose-50",
+            color: "text-orange-600",
+            bgColor: "bg-orange-50",
             sub: "Por documento pago"
         },
         {
@@ -72,8 +72,8 @@ export default function AdvancedKpiCards({ data, isLoading }: AdvancedKpiCardsPr
             value: data.inadimplencia.toFixed(1),
             suffix: "%",
             icon: Percent,
-            color: "text-red-600",
-            bgColor: "bg-red-50",
+            color: "text-yellow-700",
+            bgColor: "bg-yellow-50",
             sub: "Total Vencido vs Geral"
         }
     ];

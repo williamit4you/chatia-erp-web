@@ -48,7 +48,7 @@ export default function CashProjectionChart({ data, isLoading }: CashProjectionC
                             type="monotone"
                             dataKey="pagamentos"
                             name="Pagamentos"
-                            stroke="#ef4444"
+                            stroke="#f97316"
                             strokeWidth={3}
                             dot={false}
                         />

@@ -26,9 +26,9 @@ export default function FinanceSummaryCards({ data, isLoading }: FinanceSummaryC
             title: "Contas a Pagar",
             value: data.totalContasPagarAberto,
             icon: ArrowDownRight,
-            color: "text-red-600",
-            bgColor: "bg-red-100",
-            borderColor: "border-red-200"
+            color: "text-orange-600",
+            bgColor: "bg-orange-100",
+            borderColor: "border-orange-200"
         },
         {
             title: "Contas a Receber",

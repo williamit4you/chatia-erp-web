@@ -43,8 +43,8 @@ export default function MonthlyFlowChart({ data, isLoading }: MonthlyFlowChartPr
                                     <stop offset="95%" stopColor="#059669" stopOpacity={0} />
                                 </linearGradient>
                                 <linearGradient id="colorPagos" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#dc2626" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#dc2626" stopOpacity={0} />
+                                    <stop offset="5%" stopColor="#f97316" stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
@@ -67,7 +67,7 @@ export default function MonthlyFlowChart({ data, isLoading }: MonthlyFlowChartPr
                                 contentStyle={{ borderRadius: '12px', border: '1px solid #E5E7EB', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                             />
                             <Area type="monotone" name="Recebidos" dataKey="valoresRecebidos" stroke="#059669" fillOpacity={1} fill="url(#colorRecebidos)" />
-                            <Area type="monotone" name="Pagos" dataKey="valoresPagos" stroke="#dc2626" fillOpacity={1} fill="url(#colorPagos)" />
+                            <Area type="monotone" name="Pagos" dataKey="valoresPagos" stroke="#f97316" fillOpacity={1} fill="url(#colorPagos)" />
                             <Area type="monotone" name="A Vencer" dataKey="valoresAVencer" stroke="#f59e0b" fillOpacity={0} strokeDasharray="5 5" />
                         </AreaChart>
                     </ResponsiveContainer>

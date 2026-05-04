@@ -1,5 +1,5 @@
 import { ReactNode, forwardRef } from "react";
-import { X, GripVertical, Search } from "lucide-react";
+import { X, Search } from "lucide-react";
 
 interface DashboardWidgetProps {
     id: string;
@@ -26,10 +26,9 @@ const DashboardWidget = forwardRef<HTMLDivElement, DashboardWidgetProps>(
                 onMouseUp={onMouseUp}
                 onTouchEnd={onTouchEnd}
             >
-                {/* Header/Drag Handle Area */}
-                <div className={`flex items-center justify-between px-4 py-2 border-b border-neutral-50 ${showControls ? 'cursor-grab active:cursor-grabbing' : ''} drag-handle`}>
+                {/* Header Area */}
+                <div className="flex items-center justify-between px-4 py-2 border-b border-neutral-50">
                     <div className="flex items-center gap-2">
-                        {showControls && <GripVertical className="w-4 h-4 text-neutral-400 shrink-0" />}
                         <h3 className="text-sm font-bold text-neutral-700 truncate">{title}</h3>
                     </div>
                     <div className="flex items-center gap-1">
@@ -63,11 +62,6 @@ const DashboardWidget = forwardRef<HTMLDivElement, DashboardWidgetProps>(
                 <div className="flex-1 overflow-auto">
                     {children}
                 </div>
-
-                {/* Resize Handle Hint (Optional Visual) */}
-                {showControls && (
-                    <div className="absolute bottom-1 right-1 w-2 h-2 border-r-2 border-b-2 border-neutral-300 pointer-events-none"></div>
-                )}
             </div>
         );
     }

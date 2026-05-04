@@ -7,14 +7,15 @@ interface DistributionPieChartProps {
     data: Distribution[];
     isLoading: boolean;
     title: string;
+    colors?: string[];
 }
 
-export default function DistributionPieChart({ data, isLoading, title }: DistributionPieChartProps) {
+export default function DistributionPieChart({ data, isLoading, title, colors }: DistributionPieChartProps) {
     if (isLoading) {
         return <div className="h-[350px] w-full bg-neutral-50 animate-pulse rounded-xl"></div>;
     }
 
-    const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
+    const COLORS = colors || ['#6366f1', '#10b981', '#f59e0b', '#f97316', '#8b5cf6', '#ec4899', '#06b6d4'];
 
     return (
         <div className="bg-white p-6 rounded-xl border border-neutral-100 shadow-sm h-full flex flex-col">

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { geoMercator, geoPath } from "d3-geo";
 import { Geographic } from "@/services/finance-analytics.service";
+import brUfsGeoJson from "@/data/br-ufs.json";
 
 interface BrazilUfMapChartProps {
     data: Geographic[];
@@ -21,7 +22,6 @@ type GeoFeatureCollection = {
     features: GeoFeature[];
 };
 
-const GEO_URL = "/maps/br-ufs.geojson";
 const MAP_WIDTH = 330;
 const MAP_HEIGHT = 300;
 
@@ -117,33 +117,14 @@ const colorWithIntensity = (hex: string, intensity: number) => {
 };
 
 export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a" }: BrazilUfMapChartProps) {
-    const [geoData, setGeoData] = useState<GeoFeatureCollection | null>(null);
     const [hoveredUf, setHoveredUf] = useState<string | null>(null);
-
-    useEffect(() => {
-        let active = true;
-
-        fetch(GEO_URL)
-            .then((response) => response.json())
-            .then((json) => {
-                if (active) setGeoData(json);
-            })
-            .catch(() => {
-                if (active) setGeoData(null);
-            });
-
-        return () => {
-            active = false;
-        };
-    }, []);
+    const geoData = brUfsGeoJson as GeoFeatureCollection;
 
     const valuesByUf = useMemo(() => {
         return new Map(data.map((item) => [normalizeUf(item.local), item.valor]));
     }, [data]);
 
     const mapPaths = useMemo(() => {
-        if (!geoData) return [];
-
         const projection = geoMercator().fitSize([MAP_WIDTH, MAP_HEIGHT], geoData);
         const path = geoPath(projection);
 
@@ -159,7 +140,7 @@ export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a" }:
         });
     }, [geoData]);
 
-    if (isLoading || !geoData) {
+    if (isLoading) {
         return <div className="h-[300px] w-full animate-pulse rounded-xl bg-neutral-50" />;
     }
 
@@ -194,8 +175,8 @@ export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a" }:
                                     key={state.uf}
                                     d={state.d}
                                     fill={isHovered ? color : fill}
-                                    stroke="#ffffff"
-                                    strokeWidth={1}
+                                    stroke={isHovered ? "#ffffff" : "#d6d3d1"}
+                                    strokeWidth={isHovered ? 1.4 : 0.7}
                                     className="transition-colors duration-150"
                                     onMouseEnter={() => setHoveredUf(state.uf)}
                                     onMouseLeave={() => setHoveredUf(null)}
@@ -223,4 +204,3 @@ export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a" }:
         </div>
     );
 }
-

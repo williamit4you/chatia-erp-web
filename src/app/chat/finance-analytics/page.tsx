@@ -35,7 +35,7 @@ interface WidgetConfig {
     name: string;
 }
 
-type DashboardTabKey = "general" | "cashflow" | "payrec" | "expenses" | "income" | "indicators" | "advanced";
+type DashboardTabKey = "all" | "view1" | "view2" | "view3" | "view4" | "view5" | "view6";
 
 type DashboardGroup = {
     number: number;
@@ -188,13 +188,13 @@ const DASHBOARD_GROUPS: DashboardGroup[] = [
 ];
 
 const DASHBOARD_TABS: DashboardTab[] = [
-    { key: "general", label: "Visão Geral", groupNumbers: [1] },
-    { key: "cashflow", label: "Fluxo de Caixa", groupNumbers: [4] },
-    { key: "payrec", label: "Contas a Pagar / Receber", groupNumbers: [2, 3] },
-    { key: "expenses", label: "Despesas", groupNumbers: [2] },
-    { key: "income", label: "Receitas", groupNumbers: [3] },
-    { key: "indicators", label: "Indicadores", groupNumbers: [1, 6] },
-    { key: "advanced", label: "Análises Avançadas", groupNumbers: [5] },
+    { key: "all", label: "Todos", groupNumbers: [1, 2, 3, 4, 5, 6] },
+    { key: "view1", label: "Visão 1 - Resumo Executivo", groupNumbers: [1] },
+    { key: "view2", label: "Visão 2 - Contas a Pagar", groupNumbers: [2] },
+    { key: "view3", label: "Visão 3 - Contas a Receber", groupNumbers: [3] },
+    { key: "view4", label: "Visão 4 - Fluxo e Projeções", groupNumbers: [4] },
+    { key: "view5", label: "Visão 5 - Clientes e Fornecedores", groupNumbers: [5] },
+    { key: "view6", label: "Visão 6 - KPIs de Eficiência", groupNumbers: [6] },
 ];
 
 export default function FinanceAnalyticsDashboard() {
@@ -209,7 +209,7 @@ export default function FinanceAnalyticsDashboard() {
     const [error, setError] = useState<string | null>(null);
     const [mounted, setMounted] = useState(false);
     const [analysisChartId, setAnalysisChartId] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<DashboardTabKey>("general");
+    const [activeTab, setActiveTab] = useState<DashboardTabKey>("all");
     const [widgets, setWidgets] = useState<WidgetConfig[]>(DEFAULT_WIDGETS);
 
     const [startDate, setStartDate] = useState<string>(() => {

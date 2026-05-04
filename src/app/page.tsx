@@ -90,7 +90,7 @@ export default function Home() {
             </div>
 
             {/* Card 3 — Produtos com mais saída */}
-            <div className="landing-card">
+            <div className="landing-card landing-card-overlap">
               <div className="landing-question">
                 <span className="landing-question-icon">💬</span>
                 Quais produtos têm mais saída?

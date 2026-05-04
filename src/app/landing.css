@@ -179,10 +179,10 @@
 
 .landing-robot-wrapper {
   position: absolute;
-  right: -8%;
-  top: 50px;
-  width: 650px;
-  z-index: 20;
+  right: -4%;
+  top: 20px;
+  width: 760px;
+  z-index: 1;
   pointer-events: none;
 }
 
@@ -199,7 +199,7 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 22px;
   position: relative;
-  z-index: 2;
+  z-index: 3;
 }
 
 .landing-card {
@@ -212,6 +212,12 @@
     0 1px 3px rgba(0, 0, 0, 0.04);
   transition: all 0.3s ease;
   overflow: hidden;
+  position: relative;
+  z-index: 3;
+}
+
+.landing-card-overlap {
+  z-index: 5;
 }
 
 .landing-card:hover {
@@ -307,9 +313,9 @@
 
 @media (max-width: 1200px) {
   .landing-robot-wrapper {
-    width: 520px;
-    right: -10%;
-    top: 80px;
+    width: 620px;
+    right: -8%;
+    top: 60px;
   }
 
   .landing-content h1 {

@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { ComposableMap, Geographies, Geography } from "react-simple-maps";
+import { useEffect, useMemo, useState } from "react";
+import { geoMercator, geoPath } from "d3-geo";
 import { Geographic } from "@/services/finance-analytics.service";
 
 interface BrazilUfMapChartProps {
@@ -10,7 +10,20 @@ interface BrazilUfMapChartProps {
     color?: string;
 }
 
+type GeoFeature = {
+    type: "Feature";
+    properties: { codarea?: string };
+    geometry: unknown;
+};
+
+type GeoFeatureCollection = {
+    type: "FeatureCollection";
+    features: GeoFeature[];
+};
+
 const GEO_URL = "/maps/br-ufs.geojson";
+const MAP_WIDTH = 330;
+const MAP_HEIGHT = 300;
 
 const IBGE_CODE_TO_UF: Record<string, string> = {
     "11": "RO",
@@ -104,13 +117,49 @@ const colorWithIntensity = (hex: string, intensity: number) => {
 };
 
 export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a" }: BrazilUfMapChartProps) {
+    const [geoData, setGeoData] = useState<GeoFeatureCollection | null>(null);
     const [hoveredUf, setHoveredUf] = useState<string | null>(null);
+
+    useEffect(() => {
+        let active = true;
+
+        fetch(GEO_URL)
+            .then((response) => response.json())
+            .then((json) => {
+                if (active) setGeoData(json);
+            })
+            .catch(() => {
+                if (active) setGeoData(null);
+            });
+
+        return () => {
+            active = false;
+        };
+    }, []);
 
     const valuesByUf = useMemo(() => {
         return new Map(data.map((item) => [normalizeUf(item.local), item.valor]));
     }, [data]);
 
-    if (isLoading) {
+    const mapPaths = useMemo(() => {
+        if (!geoData) return [];
+
+        const projection = geoMercator().fitSize([MAP_WIDTH, MAP_HEIGHT], geoData);
+        const path = geoPath(projection);
+
+        return geoData.features.map((feature) => {
+            const uf = IBGE_CODE_TO_UF[String(feature.properties?.codarea)] || "";
+            const centroid = path.centroid(feature);
+
+            return {
+                uf,
+                d: path(feature) || "",
+                centroid,
+            };
+        });
+    }, [geoData]);
+
+    if (isLoading || !geoData) {
         return <div className="h-[300px] w-full animate-pulse rounded-xl bg-neutral-50" />;
     }
 
@@ -133,42 +182,30 @@ export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a" }:
     return (
         <div className="grid h-[300px] w-full grid-cols-[minmax(0,1fr)_92px] items-center gap-4">
             <div className="relative h-full min-w-0">
-                <ComposableMap
-                    projection="geoMercator"
-                    projectionConfig={{ center: [-54, -15], scale: 520 }}
-                    width={330}
-                    height={300}
-                    className="h-full w-full"
-                >
-                    <Geographies geography={GEO_URL}>
-                        {({ geographies }) =>
-                            geographies.map((geo) => {
-                                const uf = IBGE_CODE_TO_UF[String(geo.properties?.codarea)] || "";
-                                const value = valuesByUf.get(uf) || 0;
-                                const fill = colorWithIntensity(color, intensityFor(uf));
+                <svg viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`} className="h-full w-full" role="img" aria-label="Mapa do Brasil por UF">
+                    <g>
+                        {mapPaths.map((state) => {
+                            const value = valuesByUf.get(state.uf) || 0;
+                            const fill = colorWithIntensity(color, intensityFor(state.uf));
+                            const isHovered = hoveredUf === state.uf;
 
-                                return (
-                                    <Geography
-                                        key={geo.rsmKey}
-                                        geography={geo}
-                                        fill={fill}
-                                        stroke="#ffffff"
-                                        strokeWidth={1.25}
-                                        onMouseEnter={() => setHoveredUf(uf)}
-                                        onMouseLeave={() => setHoveredUf(null)}
-                                        style={{
-                                            default: { outline: "none" },
-                                            hover: { fill: color, outline: "none", cursor: "default" },
-                                            pressed: { outline: "none" },
-                                        }}
-                                    >
-                                        <title>{`${uf}: ${formatCurrency(value)}`}</title>
-                                    </Geography>
-                                );
-                            })
-                        }
-                    </Geographies>
-                </ComposableMap>
+                            return (
+                                <path
+                                    key={state.uf}
+                                    d={state.d}
+                                    fill={isHovered ? color : fill}
+                                    stroke="#ffffff"
+                                    strokeWidth={1}
+                                    className="transition-colors duration-150"
+                                    onMouseEnter={() => setHoveredUf(state.uf)}
+                                    onMouseLeave={() => setHoveredUf(null)}
+                                >
+                                    <title>{`${state.uf}: ${formatCurrency(value)}`}</title>
+                                </path>
+                            );
+                        })}
+                    </g>
+                </svg>
 
                 {hoveredUf && (
                     <div className="pointer-events-none absolute left-3 top-3 rounded-lg border border-neutral-200 bg-white/95 px-3 py-2 text-xs font-bold text-neutral-700 shadow-sm">
@@ -186,3 +223,4 @@ export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a" }:
         </div>
     );
 }
+

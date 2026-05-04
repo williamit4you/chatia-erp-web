@@ -15,7 +15,6 @@ import AiAnalysisPanel from "@/components/finance/AiAnalysisPanel";
 import BrazilUfMapChart from "@/components/finance/BrazilUfMapChart";
 import CashProjectionChart from "@/components/finance/CashProjectionChart";
 import ChartAnalysisView from "@/components/finance/ChartAnalysisView";
-import ChartPatternLegend from "@/components/finance/ChartPatternLegend";
 import DailyBalanceChart from "@/components/finance/DailyBalanceChart";
 import DashboardSection from "@/components/finance/DashboardSection";
 import DashboardWidget from "@/components/finance/DashboardWidget";
@@ -48,39 +47,39 @@ type DashboardGroup = {
 };
 
 const DEFAULT_WIDGETS: WidgetConfig[] = [
-    { id: "kpis", name: "KPIs Basicos e Detalhados" },
+    { id: "kpis", name: "KPIs Básicos e Detalhados" },
     { id: "summary", name: "Cards de Resumo" },
     { id: "flow", name: "Fluxo Mensal Consolidado" },
-    { id: "projection", name: "Previsao 30 Dias" },
+    { id: "projection", name: "Previsão 30 Dias" },
     { id: "aging", name: "Aging (Atraso)" },
-    { id: "ai", name: "Analise Inteligente" },
+    { id: "ai", name: "Análise Inteligente" },
     { id: "performance", name: "Performance Pagto" },
     { id: "dist_pag_fornecedor", name: "Pagar: Por Fornecedor" },
     { id: "geo_pagar", name: "Pagar: Por UF" },
     { id: "dist_tipo_pag", name: "Pagar: Tipo Pagamento" },
-    { id: "dist_cond_pag", name: "Pagar: Condicao Pagto" },
-    { id: "evolucao_pag", name: "Pagar: Evolucao" },
+    { id: "dist_cond_pag", name: "Pagar: Condição Pagto" },
+    { id: "evolucao_pag", name: "Pagar: Evolução" },
     { id: "curva_pag", name: "Pagar: Curva Venc." },
     { id: "top_pag", name: "Pagar: Top 10" },
     { id: "faixa_pag", name: "Pagar: Faixa Valor" },
     { id: "dist_rec_cliente", name: "Receber: Por Cliente" },
     { id: "geo_receber", name: "Receber: Por UF" },
-    { id: "evolucao_rec", name: "Receber: Evolucao" },
+    { id: "evolucao_rec", name: "Receber: Evolução" },
     { id: "curva_rec", name: "Receber: Curva Venc." },
     { id: "top_rec", name: "Receber: Top 10" },
     { id: "faixa_rec", name: "Receber: Faixa Valor" },
-    { id: "efficiency_kpis", name: "Gestao: KPIs Eficiencia" },
-    { id: "vol_dia_mes", name: "Gestao: Vol. por Dia" },
-    { id: "vol_dia_semana", name: "Gestao: Vol. por Dia da Semana" },
-    { id: "liq_empresa", name: "Gestao: Liq. por Empresa" },
-    { id: "fluxo_diario_proj", name: "Gestao: Fluxo Diario Proj." },
-    { id: "vol_cpf_cnpj", name: "Gestao: Vol. por CPF/CNPJ" },
-    { id: "saldo_acumulado", name: "Gestao: Saldo Acumulado" },
-    { id: "dist_faixa_prazo", name: "Gestao: Faixas de Prazo" },
+    { id: "efficiency_kpis", name: "Gestão: KPIs Eficiência" },
+    { id: "vol_dia_mes", name: "Gestão: Vol. por Dia" },
+    { id: "vol_dia_semana", name: "Gestão: Vol. por Dia da Semana" },
+    { id: "liq_empresa", name: "Gestão: Líq. por Empresa" },
+    { id: "fluxo_diario_proj", name: "Gestão: Fluxo Diário Proj." },
+    { id: "vol_cpf_cnpj", name: "Gestão: Vol. por CPF/CNPJ" },
+    { id: "saldo_acumulado", name: "Gestão: Saldo Acumulado" },
+    { id: "dist_faixa_prazo", name: "Gestão: Faixas de Prazo" },
     { id: "pm_rec_cli", name: "F3: PM Rec. por Cliente" },
     { id: "pm_pag_for", name: "F3: PM Pag. por Fornecedor" },
-    { id: "tm_rec_cli", name: "F3: Ticket Medio/Cliente" },
-    { id: "tm_pag_for", name: "F3: Ticket Medio/Fornecedor" },
+    { id: "tm_rec_cli", name: "F3: Ticket Médio/Cliente" },
+    { id: "tm_pag_for", name: "F3: Ticket Médio/Fornecedor" },
     { id: "docs_cli", name: "F3: Docs por Cliente" },
     { id: "docs_for", name: "F3: Docs por Fornecedor" },
 ];
@@ -116,8 +115,8 @@ const RECEIVABLE_WIDGETS = [
 const DASHBOARD_GROUPS: DashboardGroup[] = [
     {
         number: 1,
-        title: "Visao Geral - Resumo Executivo",
-        description: "Resumo financeiro, KPIs basicos, fluxo consolidado e projecoes principais.",
+        title: "Visão Geral - Resumo Executivo",
+        description: "Resumo financeiro, KPIs básicos, fluxo consolidado e projeções principais.",
         theme: "general",
         variant: "wide",
         widgetIds: ["summary", "kpis", "flow", "projection", "saldo_acumulado", "ai"],
@@ -125,7 +124,7 @@ const DASHBOARD_GROUPS: DashboardGroup[] = [
     {
         number: 2,
         title: "Contas a Pagar",
-        description: "Despesas, vencimentos, fornecedores, faixas de valor e condicoes de pagamento.",
+        description: "Despesas, vencimentos, fornecedores, faixas de valor e condições de pagamento.",
         theme: "payable",
         variant: "analysis",
         widgetIds: [
@@ -158,24 +157,24 @@ const DASHBOARD_GROUPS: DashboardGroup[] = [
     },
     {
         number: 4,
-        title: "Fluxo de Caixa e Projecoes",
-        description: "Gestao do fluxo projetado, volume por dia, prazo, liquidez e documentos.",
+        title: "Fluxo de Caixa e Projeções",
+        description: "Gestão do fluxo projetado, volume por dia, prazo, liquidez e documentos.",
         theme: "cashflow",
         variant: "compact",
         widgetIds: ["fluxo_diario_proj", "vol_dia_mes", "vol_dia_semana", "dist_faixa_prazo", "liq_empresa", "vol_cpf_cnpj"],
     },
     {
         number: 5,
-        title: "Analise por Cliente / Fornecedor",
-        description: "Prazo medio, ticket medio e documentos por cliente ou fornecedor.",
+        title: "Análise por Cliente / Fornecedor",
+        description: "Prazo médio, ticket médio e documentos por cliente ou fornecedor.",
         theme: "analysis",
         variant: "charts",
         widgetIds: ["pm_rec_cli", "pm_pag_for", "tm_rec_cli", "tm_pag_for", "docs_cli", "docs_for"],
     },
     {
         number: 6,
-        title: "Gestao - KPIs Eficiencia Financeira",
-        description: "Indicadores avancados de risco, eficiencia, concentracao e operacao financeira.",
+        title: "Gestão - KPIs Eficiência Financeira",
+        description: "Indicadores avançados de risco, eficiência, concentração e operação financeira.",
         theme: "efficiency",
         variant: "cards",
         widgetIds: ["efficiency_kpis"],
@@ -577,7 +576,6 @@ export default function FinanceAnalyticsDashboard() {
                         );
                     })}
 
-                    <ChartPatternLegend />
                 </div>
             </div>
 

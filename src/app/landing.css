@@ -179,7 +179,7 @@
 
 .landing-robot-wrapper {
   position: absolute;
-  right: -10%;
+  right: -16%;
   top: -10px;
   width: 840px;
   z-index: 1;
@@ -314,7 +314,7 @@
 @media (max-width: 1200px) {
   .landing-robot-wrapper {
     width: 680px;
-    right: -12%;
+    right: -16%;
     top: 35px;
   }
 

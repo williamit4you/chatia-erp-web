@@ -14,13 +14,23 @@ interface BrazilUfMapChartProps {
 type GeoFeature = {
     type: "Feature";
     properties: { codarea?: string };
-    geometry: unknown;
+    geometry: GeoGeometry;
 };
 
 type GeoFeatureCollection = {
     type: "FeatureCollection";
     features: GeoFeature[];
 };
+
+type GeoGeometry =
+    | {
+          type: "Polygon";
+          coordinates: number[][][];
+      }
+    | {
+          type: "MultiPolygon";
+          coordinates: number[][][][];
+      };
 
 const MAP_WIDTH = 330;
 const MAP_HEIGHT = 300;
@@ -116,9 +126,33 @@ const colorWithIntensity = (hex: string, intensity: number) => {
     return `rgb(${r}, ${g}, ${b})`;
 };
 
+const reverseRing = (ring: number[][]) => [...ring].reverse();
+
+const normalizeGeometryForD3 = (geometry: GeoGeometry): GeoGeometry => {
+    if (geometry.type === "Polygon") {
+        return {
+            ...geometry,
+            coordinates: geometry.coordinates.map(reverseRing),
+        };
+    }
+
+    return {
+        ...geometry,
+        coordinates: geometry.coordinates.map((polygon) => polygon.map(reverseRing)),
+    };
+};
+
+const normalizeGeoDataForD3 = (geoData: GeoFeatureCollection): GeoFeatureCollection => ({
+    ...geoData,
+    features: geoData.features.map((feature) => ({
+        ...feature,
+        geometry: normalizeGeometryForD3(feature.geometry),
+    })),
+});
+
 export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a" }: BrazilUfMapChartProps) {
     const [hoveredUf, setHoveredUf] = useState<string | null>(null);
-    const geoData = brUfsGeoJson as GeoFeatureCollection;
+    const geoData = useMemo(() => normalizeGeoDataForD3(brUfsGeoJson as GeoFeatureCollection), []);
 
     const valuesByUf = useMemo(() => {
         return new Map(data.map((item) => [normalizeUf(item.local), item.valor]));

@@ -12,11 +12,13 @@ import financeAnalyticsService, {
 import AdvancedKpiCards from "@/components/finance/AdvancedKpiCards";
 import AgingChart from "@/components/finance/AgingChart";
 import AiAnalysisPanel from "@/components/finance/AiAnalysisPanel";
+import BrazilUfMapChart from "@/components/finance/BrazilUfMapChart";
 import CashProjectionChart from "@/components/finance/CashProjectionChart";
 import ChartAnalysisView from "@/components/finance/ChartAnalysisView";
 import DailyBalanceChart from "@/components/finance/DailyBalanceChart";
 import DashboardSection from "@/components/finance/DashboardSection";
 import DashboardWidget from "@/components/finance/DashboardWidget";
+import DistributionBarChart from "@/components/finance/DistributionBarChart";
 import DistributionPieChart from "@/components/finance/DistributionPieChart";
 import EfficiencyKpiCards from "@/components/finance/EfficiencyKpiCards";
 import FinanceSummaryCards from "@/components/finance/FinanceSummaryCards";
@@ -40,7 +42,7 @@ type DashboardGroup = {
     title: string;
     description: string;
     theme: DashboardThemeKey;
-    variant: "cards" | "charts" | "wide" | "compact";
+    variant: "cards" | "charts" | "wide" | "compact" | "analysis";
     widgetIds: string[];
 };
 
@@ -123,7 +125,7 @@ const DASHBOARD_GROUPS: DashboardGroup[] = [
         title: "Contas a Pagar",
         description: "Despesas, vencimentos, fornecedores, faixas de valor e condicoes de pagamento.",
         theme: "payable",
-        variant: "charts",
+        variant: "analysis",
         widgetIds: [
             "evolucao_pag",
             "curva_pag",
@@ -321,8 +323,9 @@ export default function FinanceAnalyticsDashboard() {
     };
 
     const widgetFrameClass = (id: string) => {
-        if (["summary", "kpis", "efficiency_kpis"].includes(id)) return "lg:col-span-2 2xl:col-span-4";
-        if (["flow", "projection", "saldo_acumulado", "ai"].includes(id)) return "lg:col-span-1";
+        if (["summary", "kpis", "ai"].includes(id)) return "xl:col-span-2";
+        if (id === "efficiency_kpis") return "";
+        if (["flow", "projection", "saldo_acumulado"].includes(id)) return "min-h-[420px]";
         return "min-h-[420px]";
     };
 
@@ -358,12 +361,7 @@ export default function FinanceAnalyticsDashboard() {
                 return <DistributionPieChart title="" data={advanced?.distribuicaoPagarFornecedor || []} isLoading={isLoading} colors={payableTheme.chartPalette} />;
             case "geo_pagar":
                 return (
-                    <DistributionPieChart
-                        title=""
-                        data={advanced?.geograficoPagar?.map((item) => ({ label: item.local, valor: item.valor, percentual: 0 })) || []}
-                        isLoading={isLoading}
-                        colors={payableTheme.chartPalette}
-                    />
+                    <BrazilUfMapChart data={advanced?.geograficoPagar || []} isLoading={isLoading} color={payableTheme.primary} />
                 );
             case "dist_tipo_pag":
                 return <DistributionPieChart title="" data={advanced?.distribuicaoTipoPagamento || []} isLoading={isLoading} colors={payableTheme.chartPalette} />;
@@ -381,12 +379,7 @@ export default function FinanceAnalyticsDashboard() {
                 return <DistributionPieChart title="" data={advanced?.distribuicaoReceberCliente || []} isLoading={isLoading} colors={receivableTheme.chartPalette} />;
             case "geo_receber":
                 return (
-                    <DistributionPieChart
-                        title=""
-                        data={advanced?.geograficoReceber?.map((item) => ({ label: item.local, valor: item.valor, percentual: 0 })) || []}
-                        isLoading={isLoading}
-                        colors={receivableTheme.chartPalette}
-                    />
+                    <BrazilUfMapChart data={advanced?.geograficoReceber || []} isLoading={isLoading} color={receivableTheme.primary} />
                 );
             case "faixa_rec":
                 return <DistributionPieChart title="" data={advanced?.distribuicaoFaixaValorReceber || []} isLoading={isLoading} colors={receivableTheme.chartPalette} />;
@@ -411,17 +404,17 @@ export default function FinanceAnalyticsDashboard() {
             case "dist_faixa_prazo":
                 return <DistributionPieChart title="" data={advanced?.distribuicaoFaixaPrazoVencimento || []} isLoading={isLoading} colors={cashflowTheme.chartPalette} />;
             case "pm_rec_cli":
-                return <DistributionPieChart title="" data={advanced?.prazoMedioRecebimentoPorCliente || []} isLoading={isLoading} colors={analysisTheme.chartPalette} />;
+                return <DistributionBarChart data={advanced?.prazoMedioRecebimentoPorCliente || []} isLoading={isLoading} color={analysisTheme.primary} />;
             case "pm_pag_for":
-                return <DistributionPieChart title="" data={advanced?.prazoMedioPagamentoPorFornecedor || []} isLoading={isLoading} colors={analysisTheme.chartPalette} />;
+                return <DistributionBarChart data={advanced?.prazoMedioPagamentoPorFornecedor || []} isLoading={isLoading} color={analysisTheme.primary} />;
             case "tm_rec_cli":
-                return <TopAccountsList title="" data={advanced?.ticketMedioPorCliente?.map((item: any) => ({ documento: item.label, valor: item.valor })) || []} isLoading={isLoading} iconColor="text-violet-500" valueColor="text-violet-600" />;
+                return <DistributionBarChart data={advanced?.ticketMedioPorCliente || []} isLoading={isLoading} color={analysisTheme.primary} />;
             case "tm_pag_for":
-                return <TopAccountsList title="" data={advanced?.ticketMedioPorFornecedor?.map((item: any) => ({ documento: item.label, valor: item.valor })) || []} isLoading={isLoading} iconColor="text-violet-500" valueColor="text-violet-600" />;
+                return <DistributionBarChart data={advanced?.ticketMedioPorFornecedor || []} isLoading={isLoading} color={analysisTheme.primary} />;
             case "docs_cli":
-                return <TopAccountsList title="" data={advanced?.documentosPorClienteAtivo?.map((item: any) => ({ documento: item.label, valor: item.valor })) || []} isLoading={isLoading} iconColor="text-violet-500" valueColor="text-violet-600" />;
+                return <DistributionBarChart data={advanced?.documentosPorClienteAtivo || []} isLoading={isLoading} color={analysisTheme.primary} />;
             case "docs_for":
-                return <TopAccountsList title="" data={advanced?.documentosPorFornecedorAtivo?.map((item: any) => ({ documento: item.label, valor: item.valor })) || []} isLoading={isLoading} iconColor="text-violet-500" valueColor="text-violet-600" />;
+                return <DistributionBarChart data={advanced?.documentosPorFornecedorAtivo || []} isLoading={isLoading} color={analysisTheme.primary} />;
             default:
                 return null;
         }
@@ -435,7 +428,7 @@ export default function FinanceAnalyticsDashboard() {
         if (onlyContent) return <div className="flex min-h-[500px] w-full flex-col">{content}</div>;
 
         return (
-            <div key={id} className={`min-h-[360px] ${widgetFrameClass(id)}`}>
+            <div key={id} className={widgetFrameClass(id)}>
                 <DashboardWidget id={id} title={widget.name} onAnalyze={setAnalysisChartId}>
                     {content}
                 </DashboardWidget>
@@ -546,4 +539,3 @@ export default function FinanceAnalyticsDashboard() {
         </div>
     );
 }
-

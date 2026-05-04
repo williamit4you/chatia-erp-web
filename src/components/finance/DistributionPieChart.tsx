@@ -15,7 +15,7 @@ export default function DistributionPieChart({ data, isLoading, title, colors }:
         return <div className="h-[350px] w-full bg-neutral-50 animate-pulse rounded-xl"></div>;
     }
 
-    const COLORS = colors || ['#6366f1', '#10b981', '#f59e0b', '#f97316', '#8b5cf6', '#ec4899', '#06b6d4'];
+    const COLORS = colors || ['#6366f1', '#10b981', '#f59e0b', '#f97316', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b'];
 
     return (
         <div className="bg-white p-6 rounded-xl border border-neutral-100 shadow-sm h-full flex flex-col">

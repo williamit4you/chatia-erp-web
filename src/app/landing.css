@@ -179,9 +179,9 @@
 
 .landing-robot-wrapper {
   position: absolute;
-  right: -4%;
-  top: 20px;
-  width: 760px;
+  right: -7%;
+  top: -10px;
+  width: 840px;
   z-index: 1;
   pointer-events: none;
 }
@@ -313,9 +313,9 @@
 
 @media (max-width: 1200px) {
   .landing-robot-wrapper {
-    width: 620px;
-    right: -8%;
-    top: 60px;
+    width: 680px;
+    right: -10%;
+    top: 35px;
   }
 
   .landing-content h1 {

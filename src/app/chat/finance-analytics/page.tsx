@@ -35,7 +35,9 @@ interface WidgetConfig {
     name: string;
 }
 
-type DashboardTabKey = "all" | "view1" | "view2" | "view3" | "view4" | "view5" | "view6";
+type DashboardScope = "all" | "payable" | "receivable";
+
+type DashboardTabKey = "overview" | "view1" | "view2" | "view3" | "view4" | "view5" | "view6";
 
 type DashboardGroup = {
     number: number;
@@ -50,6 +52,11 @@ type DashboardTab = {
     key: DashboardTabKey;
     label: string;
     groupNumbers: number[];
+};
+
+type ScopeOption = {
+    key: DashboardScope;
+    label: string;
 };
 
 const DEFAULT_WIDGETS: WidgetConfig[] = [
@@ -188,13 +195,19 @@ const DASHBOARD_GROUPS: DashboardGroup[] = [
 ];
 
 const DASHBOARD_TABS: DashboardTab[] = [
-    { key: "all", label: "Todos", groupNumbers: [1, 2, 3, 4, 5, 6] },
+    { key: "overview", label: "Visão Geral", groupNumbers: [1, 2, 3, 4, 5, 6] },
     { key: "view1", label: "Visão 1 - Resumo Executivo", groupNumbers: [1] },
     { key: "view2", label: "Visão 2 - Contas a Pagar", groupNumbers: [2] },
     { key: "view3", label: "Visão 3 - Contas a Receber", groupNumbers: [3] },
     { key: "view4", label: "Visão 4 - Fluxo e Projeções", groupNumbers: [4] },
     { key: "view5", label: "Visão 5 - Clientes e Fornecedores", groupNumbers: [5] },
     { key: "view6", label: "Visão 6 - KPIs de Eficiência", groupNumbers: [6] },
+];
+
+const DASHBOARD_SCOPES: ScopeOption[] = [
+    { key: "all", label: "Todos" },
+    { key: "payable", label: "A Pagar" },
+    { key: "receivable", label: "A Receber" },
 ];
 
 export default function FinanceAnalyticsDashboard() {
@@ -209,7 +222,8 @@ export default function FinanceAnalyticsDashboard() {
     const [error, setError] = useState<string | null>(null);
     const [mounted, setMounted] = useState(false);
     const [analysisChartId, setAnalysisChartId] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<DashboardTabKey>("all");
+    const [activeScope, setActiveScope] = useState<DashboardScope>("all");
+    const [activeTab, setActiveTab] = useState<DashboardTabKey>("overview");
     const [widgets, setWidgets] = useState<WidgetConfig[]>(DEFAULT_WIDGETS);
 
     const [startDate, setStartDate] = useState<string>(() => {
@@ -271,6 +285,11 @@ export default function FinanceAnalyticsDashboard() {
 
         setWidgets(availableWidgets);
 
+        const savedScope = localStorage.getItem(`finance_v5_dashboard_scope_${currentUserId}`);
+        if (savedScope && DASHBOARD_SCOPES.some((scope) => scope.key === savedScope)) {
+            setActiveScope(savedScope as DashboardScope);
+        }
+
         const savedTab = localStorage.getItem(`finance_v5_dashboard_tab_${currentUserId}`);
         if (savedTab && DASHBOARD_TABS.some((tab) => tab.key === savedTab)) {
             setActiveTab(savedTab as DashboardTabKey);
@@ -281,9 +300,23 @@ export default function FinanceAnalyticsDashboard() {
 
     const availableWidgetIds = useMemo(() => new Set(widgets.map((widget) => widget.id)), [widgets]);
 
+    const isWidgetAllowedInScope = (id: string) => {
+        const isPayableWidget = PAYABLE_WIDGETS.includes(id);
+        const isReceivableWidget = RECEIVABLE_WIDGETS.includes(id);
+
+        if (activeScope === "payable") return !isReceivableWidget;
+        if (activeScope === "receivable") return !isPayableWidget;
+        return true;
+    };
+
     const isWidgetVisible = (id: string) => {
         if (!availableWidgetIds.has(id)) return false;
-        return true;
+        return isWidgetAllowedInScope(id);
+    };
+
+    const applyDashboardScope = (scope: DashboardScope) => {
+        setActiveScope(scope);
+        localStorage.setItem(`finance_v5_dashboard_scope_${userId}`, scope);
     };
 
     const applyDashboardTab = (tab: DashboardTabKey) => {
@@ -298,7 +331,14 @@ export default function FinanceAnalyticsDashboard() {
                 return group ? group.widgetIds.some(isWidgetVisible) : false;
             })
         );
-    }, [availableWidgetIds, widgets]);
+    }, [availableWidgetIds, widgets, activeScope]);
+
+    useEffect(() => {
+        if (!visibleTabs.some((tab) => tab.key === activeTab)) {
+            setActiveTab("overview");
+            localStorage.setItem(`finance_v5_dashboard_tab_${userId}`, "overview");
+        }
+    }, [activeTab, userId, visibleTabs]);
 
     const handleFilter = () => fetchData(startDate, endDate);
 
@@ -548,6 +588,27 @@ export default function FinanceAnalyticsDashboard() {
                                 Atualizar
                             </button>
                         </div>
+                    </div>
+                </div>
+
+                <div className="mb-4 flex flex-wrap items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-sm">
+                        {DASHBOARD_SCOPES.map((scope) => {
+                            const isActive = activeScope === scope.key;
+                            return (
+                                <button
+                                    key={scope.key}
+                                    onClick={() => applyDashboardScope(scope.key)}
+                                    className={`rounded-xl px-4 py-2 text-sm font-black transition-colors ${
+                                        isActive
+                                            ? "bg-neutral-900 text-white"
+                                            : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+                                    }`}
+                                >
+                                    {scope.label}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 

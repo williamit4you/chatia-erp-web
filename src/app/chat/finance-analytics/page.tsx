@@ -196,12 +196,12 @@ const DASHBOARD_GROUPS: DashboardGroup[] = [
 
 const DASHBOARD_TABS: DashboardTab[] = [
     { key: "overview", label: "Visão Geral", groupNumbers: [1, 2, 3, 4, 5, 6] },
-    { key: "view1", label: "Visão 1 - Resumo Executivo", groupNumbers: [1] },
-    { key: "view2", label: "Visão 2 - Contas a Pagar", groupNumbers: [2] },
-    { key: "view3", label: "Visão 3 - Contas a Receber", groupNumbers: [3] },
-    { key: "view4", label: "Visão 4 - Fluxo e Projeções", groupNumbers: [4] },
-    { key: "view5", label: "Visão 5 - Clientes e Fornecedores", groupNumbers: [5] },
-    { key: "view6", label: "Visão 6 - KPIs de Eficiência", groupNumbers: [6] },
+    { key: "view1", label: "Resumo Executivo", groupNumbers: [1] },
+    { key: "view2", label: "Contas a Pagar", groupNumbers: [2] },
+    { key: "view3", label: "Contas a Receber", groupNumbers: [3] },
+    { key: "view4", label: "Fluxo e Projeções", groupNumbers: [4] },
+    { key: "view5", label: "Clientes e Fornecedores", groupNumbers: [5] },
+    { key: "view6", label: "KPIs de Eficiência", groupNumbers: [6] },
 ];
 
 const DASHBOARD_SCOPES: ScopeOption[] = [

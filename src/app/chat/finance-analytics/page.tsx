@@ -35,7 +35,7 @@ interface WidgetConfig {
     name: string;
 }
 
-type FilterMode = "all" | "payable" | "receivable";
+type DashboardTabKey = "general" | "cashflow" | "payrec" | "expenses" | "income" | "indicators" | "advanced";
 
 type DashboardGroup = {
     number: number;
@@ -44,6 +44,12 @@ type DashboardGroup = {
     theme: DashboardThemeKey;
     variant: "cards" | "charts" | "wide" | "compact" | "analysis";
     widgetIds: string[];
+};
+
+type DashboardTab = {
+    key: DashboardTabKey;
+    label: string;
+    groupNumbers: number[];
 };
 
 const DEFAULT_WIDGETS: WidgetConfig[] = [
@@ -181,6 +187,16 @@ const DASHBOARD_GROUPS: DashboardGroup[] = [
     },
 ];
 
+const DASHBOARD_TABS: DashboardTab[] = [
+    { key: "general", label: "Visão Geral", groupNumbers: [1] },
+    { key: "cashflow", label: "Fluxo de Caixa", groupNumbers: [4] },
+    { key: "payrec", label: "Contas a Pagar / Receber", groupNumbers: [2, 3] },
+    { key: "expenses", label: "Despesas", groupNumbers: [2] },
+    { key: "income", label: "Receitas", groupNumbers: [3] },
+    { key: "indicators", label: "Indicadores", groupNumbers: [1, 6] },
+    { key: "advanced", label: "Análises Avançadas", groupNumbers: [5] },
+];
+
 export default function FinanceAnalyticsDashboard() {
     const { data: session } = useSession();
 
@@ -193,7 +209,7 @@ export default function FinanceAnalyticsDashboard() {
     const [error, setError] = useState<string | null>(null);
     const [mounted, setMounted] = useState(false);
     const [analysisChartId, setAnalysisChartId] = useState<string | null>(null);
-    const [filterMode, setFilterMode] = useState<FilterMode>("all");
+    const [activeTab, setActiveTab] = useState<DashboardTabKey>("general");
     const [widgets, setWidgets] = useState<WidgetConfig[]>(DEFAULT_WIDGETS);
 
     const [startDate, setStartDate] = useState<string>(() => {
@@ -255,9 +271,9 @@ export default function FinanceAnalyticsDashboard() {
 
         setWidgets(availableWidgets);
 
-        const savedFilterMode = localStorage.getItem(`finance_v5_filter_mode_${currentUserId}`);
-        if (savedFilterMode === "all" || savedFilterMode === "payable" || savedFilterMode === "receivable") {
-            setFilterMode(savedFilterMode);
+        const savedTab = localStorage.getItem(`finance_v5_dashboard_tab_${currentUserId}`);
+        if (savedTab && DASHBOARD_TABS.some((tab) => tab.key === savedTab)) {
+            setActiveTab(savedTab as DashboardTabKey);
         }
 
         fetchData(startDate, endDate);
@@ -267,15 +283,22 @@ export default function FinanceAnalyticsDashboard() {
 
     const isWidgetVisible = (id: string) => {
         if (!availableWidgetIds.has(id)) return false;
-        if (filterMode === "payable" && RECEIVABLE_WIDGETS.includes(id)) return false;
-        if (filterMode === "receivable" && PAYABLE_WIDGETS.includes(id)) return false;
         return true;
     };
 
-    const applyFilterMode = (mode: FilterMode) => {
-        setFilterMode(mode);
-        localStorage.setItem(`finance_v5_filter_mode_${userId}`, mode);
+    const applyDashboardTab = (tab: DashboardTabKey) => {
+        setActiveTab(tab);
+        localStorage.setItem(`finance_v5_dashboard_tab_${userId}`, tab);
     };
+
+    const visibleTabs = useMemo(() => {
+        return DASHBOARD_TABS.filter((tab) =>
+            tab.groupNumbers.some((groupNumber) => {
+                const group = DASHBOARD_GROUPS.find((item) => item.number === groupNumber);
+                return group ? group.widgetIds.some(isWidgetVisible) : false;
+            })
+        );
+    }, [availableWidgetIds, widgets]);
 
     const handleFilter = () => fetchData(startDate, endDate);
 
@@ -514,27 +537,6 @@ export default function FinanceAnalyticsDashboard() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3">
-                        <div className="flex items-center gap-1 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100 p-1 shadow-sm">
-                            <button
-                                onClick={() => applyFilterMode("all")}
-                                className={`rounded-lg px-4 py-1.5 text-xs font-black transition-all ${filterMode === "all" ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-700"}`}
-                            >
-                                Todos
-                            </button>
-                            <button
-                                onClick={() => applyFilterMode("payable")}
-                                className={`rounded-lg px-4 py-1.5 text-xs font-black transition-all ${filterMode === "payable" ? "bg-orange-600 text-white shadow-sm" : "text-neutral-500 hover:text-neutral-700"}`}
-                            >
-                                Pagar
-                            </button>
-                            <button
-                                onClick={() => applyFilterMode("receivable")}
-                                className={`rounded-lg px-4 py-1.5 text-xs font-black transition-all ${filterMode === "receivable" ? "bg-green-600 text-white shadow-sm" : "text-neutral-500 hover:text-neutral-700"}`}
-                            >
-                                Receber
-                            </button>
-                        </div>
-
                         <div className="flex flex-wrap items-center gap-3 rounded-xl border border-neutral-200 bg-white p-1.5 shadow-sm">
                             <div className="flex items-center gap-2 px-3 sm:border-r sm:border-neutral-100">
                                 <Calendar className="h-4 w-4 text-neutral-400" />
@@ -549,6 +551,32 @@ export default function FinanceAnalyticsDashboard() {
                     </div>
                 </div>
 
+                <div className="mb-6 overflow-x-auto rounded-2xl border border-neutral-200 bg-white px-2 py-1 shadow-sm">
+                    <div className="flex min-w-max items-center gap-2">
+                        {visibleTabs.map((tab) => {
+                            const isActive = activeTab === tab.key;
+                            return (
+                                <button
+                                    key={tab.key}
+                                    onClick={() => applyDashboardTab(tab.key)}
+                                    className={`relative rounded-xl px-4 py-3 text-sm font-black transition-all ${
+                                        isActive
+                                            ? "bg-blue-50 text-blue-700"
+                                            : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+                                    }`}
+                                >
+                                    {tab.label}
+                                    <span
+                                        className={`absolute inset-x-2 bottom-0 h-0.5 rounded-full transition-all ${
+                                            isActive ? "bg-blue-600" : "bg-transparent"
+                                        }`}
+                                    />
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
                 {error && (
                     <div className="mb-8 flex items-center gap-4 rounded-r-xl border-l-4 border-red-500 bg-red-50 p-4 text-red-700">
                         <AlertCircle className="h-6 w-6 shrink-0" />
@@ -558,6 +586,9 @@ export default function FinanceAnalyticsDashboard() {
 
                 <div className="space-y-6">
                     {DASHBOARD_GROUPS.map((group) => {
+                        const activeTabConfig = DASHBOARD_TABS.find((tab) => tab.key === activeTab);
+                        if (activeTabConfig && !activeTabConfig.groupNumbers.includes(group.number)) return null;
+
                         const visibleWidgetIds = group.widgetIds.filter(isWidgetVisible);
                         if (visibleWidgetIds.length === 0) return null;
 

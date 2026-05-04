@@ -325,9 +325,12 @@ export default function FinanceAnalyticsDashboard() {
     const widgetFrameClass = (id: string) => {
         if (["summary", "kpis", "ai"].includes(id)) return "xl:col-span-2";
         if (id === "efficiency_kpis") return "";
-        if (["flow", "projection", "saldo_acumulado"].includes(id)) return "min-h-[420px]";
-        return "min-h-[420px]";
+        if (["flow", "projection", "saldo_acumulado"].includes(id)) return "min-h-[410px]";
+        return "min-h-[390px]";
     };
+
+    const toBarData = (items?: Array<{ label?: string; mesAno?: string; valor: number }>) =>
+        items?.map((item) => ({ label: item.label || item.mesAno || "", valor: item.valor })) || [];
 
     const renderWidgetContent = (id: string) => {
         const payableTheme = dashboardThemes.payable;
@@ -358,7 +361,15 @@ export default function FinanceAnalyticsDashboard() {
                     />
                 );
             case "dist_pag_fornecedor":
-                return <DistributionPieChart title="" data={advanced?.distribuicaoPagarFornecedor || []} isLoading={isLoading} colors={payableTheme.chartPalette} />;
+                return (
+                    <DistributionBarChart
+                        data={advanced?.distribuicaoPagarFornecedor || []}
+                        isLoading={isLoading}
+                        color={payableTheme.primary}
+                        layout="horizontal"
+                        maxItems={8}
+                    />
+                );
             case "geo_pagar":
                 return (
                     <BrazilUfMapChart data={advanced?.geograficoPagar || []} isLoading={isLoading} color={payableTheme.primary} />
@@ -366,29 +377,37 @@ export default function FinanceAnalyticsDashboard() {
             case "dist_tipo_pag":
                 return <DistributionPieChart title="" data={advanced?.distribuicaoTipoPagamento || []} isLoading={isLoading} colors={payableTheme.chartPalette} />;
             case "dist_cond_pag":
-                return <DistributionPieChart title="" data={advanced?.distribuicaoCondicaoPagamento || []} isLoading={isLoading} colors={payableTheme.chartPalette} />;
+                return <DistributionPieChart title="" data={advanced?.distribuicaoCondicaoPagamento || []} isLoading={isLoading} colors={payableTheme.chartPalette} maxItems={6} />;
             case "faixa_pag":
-                return <DistributionPieChart title="" data={advanced?.distribuicaoFaixaValorPagar || []} isLoading={isLoading} colors={payableTheme.chartPalette} />;
+                return <DistributionBarChart data={advanced?.distribuicaoFaixaValorPagar || []} isLoading={isLoading} color={payableTheme.primary} maxItems={6} />;
             case "evolucao_pag":
                 return <MonthlyEvolutionChart title="" data={advanced?.evolucaoMensalPagamento || []} isLoading={isLoading} color={payableTheme.primary} fillColor={payableTheme.primary} dataKey="valor" />;
             case "curva_pag":
-                return <MonthlyEvolutionChart title="" data={advanced?.curvaVencimentoPagar || []} isLoading={isLoading} color={payableTheme.strong} fillColor={payableTheme.primary} dataKey="valor" />;
+                return <DistributionBarChart data={toBarData(advanced?.curvaVencimentoPagar)} isLoading={isLoading} color={payableTheme.primary} maxItems={8} />;
             case "top_pag":
-                return <TopAccountsList title="" data={advanced?.topContasPagar || []} isLoading={isLoading} iconColor="text-orange-500" valueColor="text-orange-600" />;
+                return <DistributionPieChart title="" data={advanced?.distribuicaoPagarFornecedor || []} isLoading={isLoading} colors={payableTheme.chartPalette} maxItems={6} />;
             case "dist_rec_cliente":
-                return <DistributionPieChart title="" data={advanced?.distribuicaoReceberCliente || []} isLoading={isLoading} colors={receivableTheme.chartPalette} />;
+                return (
+                    <DistributionBarChart
+                        data={advanced?.distribuicaoReceberCliente || []}
+                        isLoading={isLoading}
+                        color={receivableTheme.primary}
+                        layout="horizontal"
+                        maxItems={8}
+                    />
+                );
             case "geo_receber":
                 return (
                     <BrazilUfMapChart data={advanced?.geograficoReceber || []} isLoading={isLoading} color={receivableTheme.primary} />
                 );
             case "faixa_rec":
-                return <DistributionPieChart title="" data={advanced?.distribuicaoFaixaValorReceber || []} isLoading={isLoading} colors={receivableTheme.chartPalette} />;
+                return <DistributionBarChart data={advanced?.distribuicaoFaixaValorReceber || []} isLoading={isLoading} color={receivableTheme.primary} maxItems={6} />;
             case "evolucao_rec":
                 return <MonthlyEvolutionChart title="" data={advanced?.evolucaoMensalRecebimento || []} isLoading={isLoading} color={receivableTheme.primary} fillColor={receivableTheme.primary} dataKey="valor" />;
             case "curva_rec":
-                return <MonthlyEvolutionChart title="" data={advanced?.curvaVencimentoReceber || []} isLoading={isLoading} color={receivableTheme.strong} fillColor={receivableTheme.primary} dataKey="valor" />;
+                return <DistributionBarChart data={toBarData(advanced?.curvaVencimentoReceber)} isLoading={isLoading} color={receivableTheme.primary} maxItems={8} />;
             case "top_rec":
-                return <TopAccountsList title="" data={advanced?.topContasReceber || []} isLoading={isLoading} iconColor="text-emerald-500" valueColor="text-emerald-600" />;
+                return <DistributionPieChart title="" data={advanced?.distribuicaoReceberCliente || []} isLoading={isLoading} colors={receivableTheme.chartPalette} maxItems={6} />;
             case "efficiency_kpis":
                 return <EfficiencyKpiCards data={advanced?.saudeFinanceira || null} isLoading={isLoading} />;
             case "vol_dia_mes":

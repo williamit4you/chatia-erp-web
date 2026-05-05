@@ -116,6 +116,8 @@
   flex-direction: column;
   align-items: center;
   margin-bottom: 50px;
+  position: relative;
+  isolation: isolate;
 }
 
 /* ── Hero text ── */
@@ -182,7 +184,7 @@
   right: -16%;
   top: -10px;
   width: 840px;
-  z-index: 1;
+  z-index: 0;
   pointer-events: none;
 }
 
@@ -321,6 +323,10 @@
 
 /* Typical notebooks: 1366x768 / 1440x900 / 1280x800 */
 @media (max-width: 1440px) and (min-width: 1025px) {
+  .landing-hero-top {
+    padding-right: clamp(180px, 26vw, 420px);
+  }
+
   .landing-robot-wrapper {
     width: 760px;
     right: -14%;
@@ -332,9 +338,23 @@
   }
 }
 
+/* Small notebooks: prevent text from slipping under the robot */
+@media (max-width: 1280px) and (min-width: 1025px) {
+  .landing-hero-top {
+    padding-right: clamp(220px, 30vw, 520px);
+  }
+
+  .landing-robot-wrapper {
+    width: 640px;
+    right: -22%;
+    top: 18px;
+  }
+}
+
 @media (max-width: 1024px) {
   .landing-hero-top {
     margin-bottom: 30px;
+    padding-right: 0;
   }
 
   .landing-robot-wrapper {

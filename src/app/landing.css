@@ -72,7 +72,7 @@
 .landing-hero {
   position: relative;
   overflow: hidden;
-  padding: 50px 60px 70px;
+  padding: clamp(32px, 4vw, 50px) clamp(16px, 4vw, 60px) clamp(46px, 5vw, 70px);
   min-height: calc(100vh - 74px);
 }
 
@@ -128,7 +128,7 @@
 }
 
 .landing-content h1 {
-  font-size: 46px;
+  font-size: clamp(30px, 2.6vw + 10px, 46px);
   line-height: 1.18;
   font-weight: 800;
   margin-bottom: 20px;
@@ -146,7 +146,7 @@
 }
 
 .landing-subtitle {
-  font-size: 19px;
+  font-size: clamp(16px, 1vw + 11px, 19px);
   line-height: 1.5;
   color: #4d4d4d;
   max-width: 620px;
@@ -157,10 +157,10 @@
   display: inline-block;
   background: linear-gradient(135deg, #08756f, #075d59);
   color: white;
-  padding: 17px 38px;
+  padding: clamp(13px, 1.2vw + 8px, 17px) clamp(22px, 2.2vw + 10px, 38px);
   border-radius: 40px;
   text-decoration: none;
-  font-size: 22px;
+  font-size: clamp(18px, 1.2vw + 10px, 22px);
   font-weight: 800;
   box-shadow: 0 12px 25px rgba(0, 90, 85, 0.25);
   transition: all 0.3s ease;
@@ -317,9 +317,18 @@
     right: -16%;
     top: 35px;
   }
+}
 
-  .landing-content h1 {
-    font-size: 40px;
+/* Typical notebooks: 1366x768 / 1440x900 / 1280x800 */
+@media (max-width: 1440px) and (min-width: 1025px) {
+  .landing-robot-wrapper {
+    width: 760px;
+    right: -14%;
+    top: 10px;
+  }
+
+  .landing-hero-top {
+    margin-bottom: 42px;
   }
 }
 
@@ -363,20 +372,92 @@
     padding: 0 16px;
   }
 
-  .landing-content h1 {
-    font-size: 28px;
+  .landing-robot-wrapper {
+    width: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing-header {
+    height: 66px;
   }
 
-  .landing-subtitle {
-    font-size: 17px;
+  .landing-logo img {
+    height: 40px;
   }
 
-  .landing-main-btn {
-    font-size: 18px;
-    padding: 14px 28px;
+  .btn-login {
+    padding: 10px 18px;
+    font-size: 14px;
+  }
+
+  .landing-dashboard,
+  .landing-features {
+    max-width: 420px;
+  }
+}
+
+@media (max-width: 360px) {
+  .landing-dashboard,
+  .landing-features {
+    max-width: 320px;
+  }
+
+  .landing-question {
+    font-size: 13px;
+    padding: 10px 12px;
+  }
+}
+
+/* Phones in landscape / short viewports: reduce hero dominance */
+@media (max-height: 520px) and (max-width: 900px) {
+  .landing-hero {
+    min-height: auto;
+    padding-top: 20px;
+    padding-bottom: 28px;
+  }
+
+  .landing-hero-top {
+    margin-bottom: 22px;
   }
 
   .landing-robot-wrapper {
-    width: 200px;
+    width: 180px;
+    margin-top: 16px;
+  }
+}
+
+/* Notebook-height tuning: keep hero from "eating" the fold on shorter viewports */
+@media (max-height: 860px) and (min-width: 1025px) {
+  .landing-hero {
+    min-height: auto;
+    padding: 34px 60px 46px;
+  }
+
+  .landing-hero-top {
+    margin-bottom: 34px;
+  }
+
+  .landing-content h1 {
+    margin-bottom: 14px;
+  }
+
+  .landing-subtitle {
+    font-size: 18px;
+    margin-bottom: 18px;
+  }
+
+  .landing-main-btn {
+    box-shadow: 0 10px 22px rgba(0, 90, 85, 0.22);
+  }
+
+  .landing-robot-wrapper {
+    width: 700px;
+    right: -12%;
+    top: 10px;
+  }
+
+  .landing-features {
+    margin-top: 22px;
   }
 }

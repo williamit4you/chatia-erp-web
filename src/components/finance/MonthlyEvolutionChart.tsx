@@ -22,13 +22,13 @@ export default function MonthlyEvolutionChart({ data, isLoading, title, color, f
     };
 
     return (
-        <div className="bg-white p-6 rounded-xl border border-neutral-100 shadow-sm h-full flex flex-col">
-            <h3 className="text-lg font-bold text-neutral-900 mb-6">{title}</h3>
-            <div className="flex-1 w-full min-h-[250px]">
+        <div className="bg-white p-6 rounded-xl border border-neutral-100 shadow-sm w-full flex flex-col">
+            {title ? <h3 className="text-lg font-bold text-neutral-900 mb-6">{title}</h3> : null}
+            <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                         <defs>
-                            <linearGradient id={`gradient_${title.replace(/\s+/g, '')}`} x1="0" y1="0" x2="0" y2="1">
+                            <linearGradient id={`gradient_${(title || "monthlyEvolution").replace(/\s+/g, '')}`} x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor={fillColor} stopOpacity={0.8} />
                                 <stop offset="95%" stopColor={fillColor} stopOpacity={0} />
                             </linearGradient>
@@ -59,7 +59,7 @@ export default function MonthlyEvolutionChart({ data, isLoading, title, color, f
                             stroke={color} 
                             strokeWidth={3}
                             fillOpacity={1} 
-                            fill={`url(#gradient_${title.replace(/\s+/g, '')})`} 
+                            fill={`url(#gradient_${(title || "monthlyEvolution").replace(/\s+/g, '')})`} 
                         />
                     </AreaChart>
                 </ResponsiveContainer>

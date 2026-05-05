@@ -647,7 +647,7 @@ export default function FinanceAnalyticsDashboard() {
         if (!widget) return null;
 
         const content = renderWidgetContent(id, filters);
-        if (onlyContent) return <div className="flex min-h-[500px] w-full flex-col">{content}</div>;
+        if (onlyContent) return <div className="flex h-full w-full flex-col min-h-[500px]">{content}</div>;
 
         return (
             <div key={id} className={widgetFrameClass(id)}>

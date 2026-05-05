@@ -2,13 +2,16 @@
 
 import { ReactNode, useMemo, useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { Bot, User, X, Send, Loader2, ArrowLeft, Info, MessageSquare, Sparkles, Calendar, Database, ChevronDown, ChevronUp, RefreshCw, PlusCircle, History, Trash2 } from "lucide-react";
+import { Bot, User, X, Send, Loader2, ArrowLeft, Info, MessageSquare, Sparkles, Calendar, Database, ChevronDown, ChevronUp, RefreshCw, PlusCircle, History, Trash2, BookOpenText } from "lucide-react";
 import financeAnalyticsService from "@/services/finance-analytics.service";
 import { getChartHint } from "@/lib/chartHints";
 import { toast } from "sonner";
 import { getDisplayContextUsage } from "@/lib/contextUtils";
 import MarkdownLite from "@/components/chat/MarkdownLite";
 import MiaAvatar from "@/components/chat/MiaAvatar";
+import ChartDetailsModal from "@/components/finance/ChartDetailsModal";
+import { getChartDetail } from "@/lib/chartDetails";
+import { adminService } from "@/services/admin.service";
 
 type ChartRenderFilters = {
     entityValue: string | null;
@@ -97,6 +100,8 @@ export default function ChartAnalysisView({ id, title, description: propDescript
     // Performance/Context state
     const [contextUsage, setContextUsage] = useState<number>(0);
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+    const [isChartDetailsEnabled, setIsChartDetailsEnabled] = useState(false);
+    const [isChartDetailsOpen, setIsChartDetailsOpen] = useState(false);
 
     // Date filter state
     const [startDate, setStartDate] = useState<string>(initialStartDate || (() => {
@@ -121,6 +126,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
     const userRole = (session?.user as any)?.role;
     const userId = (session?.user as any)?.id;
     const isAdmin = userRole === 'TENANT_ADMIN' || userRole === 'SUPER_ADMIN' || userRole === 'ADMIN';
+    const canManageChartDetails = userRole === "TENANT_ADMIN";
 
     const hint = getChartHint(id);
     const description = hint.description || propDescription;
@@ -134,6 +140,14 @@ export default function ChartAnalysisView({ id, title, description: propDescript
             .filter((label: string) => Boolean(label));
         return Array.from(new Set(labels)).sort((a, b) => a.localeCompare(b, "pt-BR"));
     }, [data, entityFilterLabel]);
+
+    const chartDetailsEntry = {
+        id,
+        title,
+        groupTitle: "Analise do grafico",
+        description,
+        detail: getChartDetail(id, title, description),
+    };
 
     const loadMessages = async (sessionId: string) => {
         setIsTyping(true);
@@ -230,6 +244,25 @@ export default function ChartAnalysisView({ id, title, description: propDescript
         };
         init();
     }, [id, title, description, userId]);
+
+    useEffect(() => {
+        if (!canManageChartDetails) {
+            setIsChartDetailsEnabled(false);
+            return;
+        }
+
+        const sessionValue = Boolean((session?.user as any)?.showChartDetails);
+        setIsChartDetailsEnabled(sessionValue);
+
+        adminService
+            .getSettings()
+            .then((settings) => {
+                setIsChartDetailsEnabled(Boolean(settings?.showChartDetails));
+            })
+            .catch((error) => {
+                console.error("Erro ao carregar flag de detalhes do grafico:", error);
+            });
+    }, [canManageChartDetails, session]);
 
     useEffect(() => {
         if (scrollRef.current && viewMode === "chat") {
@@ -408,6 +441,16 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                             {isReloading ? <RefreshCw className="w-3 h-3 animate-spin" /> : null}
                             Filtrar
                         </button>
+                        {canManageChartDetails && isChartDetailsEnabled && (
+                            <button
+                                type="button"
+                                onClick={() => setIsChartDetailsOpen(true)}
+                                className="bg-blue-50 text-blue-700 px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider border border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1.5"
+                            >
+                                <BookOpenText className="w-3.5 h-3.5" />
+                                Detalhes do grafico
+                            </button>
+                        )}
                     </div>
                     <button 
                         onClick={onClose}
@@ -417,6 +460,15 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                     </button>
                 </div>
             </header>
+
+            {canManageChartDetails && isChartDetailsEnabled && (
+                <ChartDetailsModal
+                    isOpen={isChartDetailsOpen}
+                    title={title}
+                    entries={[chartDetailsEntry]}
+                    onClose={() => setIsChartDetailsOpen(false)}
+                />
+            )}
 
             <div className="flex-1 flex flex-col lg:flex-row overflow-hidden bg-neutral-50/30">
                 {/* Chart Area */}

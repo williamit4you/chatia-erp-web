@@ -1,5 +1,5 @@
 import { ReactNode, forwardRef } from "react";
-import { X, Search } from "lucide-react";
+import { BookOpenText, X, Search } from "lucide-react";
 
 interface DashboardWidgetProps {
     id: string;
@@ -7,6 +7,7 @@ interface DashboardWidgetProps {
     children: ReactNode;
     onRemove?: (id: string) => void;
     onAnalyze?: (id: string) => void;
+    onDetails?: (id: string) => void;
     showControls?: boolean;
     className?: string;
     style?: React.CSSProperties;
@@ -16,7 +17,7 @@ interface DashboardWidgetProps {
 }
 
 const DashboardWidget = forwardRef<HTMLDivElement, DashboardWidgetProps>(
-    ({ id, title, children, onRemove, onAnalyze, showControls = false, className, style, onMouseDown, onMouseUp, onTouchEnd }, ref) => {
+    ({ id, title, children, onRemove, onAnalyze, onDetails, showControls = false, className, style, onMouseDown, onMouseUp, onTouchEnd }, ref) => {
         return (
             <div
                 ref={ref}
@@ -32,6 +33,18 @@ const DashboardWidget = forwardRef<HTMLDivElement, DashboardWidgetProps>(
                         <h3 className="text-sm font-bold text-neutral-700 truncate">{title}</h3>
                     </div>
                     <div className="flex items-center gap-1">
+                        {!showControls && onDetails && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDetails(id);
+                                }}
+                                className="p-1 hover:bg-blue-50 rounded text-neutral-400 hover:text-blue-600 transition-colors"
+                                title="Entender este grafico"
+                            >
+                                <BookOpenText className="w-4 h-4" />
+                            </button>
+                        )}
                         {!showControls && onAnalyze && (
                             <button
                                 onClick={(e) => {

@@ -31,7 +31,7 @@ import { dashboardThemes, DashboardThemeKey } from "@/components/finance/dashboa
 import { getChartDetail } from "@/lib/chartDetails";
 import { adminService } from "@/services/admin.service";
 
-import { AlertCircle, BookOpenText, Calendar } from "lucide-react";
+import { AlertCircle, Calendar } from "lucide-react";
 
 interface WidgetConfig {
     id: string;
@@ -225,7 +225,7 @@ export default function FinanceAnalyticsDashboard() {
     const [error, setError] = useState<string | null>(null);
     const [mounted, setMounted] = useState(false);
     const [analysisChartId, setAnalysisChartId] = useState<string | null>(null);
-    const [isChartDetailsOpen, setIsChartDetailsOpen] = useState(false);
+    const [detailsChartId, setDetailsChartId] = useState<string | null>(null);
     const [isChartDetailsEnabled, setIsChartDetailsEnabled] = useState(false);
     const [activeScope, setActiveScope] = useState<DashboardScope>("all");
     const [activeTab, setActiveTab] = useState<DashboardTabKey>("overview");
@@ -361,10 +361,6 @@ export default function FinanceAnalyticsDashboard() {
     }, [activeTab, userId, visibleTabs]);
 
     const handleFilter = () => fetchData(startDate, endDate);
-    const chartDetailsTitle = activeTab === "overview"
-        ? "Detalhamento dos graficos visiveis"
-        : `Detalhamento da visao ${DASHBOARD_TABS.find((tab) => tab.key === activeTab)?.label || "selecionada"}`;
-
     const getWidgetData = (id: string) => {
         if (!advanced) {
             if (id === "summary") return summary;
@@ -674,35 +670,32 @@ export default function FinanceAnalyticsDashboard() {
 
         return (
             <div key={id} className={widgetFrameClass(id)}>
-                <DashboardWidget id={id} title={widget.name} onAnalyze={setAnalysisChartId}>
+                <DashboardWidget
+                    id={id}
+                    title={widget.name}
+                    onAnalyze={setAnalysisChartId}
+                    onDetails={canManageChartDetails && isChartDetailsEnabled ? setDetailsChartId : undefined}
+                >
                     {content}
                 </DashboardWidget>
             </div>
         );
     };
 
-    const chartDetailsEntries = (() => {
-        const activeTabConfig = DASHBOARD_TABS.find((tab) => tab.key === activeTab);
+    const chartDetailsEntry = detailsChartId
+        ? (() => {
+              const info = getWidgetInfo(detailsChartId);
+              const group = DASHBOARD_GROUPS.find((item) => item.widgetIds.includes(detailsChartId));
 
-        return DASHBOARD_GROUPS.flatMap((group) => {
-            if (activeTabConfig && !activeTabConfig.groupNumbers.includes(group.number)) {
-                return [];
-            }
-
-            return group.widgetIds
-                .filter(isWidgetVisible)
-                .map((id) => {
-                    const info = getWidgetInfo(id);
-                    return {
-                        id,
-                        title: info.title,
-                        groupTitle: group.title,
-                        description: info.description,
-                        detail: getChartDetail(id, info.title, info.description),
-                    };
-                });
-        });
-    })();
+              return {
+                  id: detailsChartId,
+                  title: info.title,
+                  groupTitle: group?.title || "Dashboard Financeiro",
+                  description: info.description,
+                  detail: getChartDetail(detailsChartId, info.title, info.description),
+              };
+          })()
+        : null;
 
     if (!mounted) return null;
 
@@ -735,16 +728,6 @@ export default function FinanceAnalyticsDashboard() {
                             <button onClick={handleFilter} className="rounded-lg bg-neutral-900 px-5 py-1.5 text-xs font-black uppercase text-white transition-colors hover:bg-black">
                                 Atualizar
                             </button>
-                            {canManageChartDetails && isChartDetailsEnabled && (
-                                <button
-                                    type="button"
-                                    onClick={() => setIsChartDetailsOpen(true)}
-                                    className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-1.5 text-xs font-black uppercase text-blue-700 transition-colors hover:bg-blue-100"
-                                >
-                                    <BookOpenText className="h-4 w-4" />
-                                    Detalhes dos graficos
-                                </button>
-                            )}
                         </div>
                     </div>
                 </div>
@@ -831,10 +814,10 @@ export default function FinanceAnalyticsDashboard() {
 
             {canManageChartDetails && isChartDetailsEnabled && (
                 <ChartDetailsModal
-                    isOpen={isChartDetailsOpen}
-                    title={chartDetailsTitle}
-                    entries={chartDetailsEntries}
-                    onClose={() => setIsChartDetailsOpen(false)}
+                    isOpen={Boolean(chartDetailsEntry)}
+                    title={chartDetailsEntry?.title || "Detalhes do grafico"}
+                    entries={chartDetailsEntry ? [chartDetailsEntry] : []}
+                    onClose={() => setDetailsChartId(null)}
                 />
             )}
 

@@ -7,6 +7,7 @@ import financeAnalyticsService from "@/services/finance-analytics.service";
 import { getChartHint } from "@/lib/chartHints";
 import { toast } from "sonner";
 import { getDisplayContextUsage } from "@/lib/contextUtils";
+import MarkdownLite from "@/components/chat/MarkdownLite";
 
 type ChartRenderFilters = {
     entityValue: string | null;
@@ -544,7 +545,13 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                                                 ? 'bg-neutral-900 text-white rounded-tr-sm shadow-md'
                                                 : 'bg-neutral-100 text-neutral-800 rounded-tl-sm font-medium border border-neutral-200/50 shadow-sm'
                                         }`}>
-                                            <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                                            {msg.role === "assistant" ? (
+                                                <div className="text-sm leading-relaxed">
+                                                    <MarkdownLite content={msg.content} />
+                                                </div>
+                                            ) : (
+                                                <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                                            )}
                                             {isAdmin && msg.role === 'assistant' && msg.sqlQueries && (
                                                 <SqlViewer sqlQueries={msg.sqlQueries} />
                                             )}

@@ -1,12 +1,16 @@
 "use client";
 
-import { ReactNode, useState, useEffect, useRef } from "react";
+import { ReactNode, useMemo, useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { Bot, User, X, Send, Loader2, ArrowLeft, Info, MessageSquare, Sparkles, Calendar, Database, ChevronDown, ChevronUp, RefreshCw, PlusCircle, History, Trash2 } from "lucide-react";
 import financeAnalyticsService from "@/services/finance-analytics.service";
 import { getChartHint } from "@/lib/chartHints";
 import { toast } from "sonner";
 import { getDisplayContextUsage } from "@/lib/contextUtils";
+
+type ChartRenderFilters = {
+    entityValue: string | null;
+};
 
 interface ChatMessage {
     id: string;
@@ -31,7 +35,15 @@ interface ChartAnalysisViewProps {
     initialStartDate?: string;
     initialEndDate?: string;
     onDateChange?: (startDate: string, endDate: string) => Promise<void>;
+    renderChart?: (filters: ChartRenderFilters) => ReactNode;
 }
+
+const getEntityFilterLabel = (chartId: string) => {
+    if (["liq_empresa"].includes(chartId)) return "Empresa";
+    if (["dist_rec_cliente", "pm_rec_cli", "tm_rec_cli", "docs_cli"].includes(chartId)) return "Cliente";
+    if (["dist_pag_fornecedor", "pm_pag_for", "tm_pag_for", "docs_for"].includes(chartId)) return "Fornecedor";
+    return null;
+};
 
 function SqlViewer({ sqlQueries }: { sqlQueries: string }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -67,7 +79,7 @@ function SqlViewer({ sqlQueries }: { sqlQueries: string }) {
     );
 }
 
-export default function ChartAnalysisView({ id, title, description: propDescription, chartComponent, data, onClose, initialStartDate, initialEndDate, onDateChange }: ChartAnalysisViewProps) {
+export default function ChartAnalysisView({ id, title, description: propDescription, chartComponent, data, onClose, initialStartDate, initialEndDate, onDateChange, renderChart }: ChartAnalysisViewProps) {
     const { data: session } = useSession();
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState("");
@@ -93,10 +105,15 @@ export default function ChartAnalysisView({ id, title, description: propDescript
     const [endDate, setEndDate] = useState<string>(initialEndDate || new Date().toISOString().split('T')[0]);
     const [isReloading, setIsReloading] = useState(false);
     const [localData, setLocalData] = useState<any>(data);
+    const [entityValue, setEntityValue] = useState<string | null>(null);
 
     useEffect(() => {
         setLocalData(data);
     }, [data]);
+
+    useEffect(() => {
+        setEntityValue(null);
+    }, [id]);
 
     // Admin detection
     const userRole = (session?.user as any)?.role;
@@ -105,6 +122,16 @@ export default function ChartAnalysisView({ id, title, description: propDescript
 
     const hint = getChartHint(id);
     const description = hint.description || propDescription;
+
+    const entityFilterLabel = getEntityFilterLabel(id);
+    const entityOptions = useMemo(() => {
+        if (!entityFilterLabel) return [];
+        if (!Array.isArray(data)) return [];
+        const labels = data
+            .map((item: any) => (typeof item?.label === "string" ? item.label.trim() : ""))
+            .filter((label: string) => Boolean(label));
+        return Array.from(new Set(labels)).sort((a, b) => a.localeCompare(b, "pt-BR"));
+    }, [data, entityFilterLabel]);
 
     const loadMessages = async (sessionId: string) => {
         setIsTyping(true);
@@ -344,11 +371,33 @@ export default function ChartAnalysisView({ id, title, description: propDescript
 
                 {/* Date Filter */}
                 <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 bg-neutral-50 p-1.5 rounded-xl border border-neutral-200">
+                    <div className="flex flex-wrap items-center gap-2 bg-neutral-50 p-1.5 rounded-xl border border-neutral-200">
                         <Calendar className="w-4 h-4 text-neutral-400 ml-2" />
                         <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="text-xs font-bold outline-none w-28 text-neutral-700 bg-transparent" />
                         <span className="text-neutral-300">/</span>
                         <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="text-xs font-bold outline-none w-28 text-neutral-700 bg-transparent" />
+
+                        {entityFilterLabel && renderChart && entityOptions.length > 0 && (
+                            <>
+                                <span className="hidden sm:inline text-neutral-300 mx-1">|</span>
+                                <div className="flex items-center gap-2 pl-1 pr-2">
+                                    <span className="text-[10px] font-black uppercase tracking-wider text-neutral-500">{entityFilterLabel}</span>
+                                    <select
+                                        value={entityValue || ""}
+                                        onChange={(e) => setEntityValue(e.target.value ? e.target.value : null)}
+                                        className="h-8 max-w-[220px] rounded-lg border border-neutral-200 bg-white px-2 text-xs font-bold text-neutral-700 outline-none"
+                                    >
+                                        <option value="">Todas</option>
+                                        {entityOptions.map((label) => (
+                                            <option key={label} value={label}>
+                                                {label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </>
+                        )}
+
                         <button 
                             onClick={handleDateFilter} 
                             disabled={isReloading}
@@ -400,7 +449,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
 
                         {/* Chart Render Section */}
                         <div className="flex-1 w-full p-4 lg:p-6 relative min-h-0">
-                            {chartComponent}
+                            {renderChart ? renderChart({ entityValue }) : chartComponent}
                         </div>
                     </div>
                 </div>

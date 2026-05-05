@@ -15,6 +15,7 @@ import AiAnalysisPanel from "@/components/finance/AiAnalysisPanel";
 import BrazilUfMapChart from "@/components/finance/BrazilUfMapChart";
 import CashProjectionChart from "@/components/finance/CashProjectionChart";
 import ChartAnalysisView from "@/components/finance/ChartAnalysisView";
+import ChartDetailsModal from "@/components/finance/ChartDetailsModal";
 import DailyBalanceChart from "@/components/finance/DailyBalanceChart";
 import DashboardSection from "@/components/finance/DashboardSection";
 import DashboardWidget from "@/components/finance/DashboardWidget";
@@ -27,8 +28,10 @@ import MonthlyFlowChart from "@/components/finance/MonthlyFlowChart";
 import SectionChartGrid from "@/components/finance/SectionChartGrid";
 import TopAccountsList from "@/components/finance/TopAccountsList";
 import { dashboardThemes, DashboardThemeKey } from "@/components/finance/dashboardThemes";
+import { getChartDetail } from "@/lib/chartDetails";
+import { adminService } from "@/services/admin.service";
 
-import { AlertCircle, Calendar } from "lucide-react";
+import { AlertCircle, BookOpenText, Calendar } from "lucide-react";
 
 interface WidgetConfig {
     id: string;
@@ -222,6 +225,8 @@ export default function FinanceAnalyticsDashboard() {
     const [error, setError] = useState<string | null>(null);
     const [mounted, setMounted] = useState(false);
     const [analysisChartId, setAnalysisChartId] = useState<string | null>(null);
+    const [isChartDetailsOpen, setIsChartDetailsOpen] = useState(false);
+    const [isChartDetailsEnabled, setIsChartDetailsEnabled] = useState(false);
     const [activeScope, setActiveScope] = useState<DashboardScope>("all");
     const [activeTab, setActiveTab] = useState<DashboardTabKey>("overview");
     const [widgets, setWidgets] = useState<WidgetConfig[]>(DEFAULT_WIDGETS);
@@ -234,6 +239,8 @@ export default function FinanceAnalyticsDashboard() {
     const [endDate, setEndDate] = useState<string>(() => new Date().toISOString().split("T")[0]);
 
     const userId = session?.user?.id || "default";
+    const userRole = (session?.user as any)?.role || "";
+    const canManageChartDetails = userRole === "TENANT_ADMIN";
 
     const fetchData = async (start?: string, end?: string) => {
         setIsLoading(true);
@@ -265,6 +272,7 @@ export default function FinanceAnalyticsDashboard() {
         const user = session.user as any;
         const currentUserId = user.id || "default";
         const isAdmin = user.role === "TENANT_ADMIN" || user.role === "SUPER_ADMIN" || user.role === "ADMIN";
+        const isTenantAdmin = user.role === "TENANT_ADMIN";
         const hasAnyAccess =
             isAdmin ||
             user.hasPayableDashboardAccess ||
@@ -284,6 +292,7 @@ export default function FinanceAnalyticsDashboard() {
         });
 
         setWidgets(availableWidgets);
+        setIsChartDetailsEnabled(Boolean(user.showChartDetails) && isTenantAdmin);
 
         const savedScope = localStorage.getItem(`finance_v5_dashboard_scope_${currentUserId}`);
         if (savedScope && DASHBOARD_SCOPES.some((scope) => scope.key === savedScope)) {
@@ -296,6 +305,17 @@ export default function FinanceAnalyticsDashboard() {
         }
 
         fetchData(startDate, endDate);
+
+        if (isTenantAdmin) {
+            adminService
+                .getSettings()
+                .then((settings) => {
+                    setIsChartDetailsEnabled(Boolean(settings?.showChartDetails));
+                })
+                .catch((error) => {
+                    console.error("Erro ao carregar flag de detalhes dos graficos:", error);
+                });
+        }
     }, [session]);
 
     const availableWidgetIds = useMemo(() => new Set(widgets.map((widget) => widget.id)), [widgets]);
@@ -341,6 +361,9 @@ export default function FinanceAnalyticsDashboard() {
     }, [activeTab, userId, visibleTabs]);
 
     const handleFilter = () => fetchData(startDate, endDate);
+    const chartDetailsTitle = activeTab === "overview"
+        ? "Detalhamento dos graficos visiveis"
+        : `Detalhamento da visao ${DASHBOARD_TABS.find((tab) => tab.key === activeTab)?.label || "selecionada"}`;
 
     const getWidgetData = (id: string) => {
         if (!advanced) {
@@ -658,6 +681,29 @@ export default function FinanceAnalyticsDashboard() {
         );
     };
 
+    const chartDetailsEntries = (() => {
+        const activeTabConfig = DASHBOARD_TABS.find((tab) => tab.key === activeTab);
+
+        return DASHBOARD_GROUPS.flatMap((group) => {
+            if (activeTabConfig && !activeTabConfig.groupNumbers.includes(group.number)) {
+                return [];
+            }
+
+            return group.widgetIds
+                .filter(isWidgetVisible)
+                .map((id) => {
+                    const info = getWidgetInfo(id);
+                    return {
+                        id,
+                        title: info.title,
+                        groupTitle: group.title,
+                        description: info.description,
+                        detail: getChartDetail(id, info.title, info.description),
+                    };
+                });
+        });
+    })();
+
     if (!mounted) return null;
 
     return (
@@ -689,6 +735,16 @@ export default function FinanceAnalyticsDashboard() {
                             <button onClick={handleFilter} className="rounded-lg bg-neutral-900 px-5 py-1.5 text-xs font-black uppercase text-white transition-colors hover:bg-black">
                                 Atualizar
                             </button>
+                            {canManageChartDetails && isChartDetailsEnabled && (
+                                <button
+                                    type="button"
+                                    onClick={() => setIsChartDetailsOpen(true)}
+                                    className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-1.5 text-xs font-black uppercase text-blue-700 transition-colors hover:bg-blue-100"
+                                >
+                                    <BookOpenText className="h-4 w-4" />
+                                    Detalhes dos graficos
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -772,6 +828,15 @@ export default function FinanceAnalyticsDashboard() {
 
                 </div>
             </div>
+
+            {canManageChartDetails && isChartDetailsEnabled && (
+                <ChartDetailsModal
+                    isOpen={isChartDetailsOpen}
+                    title={chartDetailsTitle}
+                    entries={chartDetailsEntries}
+                    onClose={() => setIsChartDetailsOpen(false)}
+                />
+            )}
 
             {analysisChartId && (
                 <ChartAnalysisView

@@ -44,6 +44,7 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
     const [dbType, setDbType] = useState(tenant.dbType || "SQL Server");
     const [dbUser, setDbUser] = useState(tenant.dbUser || "");
     const [dbPassword, setDbPassword] = useState(tenant.dbPassword || "");
+    const [showChartDetails, setShowChartDetails] = useState(Boolean(tenant.showChartDetails));
     const [showDbPassword, setShowDbPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [msg, setMsg] = useState({ text: "", type: "success" });
@@ -93,6 +94,7 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
                 dbType,
                 dbUser,
                 dbPassword,
+                showChartDetails,
             });
             setMsg({ text: "Configuracoes atualizadas com sucesso!", type: "success" });
             router.refresh();
@@ -307,6 +309,39 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
                                     {showDbPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                    <div className="rounded-2xl border border-neutral-800 bg-neutral-950/60 p-5">
+                        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                            <div className="space-y-1">
+                                <p className="text-xs font-black uppercase tracking-widest text-neutral-500">Flag de visualizacao</p>
+                                <h4 className="text-sm font-bold text-white">Exibir detalhes dos graficos</h4>
+                                <p className="text-sm text-neutral-400">
+                                    Libera, somente para usuarios com perfil <span className="font-bold text-white">TENANT_ADMIN</span>, o painel explicando calculo, origem e leitura dos graficos.
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setShowChartDetails((current) => !current)}
+                                className={`inline-flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-bold transition-all ${
+                                    showChartDetails
+                                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                                        : "border-neutral-800 bg-neutral-900 text-neutral-400 hover:text-white"
+                                }`}
+                            >
+                                <span
+                                    className={`relative h-6 w-11 rounded-full transition-colors ${
+                                        showChartDetails ? "bg-emerald-500" : "bg-neutral-700"
+                                    }`}
+                                >
+                                    <span
+                                        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
+                                            showChartDetails ? "translate-x-5" : "translate-x-0.5"
+                                        }`}
+                                    />
+                                </span>
+                                {showChartDetails ? "Habilitado" : "Desabilitado"}
+                            </button>
                         </div>
                     </div>
                 </div>

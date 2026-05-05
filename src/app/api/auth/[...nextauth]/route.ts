@@ -54,12 +54,13 @@ export const authOptions: NextAuthOptions = {
                             role: user.role,
                             hasPayableChatAccess: user.hasPayableChatAccess,
                             hasPayableDashboardAccess: user.hasPayableDashboardAccess,
-                            hasReceivableChatAccess: user.hasReceivableChatAccess,
-                            hasReceivableDashboardAccess: user.hasReceivableDashboardAccess,
-                            hasBankingChatAccess: user.hasBankingChatAccess,
-                            hasBankingDashboardAccess: user.hasBankingDashboardAccess,
-                            accessToken: user.token,
-                        };
+                             hasReceivableChatAccess: user.hasReceivableChatAccess,
+                             hasReceivableDashboardAccess: user.hasReceivableDashboardAccess,
+                             hasBankingChatAccess: user.hasBankingChatAccess,
+                             hasBankingDashboardAccess: user.hasBankingDashboardAccess,
+                             showChartDetails: user.showChartDetails,
+                             accessToken: user.token,
+                         };
                     }
                     return null;
                 } catch (error: any) {
@@ -80,11 +81,12 @@ export const authOptions: NextAuthOptions = {
                 (session.user as any).hasPayableChatAccess = token.hasPayableChatAccess;
                 (session.user as any).hasPayableDashboardAccess = token.hasPayableDashboardAccess;
                 (session.user as any).hasReceivableChatAccess = token.hasReceivableChatAccess;
-                (session.user as any).hasReceivableDashboardAccess = token.hasReceivableDashboardAccess;
-                (session.user as any).hasBankingChatAccess = token.hasBankingChatAccess;
-                (session.user as any).hasBankingDashboardAccess = token.hasBankingDashboardAccess;
-                (session.user as any).currentSessionId = token.currentSessionId;
-                (session.user as any).accessToken = token.accessToken;
+                 (session.user as any).hasReceivableDashboardAccess = token.hasReceivableDashboardAccess;
+                 (session.user as any).hasBankingChatAccess = token.hasBankingChatAccess;
+                 (session.user as any).hasBankingDashboardAccess = token.hasBankingDashboardAccess;
+                 (session.user as any).showChartDetails = token.showChartDetails;
+                 (session.user as any).currentSessionId = token.currentSessionId;
+                 (session.user as any).accessToken = token.accessToken;
                 console.log("NextAuth Session Callback - accessToken payload:", (token.accessToken as string) ? (token.accessToken as string).substring(0, 30) + "..." : "missing");
             }
             return session;
@@ -98,11 +100,12 @@ export const authOptions: NextAuthOptions = {
                 token.hasPayableChatAccess = (user as any).hasPayableChatAccess;
                 token.hasPayableDashboardAccess = (user as any).hasPayableDashboardAccess;
                 token.hasReceivableChatAccess = (user as any).hasReceivableChatAccess;
-                token.hasReceivableDashboardAccess = (user as any).hasReceivableDashboardAccess;
-                token.hasBankingChatAccess = (user as any).hasBankingChatAccess;
-                token.hasBankingDashboardAccess = (user as any).hasBankingDashboardAccess;
-                token.currentSessionId = (user as any).currentSessionId;
-                token.accessToken = (user as any).accessToken;
+                 token.hasReceivableDashboardAccess = (user as any).hasReceivableDashboardAccess;
+                 token.hasBankingChatAccess = (user as any).hasBankingChatAccess;
+                 token.hasBankingDashboardAccess = (user as any).hasBankingDashboardAccess;
+                 token.showChartDetails = (user as any).showChartDetails;
+                 token.currentSessionId = (user as any).currentSessionId;
+                 token.accessToken = (user as any).accessToken;
             }
             return token;
         }

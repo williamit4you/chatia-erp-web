@@ -8,6 +8,7 @@ import { getChartHint } from "@/lib/chartHints";
 import { toast } from "sonner";
 import { getDisplayContextUsage } from "@/lib/contextUtils";
 import MarkdownLite from "@/components/chat/MarkdownLite";
+import MiaAvatar from "@/components/chat/MiaAvatar";
 
 type ChartRenderFilters = {
     entityValue: string | null;
@@ -533,6 +534,58 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                             </div>
                         ) : (
                             <>
+                                <div className="space-y-2">
+                                    <section className="rounded-[28px] border border-neutral-200 bg-white p-3 shadow-[0_20px_60px_-45px_rgba(15,23,42,0.35)]">
+                                        <div className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
+                                            <MiaAvatar
+                                                size={32}
+                                                className="rounded-xl border-indigo-100 ring-1 ring-indigo-50"
+                                                imageClassName="scale-[1.15]"
+                                                alt="Avatar da MIA"
+                                            />
+                                            Sugestões para você
+                                        </div>
+                                        <div className="mt-2 space-y-1">
+                                            {hint.suggestedQuestions.length === 0 ? (
+                                                <div className="rounded-2xl bg-neutral-50 px-4 py-3 text-sm text-neutral-500">
+                                                    As sugestões aparecerão aqui depois da primeira resposta da IA.
+                                                </div>
+                                            ) : (
+                                                hint.suggestedQuestions.slice(0, 5).map((question) => (
+                                                    <button
+                                                        key={question}
+                                                        type="button"
+                                                        onClick={() => handleSend(undefined, question)}
+                                                        disabled={isTyping}
+                                                        title={question}
+                                                        className="w-full rounded-2xl border border-neutral-200 bg-white px-3.5 py-2 text-left text-neutral-700 transition hover:border-indigo-200 hover:bg-indigo-50/40 hover:text-neutral-900 disabled:opacity-60"
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
+                                                                <Sparkles className="h-3.5 w-3.5" />
+                                                            </span>
+                                                            <span className="min-w-0 flex-1 truncate text-[13px] leading-5 font-normal">{question}</span>
+                                                            <span className="text-neutral-400 text-sm">›</span>
+                                                        </div>
+                                                    </button>
+                                                ))
+                                            )}
+                                        </div>
+                                    </section>
+
+                                    <section className="rounded-[28px] border border-neutral-200 bg-white p-3 shadow-[0_20px_60px_-45px_rgba(15,23,42,0.35)]">
+                                        <div className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
+                                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                                                <Sparkles className="h-3.5 w-3.5" />
+                                            </span>
+                                            Insights relacionados
+                                        </div>
+                                        <div className="mt-2 rounded-2xl bg-neutral-50 px-4 py-3 text-sm text-neutral-500">
+                                            Os insights relacionados aparecerão junto com a resposta contextual da IA.
+                                        </div>
+                                    </section>
+                                </div>
+
                                 {messages.map((msg) => (
                                     <div key={msg.id} className={`flex gap-4 max-w-[90%] ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}>
                                         <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-1 shadow-sm ${
@@ -577,24 +630,6 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                     {/* Chat Input & Suggested Questions */}
                     {viewMode === "chat" && (
                         <div className="p-4 border-t border-neutral-100 bg-neutral-50 space-y-4">
-                            {!hasAsked && hint.suggestedQuestions.length > 0 && (
-                                <div className="space-y-2">
-                                    <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest px-1">Perguntas Sugeridas</span>
-                                    <div className="flex flex-wrap gap-2">
-                                        {hint.suggestedQuestions.map((q, idx) => (
-                                            <button
-                                                key={idx}
-                                                onClick={() => handleSend(undefined, q)}
-                                                disabled={isTyping}
-                                                className="text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-xl hover:bg-indigo-600 hover:text-white transition-all text-left disabled:opacity-50"
-                                            >
-                                                {q}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                            
                             <form onSubmit={handleSend} className="relative">
                                 <input
                                     type="text"

@@ -2,7 +2,7 @@
 
 import { ReactNode, useMemo, useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { Bot, User, X, Send, Loader2, ArrowLeft, Info, MessageSquare, Sparkles, Calendar, Database, ChevronDown, ChevronUp, RefreshCw, PlusCircle, History, Trash2, BookOpenText, Maximize2, Minimize2 } from "lucide-react";
+import { Bot, User, X, Send, Loader2, ArrowLeft, Info, MessageSquare, Sparkles, Calendar, Database, ChevronDown, ChevronUp, RefreshCw, PlusCircle, History, Trash2, BookOpenText, Maximize2, Minimize2, Download, ListTree } from "lucide-react";
 import financeAnalyticsService from "@/services/finance-analytics.service";
 import { getChartHint } from "@/lib/chartHints";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ import MiaAvatar from "@/components/chat/MiaAvatar";
 import ChartDetailsModal from "@/components/finance/ChartDetailsModal";
 import { getChartDetail } from "@/lib/chartDetails";
 import { adminService } from "@/services/admin.service";
+import { downloadCsv } from "@/lib/csvExport";
 
 type ChartRenderFilters = {
     entityValue: string | null;
@@ -49,6 +50,17 @@ const getEntityFilterLabel = (chartId: string) => {
     if (["dist_pag_fornecedor", "pm_pag_for", "tm_pag_for", "docs_for"].includes(chartId)) return "Fornecedor";
     return null;
 };
+
+const CHARTS_WITH_DRILLDOWN_MVP = new Set<string>([
+    "dist_pag_fornecedor",
+    "dist_rec_cliente",
+    "dist_tipo_pag",
+    "dist_cond_pag",
+    "aging",
+    "dist_faixa_prazo",
+    "geo_pagar",
+    "geo_receber",
+]);
 
 function SqlViewer({ sqlQueries }: { sqlQueries: string }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -152,6 +164,43 @@ export default function ChartAnalysisView({ id, title, description: propDescript
         groupTitle: "Análise do gráfico",
         description,
         detail: getChartDetail(id, title, description),
+    };
+
+    const getExportRows = () => {
+        const source = localData || data;
+        if (!Array.isArray(source)) return null;
+
+        const filtered =
+            entityFilterLabel && entityValue
+                ? source.filter((item: any) => (typeof item?.label === "string" ? item.label.trim() : "") === entityValue)
+                : source;
+
+        const rows = filtered
+            .filter((row) => row && typeof row === "object" && !Array.isArray(row))
+            .map((row) => row as Record<string, unknown>);
+
+        return rows.length ? rows : null;
+    };
+
+    const handleExportCsv = () => {
+        const rows = getExportRows();
+        if (!rows) {
+            toast.error("NÃ£o foi possÃ­vel exportar: este grÃ¡fico nÃ£o possui dados tabulares para CSV.");
+            return;
+        }
+
+        const safe = (value: string) =>
+            value
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/[^a-zA-Z0-9-_]+/g, "_")
+                .replace(/_+/g, "_")
+                .replace(/^_+|_+$/g, "")
+                .toLowerCase();
+
+        const suffix = entityValue ? `-${safe(entityValue)}` : "";
+        const filename = `finance-${safe(id)}${suffix}-${startDate}_${endDate}.csv`;
+        downloadCsv(rows, { filename, separator: ";" });
     };
 
     const loadMessages = async (sessionId: string) => {
@@ -505,6 +554,30 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                             >
                                 <BookOpenText className="w-3.5 h-3.5" />
                                 Detalhes do gráfico
+                            </button>
+                        )}
+                        <button
+                            type="button"
+                            onClick={handleExportCsv}
+                            className="bg-white text-neutral-800 px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider border border-neutral-200 hover:bg-neutral-50 transition-colors flex items-center gap-1.5"
+                            title="Exportar dados do grÃ¡fico em CSV"
+                        >
+                            <Download className="w-3.5 h-3.5" />
+                            Exportar CSV
+                        </button>
+                        {CHARTS_WITH_DRILLDOWN_MVP.has(id) && (
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    toast.message("Drill-down em desenvolvimento", {
+                                        description: "O modal de detalhamento serÃ¡ habilitado apÃ³s a API de drill-down ficar pronta.",
+                                    })
+                                }
+                                className="bg-white text-neutral-800 px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider border border-neutral-200 hover:bg-neutral-50 transition-colors flex items-center gap-1.5"
+                                title="Detalhar (drill-down)"
+                            >
+                                <ListTree className="w-3.5 h-3.5" />
+                                Drill-down
                             </button>
                         )}
                     </div>

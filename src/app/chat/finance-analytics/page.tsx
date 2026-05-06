@@ -732,7 +732,41 @@ export default function FinanceAnalyticsDashboard() {
             ? "Detalhamento dos gráficos visíveis"
             : `Detalhamento da visão ${DASHBOARD_TABS.find((tab) => tab.key === activeTab)?.label || "selecionada"}`;
 
-    if (!mounted) return null;
+    if (!mounted) {
+        return (
+            <div className="flex-1 overflow-auto bg-neutral-50/70 scroll-smooth">
+                <div className="mx-auto max-w-[1700px] p-4 sm:p-6 lg:p-8">
+                    <div className="mb-8 flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+                        <div>
+                            <div className="mb-2 h-8 w-72 rounded bg-neutral-200/70"></div>
+                            <div className="h-4 w-[420px] max-w-full rounded bg-neutral-200/50"></div>
+                        </div>
+                        <div className="h-11 w-[520px] max-w-full rounded-xl border border-neutral-200 bg-white"></div>
+                    </div>
+
+                    <div className="space-y-6">
+                        {[1, 2, 3].map((i) => (
+                            <div key={i} className="rounded-3xl border border-neutral-200 bg-white p-6">
+                                <div className="mb-4 h-5 w-64 rounded bg-neutral-200/60"></div>
+                                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                    {[1, 2, 3].map((j) => (
+                                        <div key={j} className="h-[360px] overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
+                                            <div className="h-10 border-b border-neutral-50 px-4 py-2">
+                                                <div className="h-4 w-40 rounded bg-neutral-200/60"></div>
+                                            </div>
+                                            <div className="p-4">
+                                                <div className="h-[300px] w-full rounded-xl bg-neutral-50"></div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex-1 overflow-auto bg-neutral-50/70 scroll-smooth">

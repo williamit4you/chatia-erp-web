@@ -14,7 +14,7 @@ export default function AiAnalysisPanel({ data, isLoading }: AiAnalysisPanelProp
     const [isChatOpen, setIsChatOpen] = useState(false);
     if (isLoading) {
         return (
-            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-100 shadow-sm p-6 animate-pulse">
+            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-100 shadow-sm p-6">
                 <div className="flex items-center gap-3 mb-4">
                     <div className="w-8 h-8 rounded-full bg-indigo-200"></div>
                     <div className="h-6 w-1/3 bg-indigo-200 rounded"></div>

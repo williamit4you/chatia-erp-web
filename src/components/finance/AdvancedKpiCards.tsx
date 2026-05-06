@@ -13,7 +13,7 @@ export default function AdvancedKpiCards({ data, isLoading }: AdvancedKpiCardsPr
         return (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="bg-white p-4 rounded-xl border border-neutral-100 shadow-sm animate-pulse h-24"></div>
+                    <div key={i} className="bg-white p-4 rounded-xl border border-neutral-100 shadow-sm h-24"></div>
                 ))}
             </div>
         );

@@ -21,7 +21,7 @@ interface DailyBalanceChartProps {
 
 export default function DailyBalanceChart({ data, isLoading, title, color = "#6366f1" }: DailyBalanceChartProps) {
     if (isLoading) {
-        return <div className="w-full h-[300px] bg-neutral-50 animate-pulse rounded-xl" />;
+        return <div className="w-full h-[300px] bg-neutral-50 rounded-xl" />;
     }
 
     if (!data || data.length === 0) {

@@ -13,7 +13,7 @@ export default function TopDebtorsList({ data, isLoading }: TopDebtorsListProps)
 
     if (isLoading) {
         return (
-            <div className="bg-white rounded-xl border border-neutral-200 shadow-sm p-5 animate-pulse min-h-[300px]">
+            <div className="bg-white rounded-xl border border-neutral-200 shadow-sm p-5 min-h-[300px]">
                 <div className="h-6 w-1/3 bg-neutral-200 rounded mb-4"></div>
                 <div className="space-y-3">
                     {[1, 2, 3, 4, 5].map((i) => (

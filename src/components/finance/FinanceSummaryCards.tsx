@@ -15,7 +15,7 @@ export default function FinanceSummaryCards({ data, isLoading }: FinanceSummaryC
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
                 {[1, 2, 3, 4, 5].map((i) => (
-                    <div key={i} className="bg-white p-4 rounded-xl border border-neutral-100 shadow-sm animate-pulse h-28"></div>
+                    <div key={i} className="bg-white p-4 rounded-xl border border-neutral-100 shadow-sm h-28"></div>
                 ))}
             </div>
         );

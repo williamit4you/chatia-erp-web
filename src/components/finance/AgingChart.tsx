@@ -10,7 +10,7 @@ interface AgingChartProps {
 
 export default function AgingChart({ data, isLoading }: AgingChartProps) {
     if (isLoading) {
-        return <div className="h-[300px] w-full bg-neutral-50 animate-pulse rounded-xl"></div>;
+        return <div className="h-[300px] w-full bg-neutral-50 rounded-xl"></div>;
     }
 
     const COLORS = ['#10b981', '#f59e0b', '#f97316', '#ef4444', '#7f1d1d'];

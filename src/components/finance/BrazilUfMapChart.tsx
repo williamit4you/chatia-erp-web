@@ -175,7 +175,7 @@ export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a" }:
     }, [geoData]);
 
     if (isLoading) {
-        return <div className="h-[300px] w-full animate-pulse rounded-xl bg-neutral-50" />;
+        return <div className="h-[300px] w-full rounded-xl bg-neutral-50" />;
     }
 
     const values = Array.from(valuesByUf.values());

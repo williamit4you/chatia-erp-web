@@ -13,7 +13,7 @@ interface DistributionPieChartProps {
 
 export default function DistributionPieChart({ data, isLoading, title, colors, maxItems = 6 }: DistributionPieChartProps) {
     if (isLoading) {
-        return <div className="h-[300px] w-full animate-pulse rounded-xl bg-neutral-50" />;
+        return <div className="h-[300px] w-full rounded-xl bg-neutral-50" />;
     }
 
     const COLORS = colors || ["#2563eb", "#16a34a", "#f59e0b", "#f97316", "#8b5cf6", "#06b6d4", "#64748b"];
@@ -91,4 +91,3 @@ export default function DistributionPieChart({ data, isLoading, title, colors, m
         </div>
     );
 }
-

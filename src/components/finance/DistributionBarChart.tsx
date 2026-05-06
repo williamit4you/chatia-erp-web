@@ -31,7 +31,7 @@ export default function DistributionBarChart({
     showZeroLine = false,
 }: DistributionBarChartProps) {
     if (isLoading) {
-        return <div className="h-[300px] w-full animate-pulse rounded-xl bg-neutral-50" />;
+        return <div className="h-[300px] w-full rounded-xl bg-neutral-50" />;
     }
 
     if (!data || data.length === 0) {

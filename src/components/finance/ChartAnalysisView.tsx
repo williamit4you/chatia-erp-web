@@ -2,7 +2,7 @@
 
 import { ReactNode, useMemo, useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { Bot, User, X, Send, Loader2, ArrowLeft, Info, MessageSquare, Sparkles, Calendar, Database, ChevronDown, ChevronUp, RefreshCw, PlusCircle, History, Trash2, BookOpenText } from "lucide-react";
+import { Bot, User, X, Send, Loader2, ArrowLeft, Info, MessageSquare, Sparkles, Calendar, Database, ChevronDown, ChevronUp, RefreshCw, PlusCircle, History, Trash2, BookOpenText, Maximize2, Minimize2 } from "lucide-react";
 import financeAnalyticsService from "@/services/finance-analytics.service";
 import { getChartHint } from "@/lib/chartHints";
 import { toast } from "sonner";
@@ -102,6 +102,11 @@ export default function ChartAnalysisView({ id, title, description: propDescript
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
     const [isChartDetailsEnabled, setIsChartDetailsEnabled] = useState(false);
     const [isChartDetailsOpen, setIsChartDetailsOpen] = useState(false);
+    const [isChatWide, setIsChatWide] = useState(false);
+    const [chatWidthPx, setChatWidthPx] = useState<number>(460);
+    const [isResizingChat, setIsResizingChat] = useState(false);
+    const [isDesktop, setIsDesktop] = useState(false);
+    const resizeStartRef = useRef<{ startX: number; startWidth: number } | null>(null);
 
     // Date filter state
     const [startDate, setStartDate] = useState<string>(initialStartDate || (() => {
@@ -269,6 +274,57 @@ export default function ChartAnalysisView({ id, title, description: propDescript
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
     }, [messages, isTyping, viewMode]);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        const mq = window.matchMedia("(min-width: 1024px)");
+        const apply = () => setIsDesktop(mq.matches);
+        apply();
+        mq.addEventListener?.("change", apply);
+        return () => mq.removeEventListener?.("change", apply);
+    }, []);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        const saved = window.localStorage.getItem(`finance_chart_chat_width_${id}`);
+        const parsed = saved ? Number(saved) : NaN;
+        if (Number.isFinite(parsed) && parsed >= 360 && parsed <= 960) {
+            setChatWidthPx(parsed);
+        } else {
+            setChatWidthPx(460);
+        }
+    }, [id]);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        window.localStorage.setItem(`finance_chart_chat_width_${id}`, String(chatWidthPx));
+    }, [chatWidthPx, id]);
+
+    useEffect(() => {
+        if (!isResizingChat) return;
+
+        const onMove = (event: PointerEvent) => {
+            const start = resizeStartRef.current;
+            if (!start) return;
+            // Dragging left increases width; dragging right decreases width.
+            const delta = start.startX - event.clientX;
+            const next = Math.min(960, Math.max(360, Math.round(start.startWidth + delta)));
+            setChatWidthPx(next);
+        };
+
+        const onUp = () => {
+            setIsResizingChat(false);
+            resizeStartRef.current = null;
+        };
+
+        window.addEventListener("pointermove", onMove);
+        window.addEventListener("pointerup", onUp, { once: true });
+
+        return () => {
+            window.removeEventListener("pointermove", onMove);
+            window.removeEventListener("pointerup", onUp);
+        };
+    }, [isResizingChat]);
 
     const handleDateFilter = async () => {
         setIsReloading(true);
@@ -511,7 +567,23 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                 </div>
 
                 {/* AI Chat Area */}
-                <div className="w-full lg:w-[460px] bg-white flex flex-col shrink-0 shadow-[-10px_0_30px_-15px_rgba(0,0,0,0.05)] relative">
+                <div
+                    className="w-full bg-white flex flex-col shrink-0 shadow-[-10px_0_30px_-15px_rgba(0,0,0,0.05)] relative"
+                    style={isDesktop ? { width: chatWidthPx } : undefined}
+                >
+                    {/* Resize handle (desktop only) */}
+                    <div
+                        className="hidden lg:flex absolute left-0 top-0 h-full w-3 items-center justify-center cursor-col-resize"
+                        onPointerDown={(event) => {
+                            const el = event.currentTarget as HTMLDivElement;
+                            el.setPointerCapture(event.pointerId);
+                            resizeStartRef.current = { startX: event.clientX, startWidth: chatWidthPx };
+                            setIsResizingChat(true);
+                        }}
+                        title="Arraste para ajustar a largura"
+                    >
+                        <div className={`h-full w-px ${isResizingChat ? "bg-indigo-300" : "bg-neutral-200"} opacity-80`} />
+                    </div>
                     <div className="px-6 py-4 border-b border-neutral-100 flex flex-col gap-2">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
@@ -520,9 +592,26 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                                     {viewMode === "history" ? "Histórico de Análises" : "Conversa com Especialista"}
                                 </span>
                             </div>
-                            {isTyping && (
-                                <span className="text-[10px] font-black text-indigo-500 uppercase animate-pulse">Analisando...</span>
-                            )}
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsChatWide((v) => {
+                                            const next = !v;
+                                            setChatWidthPx(next ? 640 : 460);
+                                            return next;
+                                        });
+                                    }}
+                                    className="hidden lg:inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[10px] font-black uppercase tracking-wider text-neutral-600 hover:bg-neutral-50"
+                                    title={isChatWide ? "Reduzir área do chat" : "Ampliar área do chat"}
+                                >
+                                    {isChatWide ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+                                    {isChatWide ? "Reduzir" : "Ampliar"}
+                                </button>
+                                {isTyping && (
+                                    <span className="text-[10px] font-black text-indigo-500 uppercase animate-pulse">Analisando...</span>
+                                )}
+                            </div>
                         </div>
                         
                         {/* Context Progress Meter */}
@@ -641,7 +730,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                                 </div>
 
                                 {messages.map((msg) => (
-                                    <div key={msg.id} className={`flex gap-4 max-w-[90%] ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}>
+                                    <div key={msg.id} className={`flex gap-4 max-w-full ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}>
                                         <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-1 shadow-sm ${
                                             msg.role === 'user' ? 'bg-neutral-900 text-white' : 'bg-indigo-600 text-white'
                                         }`}>

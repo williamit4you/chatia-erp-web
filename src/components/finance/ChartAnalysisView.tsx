@@ -467,6 +467,8 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                     title={title}
                     entries={[chartDetailsEntry]}
                     onClose={() => setIsChartDetailsOpen(false)}
+                    startDate={startDate}
+                    endDate={endDate}
                 />
             )}
 

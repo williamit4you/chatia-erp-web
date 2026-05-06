@@ -121,6 +121,16 @@ export interface TopAccount {
     valor: number;
 }
 
+export interface ChartQueryDetailsItem {
+    chartId: string;
+    sqlQueries: string[];
+    rules: string[];
+}
+
+export interface ChartQueryDetailsResponse {
+    items: ChartQueryDetailsItem[];
+}
+
 export interface AdvancedDashboard {
     aging: Aging[];
     geografico: Geographic[];
@@ -192,6 +202,15 @@ export const financeAnalyticsService = {
 
     getAdvancedAnalytics: async (startDate?: string, endDate?: string): Promise<AdvancedDashboard> => {
         const response = await apiClient.get(`/api/finance-analytics/advanced-analytics${buildQueryParams(startDate, endDate)}`);
+        return response.data;
+    },
+
+    getChartQueryDetails: async (params: { chartIds: string[]; startDate?: string; endDate?: string }): Promise<ChartQueryDetailsResponse> => {
+        const response = await apiClient.post("/api/finance-analytics/chart-query-details", {
+            chartIds: params.chartIds,
+            startDate: params.startDate ? new Date(params.startDate).toISOString() : null,
+            endDate: params.endDate ? new Date(params.endDate).toISOString() : null,
+        });
         return response.data;
     },
 

@@ -868,6 +868,8 @@ export default function FinanceAnalyticsDashboard() {
                     title={chartDetailsModalState?.title || "Detalhes do grafico"}
                     entries={chartDetailsModalState?.entries || []}
                     onClose={() => setChartDetailsModalState(null)}
+                    startDate={startDate}
+                    endDate={endDate}
                 />
             )}
 

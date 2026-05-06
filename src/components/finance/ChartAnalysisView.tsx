@@ -62,6 +62,8 @@ const CHARTS_WITH_DRILLDOWN_MVP = new Set<string>([
     "dist_faixa_prazo",
     "geo_pagar",
     "geo_receber",
+    "top_pag",
+    "top_rec",
 ]);
 
 function SqlViewer({ sqlQueries }: { sqlQueries: string }) {
@@ -123,6 +125,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
     const [isResizingChat, setIsResizingChat] = useState(false);
     const [isDesktop, setIsDesktop] = useState(false);
     const resizeStartRef = useRef<{ startX: number; startWidth: number } | null>(null);
+    const didLoadSettingsRef = useRef(false);
 
     // Date filter state
     const [startDate, setStartDate] = useState<string>(initialStartDate || (() => {
@@ -246,7 +249,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
         const uniq = (arr: string[]) => Array.from(new Set(arr.filter(Boolean)));
 
         // Category-based charts
-        if (["dist_pag_fornecedor", "dist_rec_cliente", "dist_tipo_pag", "dist_cond_pag"].includes(id)) {
+        if (["dist_pag_fornecedor", "dist_rec_cliente", "dist_tipo_pag", "dist_cond_pag", "top_pag", "top_rec"].includes(id)) {
             const options = uniq(source.map((r: any) => asString(r?.label))).sort((a, b) => a.localeCompare(b, "pt-BR"));
             return { kind: "category" as const, options: options.map((o) => ({ label: o, value: o })) };
         }
@@ -394,6 +397,9 @@ export default function ChartAnalysisView({ id, title, description: propDescript
         const sessionValue = Boolean((session?.user as any)?.showChartDetails);
         setIsChartDetailsEnabled(sessionValue);
 
+        if (didLoadSettingsRef.current) return;
+        didLoadSettingsRef.current = true;
+
         adminService
             .getSettings()
             .then((settings) => {
@@ -402,7 +408,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
             .catch((error) => {
                 console.error("Erro ao carregar flag de detalhes do gráfico:", error);
             });
-    }, [canManageChartDetails, session]);
+    }, [canManageChartDetails, (session?.user as any)?.showChartDetails]);
 
     useEffect(() => {
         if (scrollRef.current && viewMode === "chat") {
@@ -690,6 +696,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                 <ChartDrilldownModal
                     isOpen={isDrilldownOpen}
                     chartId={id}
+                    apiChartId={id === "top_pag" ? "dist_pag_fornecedor" : id === "top_rec" ? "dist_rec_cliente" : undefined}
                     title={title}
                     startDate={startDate}
                     endDate={endDate}

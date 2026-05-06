@@ -13,6 +13,7 @@ type DrilldownOption = {
 type ChartDrilldownModalProps = {
     isOpen: boolean;
     chartId: string;
+    apiChartId?: string;
     title: string;
     startDate: string;
     endDate: string;
@@ -47,6 +48,7 @@ const formatCell = (value: any, kind?: string) => {
 export default function ChartDrilldownModal({
     isOpen,
     chartId,
+    apiChartId,
     title,
     startDate,
     endDate,
@@ -122,7 +124,7 @@ export default function ChartDrilldownModal({
         setIsLoading(true);
         try {
             const res = await financeAnalyticsService.getChartDrilldown({
-                chartId,
+                chartId: apiChartId || chartId,
                 startDate,
                 endDate,
                 entityValue,

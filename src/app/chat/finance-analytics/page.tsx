@@ -214,7 +214,7 @@ const DASHBOARD_SCOPES: ScopeOption[] = [
 ];
 
 export default function FinanceAnalyticsDashboard() {
-    const { data: session } = useSession();
+    const { data: session, status } = useSession();
 
     const [summary, setSummary] = useState<FinanceSummary | null>(null);
     const [monthlyFlow, setMonthlyFlow] = useState<MonthlyFlow[]>([]);
@@ -373,10 +373,15 @@ export default function FinanceAnalyticsDashboard() {
         }
     };
 
+    const didInitRef = useRef(false);
+
     useEffect(() => {
         setMounted(true);
 
+        if (status !== "authenticated") return;
         if (!session) return;
+        if (didInitRef.current) return;
+        didInitRef.current = true;
 
         const user = session.user as any;
         const currentUserId = user.id || "default";
@@ -425,7 +430,7 @@ export default function FinanceAnalyticsDashboard() {
                     console.error("Erro ao carregar flag de detalhes dos gráficos:", error);
                 });
         }
-    }, [session]);
+    }, [session, startDate, endDate, status]);
 
     const availableWidgetIds = useMemo(() => new Set(widgets.map((widget) => widget.id)), [widgets]);
 

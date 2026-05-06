@@ -225,6 +225,13 @@ export default function FinanceAnalyticsDashboard() {
     const [error, setError] = useState<string | null>(null);
     const [mounted, setMounted] = useState(false);
     const [analysisChartId, setAnalysisChartId] = useState<string | null>(null);
+    const [analysisStartDate, setAnalysisStartDate] = useState<string | null>(null);
+    const [analysisEndDate, setAnalysisEndDate] = useState<string | null>(null);
+    const [analysisIsLoading, setAnalysisIsLoading] = useState(false);
+    const [analysisSummary, setAnalysisSummary] = useState<FinanceSummary | null>(null);
+    const [analysisMonthlyFlow, setAnalysisMonthlyFlow] = useState<MonthlyFlow[] | null>(null);
+    const [analysisAiAnalysis, setAnalysisAiAnalysis] = useState<AiAnalysisData | null>(null);
+    const [analysisAdvanced, setAnalysisAdvanced] = useState<AdvancedDashboard | null>(null);
     const [chartDetailsModalState, setChartDetailsModalState] = useState<{
         title: string;
         entries: Array<{
@@ -270,6 +277,49 @@ export default function FinanceAnalyticsDashboard() {
             setError("Erro ao carregar dados financeiros.");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const fetchAnalysisData = async (chartId: string, start?: string, end?: string) => {
+        setAnalysisIsLoading(true);
+        try {
+            if (["summary"].includes(chartId)) {
+                const s = await financeAnalyticsService.getSummary(start, end);
+                setAnalysisSummary(s);
+                setAnalysisMonthlyFlow(null);
+                setAnalysisAiAnalysis(null);
+                setAnalysisAdvanced(null);
+                return;
+            }
+
+            if (["flow"].includes(chartId)) {
+                const f = await financeAnalyticsService.getMonthlyFlow(start, end);
+                setAnalysisMonthlyFlow(f);
+                setAnalysisSummary(null);
+                setAnalysisAiAnalysis(null);
+                setAnalysisAdvanced(null);
+                return;
+            }
+
+            if (["ai"].includes(chartId)) {
+                const ai = await financeAnalyticsService.getAiAnalysisData(start, end);
+                setAnalysisAiAnalysis(ai);
+                setAnalysisSummary(null);
+                setAnalysisMonthlyFlow(null);
+                setAnalysisAdvanced(null);
+                return;
+            }
+
+            // Default: charts derived from AdvancedDashboard
+            const adv = await financeAnalyticsService.getAdvancedAnalytics(start, end);
+            setAnalysisAdvanced(adv);
+            setAnalysisSummary(null);
+            setAnalysisMonthlyFlow(null);
+            setAnalysisAiAnalysis(null);
+        } catch (err) {
+            console.error("Erro ao carregar dados do grÃ¡fico:", err);
+        } finally {
+            setAnalysisIsLoading(false);
         }
     };
 
@@ -459,6 +509,80 @@ export default function FinanceAnalyticsDashboard() {
                 return advanced.documentosPorFornecedorAtivo || [];
             default:
                 return null;
+        }
+    };
+
+    const getAnalysisWidgetData = (id: string) => {
+        // If we have per-analysis state, use it; otherwise fall back to dashboard state.
+        if (analysisSummary && id === "summary") return analysisSummary;
+        if (analysisMonthlyFlow && id === "flow") return analysisMonthlyFlow;
+        if (analysisAiAnalysis && id === "ai") return analysisAiAnalysis;
+
+        const adv = analysisAdvanced || advanced;
+        if (!adv) return getWidgetData(id);
+
+        switch (id) {
+            case "kpis":
+            case "efficiency_kpis":
+                return adv.saudeFinanceira;
+            case "projection":
+                return adv.previsaoCaixa || [];
+            case "aging":
+                return adv.aging || [];
+            case "performance":
+                return adv.performanceRecebimento || [];
+            case "dist_pag_fornecedor":
+                return adv.distribuicaoPagarFornecedor || [];
+            case "geo_pagar":
+                return adv.geograficoPagar || [];
+            case "dist_tipo_pag":
+                return adv.distribuicaoTipoPagamento || [];
+            case "dist_cond_pag":
+                return adv.distribuicaoCondicaoPagamento || [];
+            case "evolucao_pag":
+                return adv.evolucaoMensalPagamento || [];
+            case "curva_pag":
+                return adv.curvaVencimentoPagar || [];
+            case "top_pag":
+                return adv.topContasPagar || [];
+            case "faixa_pag":
+                return adv.distribuicaoFaixaValorPagar || [];
+            case "dist_rec_cliente":
+                return adv.distribuicaoReceberCliente || [];
+            case "geo_receber":
+                return adv.geograficoReceber || [];
+            case "evolucao_rec":
+                return adv.evolucaoMensalRecebimento || [];
+            case "curva_rec":
+                return adv.curvaVencimentoReceber || [];
+            case "top_rec":
+                return adv.topContasReceber || [];
+            case "faixa_rec":
+                return adv.distribuicaoFaixaValorReceber || [];
+            case "vol_dia_mes":
+                return adv.volumePorDia || [];
+            case "liq_empresa":
+                return adv.indiceLiquidezPorEmpresa || [];
+            case "fluxo_diario_proj":
+                return adv.fluxoCaixaDiarioProjetado || [];
+            case "vol_cpf_cnpj":
+                return adv.volumePorCpfCnpj || [];
+            case "dist_faixa_prazo":
+                return adv.distribuicaoFaixaPrazoVencimento || [];
+            case "pm_rec_cli":
+                return adv.prazoMedioRecebimentoPorCliente || [];
+            case "pm_pag_for":
+                return adv.prazoMedioPagamentoPorFornecedor || [];
+            case "tm_rec_cli":
+                return adv.ticketMedioPorCliente || [];
+            case "tm_pag_for":
+                return adv.ticketMedioPorFornecedor || [];
+            case "docs_cli":
+                return adv.documentosPorClienteAtivo || [];
+            case "docs_for":
+                return adv.documentosPorFornecedorAtivo || [];
+            default:
+                return getWidgetData(id);
         }
     };
 
@@ -682,7 +806,16 @@ export default function FinanceAnalyticsDashboard() {
                 <DashboardWidget
                     id={id}
                     title={widget.name}
-                    onAnalyze={setAnalysisChartId}
+                    onAnalyze={(selectedId) => {
+                        setAnalysisChartId(selectedId);
+                        setAnalysisStartDate(startDate);
+                        setAnalysisEndDate(endDate);
+                        setAnalysisSummary(null);
+                        setAnalysisMonthlyFlow(null);
+                        setAnalysisAiAnalysis(null);
+                        setAnalysisAdvanced(null);
+                        fetchAnalysisData(selectedId, startDate, endDate);
+                    }}
                     onDetails={
                         canManageChartDetails && isChartDetailsEnabled
                             ? (selectedId) => {
@@ -709,6 +842,127 @@ export default function FinanceAnalyticsDashboard() {
                 </DashboardWidget>
             </div>
         );
+    };
+
+    const renderAnalysisWidgetContent = (id: string, filters?: WidgetEntityFilters) => {
+        const payableTheme = dashboardThemes.payable;
+        const receivableTheme = dashboardThemes.receivable;
+        const cashflowTheme = dashboardThemes.cashflow;
+        const analysisTheme = dashboardThemes.analysis;
+
+        const adv = analysisAdvanced;
+        const effectiveSummary = analysisSummary ?? summary;
+        const effectiveFlow = analysisMonthlyFlow ?? monthlyFlow;
+        const effectiveAi = analysisAiAnalysis ?? aiAnalysis;
+
+        switch (id) {
+            case "kpis":
+                return <AdvancedKpiCards data={adv?.saudeFinanceira || null} isLoading={analysisIsLoading} />;
+            case "summary":
+                return <FinanceSummaryCards data={effectiveSummary} isLoading={analysisIsLoading} />;
+            case "flow":
+                return <MonthlyFlowChart data={effectiveFlow || []} isLoading={analysisIsLoading} />;
+            case "projection":
+                return <CashProjectionChart data={adv?.previsaoCaixa || []} isLoading={analysisIsLoading} />;
+            case "aging":
+                return <AgingChart data={adv?.aging || []} isLoading={analysisIsLoading} />;
+            case "ai":
+                return <AiAnalysisPanel data={effectiveAi} isLoading={analysisIsLoading} />;
+            case "performance":
+                return (
+                    <DistributionPieChart
+                        title=""
+                        data={adv?.performanceRecebimento?.map((item) => ({ label: item.categoria, valor: item.valor, percentual: 0 })) || []}
+                        isLoading={analysisIsLoading}
+                        colors={receivableTheme.chartPalette}
+                    />
+                );
+            case "dist_pag_fornecedor":
+                return (
+                    <DistributionBarChart
+                        data={filterByLabel(adv?.distribuicaoPagarFornecedor, filters?.entityValue)}
+                        isLoading={analysisIsLoading}
+                        color={payableTheme.primary}
+                        layout="horizontal"
+                        maxItems={8}
+                    />
+                );
+            case "geo_pagar":
+                return <BrazilUfMapChart data={adv?.geograficoPagar || []} isLoading={analysisIsLoading} color={payableTheme.primary} />;
+            case "dist_tipo_pag":
+                return <DistributionPieChart title="" data={adv?.distribuicaoTipoPagamento || []} isLoading={analysisIsLoading} colors={payableTheme.chartPalette} />;
+            case "dist_cond_pag":
+                return <DistributionPieChart title="" data={adv?.distribuicaoCondicaoPagamento || []} isLoading={analysisIsLoading} colors={payableTheme.chartPalette} maxItems={6} />;
+            case "faixa_pag":
+                return <DistributionBarChart data={adv?.distribuicaoFaixaValorPagar || []} isLoading={analysisIsLoading} color={payableTheme.primary} maxItems={6} />;
+            case "evolucao_pag":
+                return <MonthlyEvolutionChart title="" data={adv?.evolucaoMensalPagamento || []} isLoading={analysisIsLoading} color={payableTheme.primary} fillColor={payableTheme.primary} dataKey="valor" />;
+            case "curva_pag":
+                return <DistributionBarChart data={toBarData(adv?.curvaVencimentoPagar)} isLoading={analysisIsLoading} color={payableTheme.primary} maxItems={8} />;
+            case "dist_rec_cliente":
+                return (
+                    <DistributionBarChart
+                        data={filterByLabel(adv?.distribuicaoReceberCliente, filters?.entityValue)}
+                        isLoading={analysisIsLoading}
+                        color={receivableTheme.primary}
+                        layout="horizontal"
+                        maxItems={8}
+                    />
+                );
+            case "geo_receber":
+                return <BrazilUfMapChart data={adv?.geograficoReceber || []} isLoading={analysisIsLoading} color={receivableTheme.primary} />;
+            case "faixa_rec":
+                return <DistributionBarChart data={adv?.distribuicaoFaixaValorReceber || []} isLoading={analysisIsLoading} color={receivableTheme.primary} maxItems={6} />;
+            case "evolucao_rec":
+                return <MonthlyEvolutionChart title="" data={adv?.evolucaoMensalRecebimento || []} isLoading={analysisIsLoading} color={receivableTheme.primary} fillColor={receivableTheme.primary} dataKey="valor" />;
+            case "curva_rec":
+                return <DistributionBarChart data={toBarData(adv?.curvaVencimentoReceber)} isLoading={analysisIsLoading} color={receivableTheme.primary} maxItems={8} />;
+            case "efficiency_kpis":
+                return <EfficiencyKpiCards data={adv?.saudeFinanceira || null} isLoading={analysisIsLoading} />;
+            case "vol_dia_mes":
+                return <DistributionPieChart title="" data={adv?.volumePorDia || []} isLoading={analysisIsLoading} colors={cashflowTheme.chartPalette} />;
+            case "vol_dia_semana":
+                return <DistributionBarChart data={getWeekdayVolumeData()} isLoading={analysisIsLoading} color={cashflowTheme.primary} maxItems={7} preserveOrder />;
+            case "liq_empresa":
+                return (
+                    <DistributionBarChart
+                        data={filterByLabel(adv?.indiceLiquidezPorEmpresa, filters?.entityValue)}
+                        isLoading={analysisIsLoading}
+                        color={cashflowTheme.primary}
+                        layout="horizontal"
+                        maxItems={8}
+                        showZeroLine
+                    />
+                );
+            case "fluxo_diario_proj":
+                return <DailyBalanceChart data={adv?.fluxoCaixaDiarioProjetado || []} isLoading={analysisIsLoading} color={cashflowTheme.primary} />;
+            case "vol_cpf_cnpj":
+                return (
+                    <DistributionBarChart
+                        data={adv?.volumePorCpfCnpj || []}
+                        isLoading={analysisIsLoading}
+                        color={cashflowTheme.primary}
+                        layout="horizontal"
+                        maxItems={8}
+                    />
+                );
+            case "dist_faixa_prazo":
+                return <DistributionBarChart data={adv?.distribuicaoFaixaPrazoVencimento || []} isLoading={analysisIsLoading} color={cashflowTheme.primary} maxItems={6} />;
+            case "pm_rec_cli":
+                return <DistributionBarChart data={filterByLabel(adv?.prazoMedioRecebimentoPorCliente, filters?.entityValue)} isLoading={analysisIsLoading} color={analysisTheme.primary} />;
+            case "pm_pag_for":
+                return <DistributionBarChart data={filterByLabel(adv?.prazoMedioPagamentoPorFornecedor, filters?.entityValue)} isLoading={analysisIsLoading} color={analysisTheme.primary} />;
+            case "tm_rec_cli":
+                return <DistributionBarChart data={filterByLabel(adv?.ticketMedioPorCliente, filters?.entityValue)} isLoading={analysisIsLoading} color={analysisTheme.primary} />;
+            case "tm_pag_for":
+                return <DistributionBarChart data={filterByLabel(adv?.ticketMedioPorFornecedor, filters?.entityValue)} isLoading={analysisIsLoading} color={analysisTheme.primary} />;
+            case "docs_cli":
+                return <DistributionBarChart data={filterByLabel(adv?.documentosPorClienteAtivo, filters?.entityValue)} isLoading={analysisIsLoading} color={analysisTheme.primary} />;
+            case "docs_for":
+                return <DistributionBarChart data={filterByLabel(adv?.documentosPorFornecedorAtivo, filters?.entityValue)} isLoading={analysisIsLoading} color={analysisTheme.primary} />;
+            default:
+                return renderWidgetContent(id, filters);
+        }
     };
 
     const chartDetailsEntries = DASHBOARD_GROUPS.flatMap((group) => {
@@ -816,6 +1070,8 @@ export default function FinanceAnalyticsDashboard() {
                     </div>
                 </div>
 
+                {!analysisChartId && (
+                <>
                 <div className="mb-4 flex flex-wrap items-center gap-3">
                     <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-sm">
                         {DASHBOARD_SCOPES.map((scope) => {
@@ -894,6 +1150,8 @@ export default function FinanceAnalyticsDashboard() {
                     })}
 
                 </div>
+                </>
+                )}
             </div>
 
             {canManageChartDetails && isChartDetailsEnabled && (
@@ -911,15 +1169,25 @@ export default function FinanceAnalyticsDashboard() {
                 <ChartAnalysisView
                     id={analysisChartId}
                     {...getWidgetInfo(analysisChartId)}
-                    chartComponent={renderWidget(analysisChartId, true)}
-                    renderChart={({ entityValue }) => renderWidget(analysisChartId, true, { entityValue })}
-                    onClose={() => setAnalysisChartId(null)}
-                    initialStartDate={startDate}
-                    initialEndDate={endDate}
+                    chartComponent={<div className="flex h-full w-full flex-col min-h-[500px]">{renderAnalysisWidgetContent(analysisChartId)}</div>}
+                    renderChart={({ entityValue }) => (
+                        <div className="flex h-full w-full flex-col min-h-[500px]">{renderAnalysisWidgetContent(analysisChartId, { entityValue })}</div>
+                    )}
+                    onClose={() => {
+                        setAnalysisChartId(null);
+                        setAnalysisStartDate(null);
+                        setAnalysisEndDate(null);
+                        setAnalysisSummary(null);
+                        setAnalysisMonthlyFlow(null);
+                        setAnalysisAiAnalysis(null);
+                        setAnalysisAdvanced(null);
+                    }}
+                    initialStartDate={analysisStartDate || startDate}
+                    initialEndDate={analysisEndDate || endDate}
                     onDateChange={async (start, end) => {
-                        setStartDate(start);
-                        setEndDate(end);
-                        await fetchData(start, end);
+                        setAnalysisStartDate(start);
+                        setAnalysisEndDate(end);
+                        await fetchAnalysisData(analysisChartId, start, end);
                     }}
                 />
             )}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { X, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import financeAnalyticsService, { ChartSelection, ChartDrilldownResponse } from "@/services/finance-analytics.service";
 import { toast } from "sonner";
@@ -62,12 +62,14 @@ export default function ChartDrilldownModal({
     const [page, setPage] = useState(1);
     const [pageSize] = useState(50);
     const [result, setResult] = useState<ChartDrilldownResponse | null>(null);
+    const lastAutoLoadedSelectionRef = useRef<string | null>(null);
 
     useEffect(() => {
         if (!isOpen) return;
         setSelected(initialSelectionValue || "");
         setPage(1);
         setResult(null);
+        lastAutoLoadedSelectionRef.current = null;
     }, [isOpen, chartId, initialSelectionValue]);
 
     useEffect(() => {
@@ -76,11 +78,27 @@ export default function ChartDrilldownModal({
         if (!initialSelectionValue) return;
         // Delay one tick to ensure state is applied before querying.
         const t = window.setTimeout(() => {
+            lastAutoLoadedSelectionRef.current = initialSelectionValue;
             load(1);
         }, 0);
         return () => window.clearTimeout(t);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [autoLoadOnOpen, initialSelectionValue, isOpen]);
+
+    // Auto-run search when user selects an option (BI-like behavior).
+    useEffect(() => {
+        if (!isOpen) return;
+        if (!selected) return;
+
+        // If this selection was auto-loaded on open, do not immediately re-trigger.
+        if (lastAutoLoadedSelectionRef.current === selected) return;
+
+        const t = window.setTimeout(() => {
+            load(1);
+        }, 150);
+        return () => window.clearTimeout(t);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen, selected]);
 
     const total = result?.meta?.total ?? 0;
     const totalPages = useMemo(() => (total ? Math.max(1, Math.ceil(total / pageSize)) : 1), [total, pageSize]);
@@ -124,6 +142,8 @@ export default function ChartDrilldownModal({
 
     if (!isOpen) return null;
 
+    const isManualMode = !initialSelectionValue;
+
     return (
         <div className="fixed inset-0 z-[130] flex items-center justify-center bg-neutral-950/55 p-4 backdrop-blur-sm">
             <div className="flex max-h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-[28px] border border-neutral-200 bg-white shadow-[0_40px_120px_-40px_rgba(15,23,42,0.45)]">
@@ -146,6 +166,18 @@ export default function ChartDrilldownModal({
                 </div>
 
                 <div className="flex flex-col gap-4 overflow-y-auto px-6 py-6 sm:px-8">
+                    {isManualMode && !result && (
+                        <div className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700">
+                            Dica: feche este modal e clique em uma fatia/barra/faixa do gráfico para abrir o drill-down já selecionado.
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="ml-3 inline-flex items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-[11px] font-black uppercase tracking-widest text-neutral-700 hover:bg-neutral-50"
+                            >
+                                Voltar ao gráfico
+                            </button>
+                        </div>
+                    )}
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                         <div className="flex min-w-0 flex-1 flex-col gap-2">
                             <label className="text-[11px] font-black uppercase tracking-wider text-neutral-500">Recorte</label>

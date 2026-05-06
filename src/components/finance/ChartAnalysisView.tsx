@@ -199,18 +199,34 @@ export default function ChartAnalysisView({ id, title, description: propDescript
         const suffix = entityValue ? `-${safe(entityValue)}` : "";
         const filename = `finance-${safe(id)}${suffix}-${startDate}_${endDate}.csv`;
 
+        const downloadBlob = (blob: Blob) => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        };
+
         // Prefer backend export (consistent and can scale), fallback to local dataset export.
         financeAnalyticsService
             .exportChartCsv({ chartId: id, startDate, endDate, entityValue })
             .then((blob) => {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                URL.revokeObjectURL(url);
+                // If backend returned an empty file (common when chartId is not supported server-side),
+                // fallback to the local dataset export.
+                if (!blob || blob.size <= 10) {
+                    const rows = getExportRows();
+                    if (!rows) {
+                        toast.error("Não foi possível exportar: este gráfico não possui dados para CSV no período.");
+                        return;
+                    }
+                    downloadCsv(rows, { filename, separator: ";" });
+                    return;
+                }
+
+                downloadBlob(blob);
             })
             .catch(() => {
                 const rows = getExportRows();

@@ -1,6 +1,7 @@
 "use client";
 
 import { Bar, BarChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import type { ChartSelection } from "@/services/finance-analytics.service";
 
 type BarLayout = "vertical" | "horizontal";
 
@@ -18,6 +19,7 @@ interface DistributionBarChartProps {
     valueKind?: "currency" | "number";
     preserveOrder?: boolean;
     showZeroLine?: boolean;
+    onDrilldownSelect?: (selection: ChartSelection) => void;
 }
 
 export default function DistributionBarChart({
@@ -29,6 +31,7 @@ export default function DistributionBarChart({
     valueKind = "currency",
     preserveOrder = false,
     showZeroLine = false,
+    onDrilldownSelect,
 }: DistributionBarChartProps) {
     if (isLoading) {
         return <div className="h-[300px] w-full rounded-xl bg-neutral-50" />;
@@ -77,7 +80,18 @@ export default function DistributionBarChart({
                                 labelFormatter={(_, payload) => payload?.[0]?.payload?.label || ""}
                             />
                             {showZeroLine && <ReferenceLine x={0} stroke="#94a3b8" strokeWidth={1.2} />}
-                            <Bar dataKey="valor" fill={color} radius={[0, 5, 5, 0]} />
+                            <Bar
+                                dataKey="valor"
+                                fill={color}
+                                radius={[0, 5, 5, 0]}
+                                className={onDrilldownSelect ? "cursor-pointer" : undefined}
+                                onClick={(d: any) => {
+                                    if (!onDrilldownSelect) return;
+                                    const label = d?.payload?.label;
+                                    if (!label) return;
+                                    onDrilldownSelect({ kind: "category", key: String(label), label: String(label) });
+                                }}
+                            />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
@@ -108,7 +122,18 @@ export default function DistributionBarChart({
                         labelFormatter={(_, payload) => payload?.[0]?.payload?.label || ""}
                     />
                     {showZeroLine && <ReferenceLine y={0} stroke="#94a3b8" strokeWidth={1.2} />}
-                    <Bar dataKey="valor" fill={color} radius={[5, 5, 0, 0]} />
+                    <Bar
+                        dataKey="valor"
+                        fill={color}
+                        radius={[5, 5, 0, 0]}
+                        className={onDrilldownSelect ? "cursor-pointer" : undefined}
+                        onClick={(d: any) => {
+                            if (!onDrilldownSelect) return;
+                            const label = d?.payload?.label;
+                            if (!label) return;
+                            onDrilldownSelect({ kind: "category", key: String(label), label: String(label) });
+                        }}
+                    />
                 </BarChart>
             </ResponsiveContainer>
         </div>

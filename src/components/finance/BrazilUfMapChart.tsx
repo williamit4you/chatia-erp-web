@@ -2,13 +2,14 @@
 
 import { useMemo, useState } from "react";
 import { geoMercator, geoPath } from "d3-geo";
-import { Geographic } from "@/services/finance-analytics.service";
+import { ChartSelection, Geographic } from "@/services/finance-analytics.service";
 import brUfsGeoJson from "@/data/br-ufs.json";
 
 interface BrazilUfMapChartProps {
     data: Geographic[];
     isLoading: boolean;
     color?: string;
+    onDrilldownSelect?: (selection: ChartSelection) => void;
 }
 
 type GeoFeature = {
@@ -150,7 +151,7 @@ const normalizeGeoDataForD3 = (geoData: GeoFeatureCollection): GeoFeatureCollect
     })),
 });
 
-export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a" }: BrazilUfMapChartProps) {
+export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a", onDrilldownSelect }: BrazilUfMapChartProps) {
     const [hoveredUf, setHoveredUf] = useState<string | null>(null);
     const geoData = useMemo(() => normalizeGeoDataForD3(brUfsGeoJson as GeoFeatureCollection), []);
 
@@ -211,9 +212,14 @@ export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a" }:
                                     fill={isHovered ? color : fill}
                                     stroke={isHovered ? "#ffffff" : "#d6d3d1"}
                                     strokeWidth={isHovered ? 1.4 : 0.7}
-                                    className="transition-colors duration-150"
+                                    className={onDrilldownSelect ? "transition-colors duration-150 cursor-pointer" : "transition-colors duration-150"}
                                     onMouseEnter={() => setHoveredUf(state.uf)}
                                     onMouseLeave={() => setHoveredUf(null)}
+                                    onClick={() => {
+                                        if (!onDrilldownSelect) return;
+                                        if (!state.uf) return;
+                                        onDrilldownSelect({ kind: "geo_uf", uf: state.uf, label: state.uf });
+                                    }}
                                 >
                                     <title>{`${state.uf}: ${formatCurrency(value)}`}</title>
                                 </path>

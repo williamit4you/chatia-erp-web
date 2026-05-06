@@ -1,14 +1,15 @@
 "use client";
 
-import { Aging } from "@/services/finance-analytics.service";
+import { Aging, ChartSelection } from "@/services/finance-analytics.service";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 interface AgingChartProps {
     data: Aging[];
     isLoading: boolean;
+    onDrilldownSelect?: (selection: ChartSelection) => void;
 }
 
-export default function AgingChart({ data, isLoading }: AgingChartProps) {
+export default function AgingChart({ data, isLoading, onDrilldownSelect }: AgingChartProps) {
     if (isLoading) {
         return <div className="h-[300px] w-full bg-neutral-50 rounded-xl"></div>;
     }
@@ -38,7 +39,17 @@ export default function AgingChart({ data, isLoading }: AgingChartProps) {
                             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                             formatter={(value: any) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value))}
                         />
-                        <Bar dataKey="valor" radius={[4, 4, 0, 0]}>
+                        <Bar
+                            dataKey="valor"
+                            radius={[4, 4, 0, 0]}
+                            className={onDrilldownSelect ? "cursor-pointer" : undefined}
+                            onClick={(d: any) => {
+                                if (!onDrilldownSelect) return;
+                                const faixa = d?.payload?.faixa;
+                                if (!faixa) return;
+                                onDrilldownSelect({ kind: "range_bucket", key: String(faixa), label: String(faixa) });
+                            }}
+                        >
                             {data.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}

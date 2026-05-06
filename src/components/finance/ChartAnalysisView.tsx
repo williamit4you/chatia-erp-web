@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useMemo, useState, useEffect, useRef } from "react";
+import { ReactNode, useMemo, useState, useEffect, useRef, isValidElement, cloneElement } from "react";
 import { useSession } from "next-auth/react";
 import { Bot, User, X, Send, Loader2, ArrowLeft, Info, MessageSquare, Sparkles, Calendar, Database, ChevronDown, ChevronUp, RefreshCw, PlusCircle, History, Trash2, BookOpenText, Maximize2, Minimize2, Download, ListTree } from "lucide-react";
 import financeAnalyticsService from "@/services/finance-analytics.service";
@@ -116,6 +116,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
     const [isChartDetailsEnabled, setIsChartDetailsEnabled] = useState(false);
     const [isChartDetailsOpen, setIsChartDetailsOpen] = useState(false);
     const [isDrilldownOpen, setIsDrilldownOpen] = useState(false);
+    const [drilldownInitialSelection, setDrilldownInitialSelection] = useState<string | null>(null);
     const [isChatWide, setIsChatWide] = useState(false);
     const [chatWidthPx, setChatWidthPx] = useState<number>(460);
     const [isResizingChat, setIsResizingChat] = useState(false);
@@ -251,6 +252,33 @@ export default function ChartAnalysisView({ id, title, description: propDescript
 
         return null;
     }, [data, id, localData]);
+
+    const handleDrilldownSelect = (selection: any) => {
+        if (!drilldownConfig) return;
+        if (!selection?.kind) return;
+        if (selection.kind !== drilldownConfig.kind) return;
+
+        const value = selection.kind === "geo_uf" ? selection.uf : selection.key;
+        if (!value) return;
+
+        setDrilldownInitialSelection(String(value));
+        setIsDrilldownOpen(true);
+    };
+
+    const injectDrilldownHandler = (node: ReactNode) => {
+        if (!drilldownConfig) return node;
+        if (!CHARTS_WITH_DRILLDOWN_MVP.has(id)) return node;
+        if (!isValidElement(node)) return node;
+        return cloneElement(node as any, { onDrilldownSelect: handleDrilldownSelect });
+    };
+
+    const chartNode = useMemo(() => {
+        if (renderChart) {
+            return injectDrilldownHandler(renderChart({ entityValue }));
+        }
+        return injectDrilldownHandler(chartComponent);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [chartComponent, drilldownConfig, entityValue, id, renderChart]);
 
     const loadMessages = async (sessionId: string) => {
         setIsTyping(true);
@@ -617,7 +645,10 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                         {CHARTS_WITH_DRILLDOWN_MVP.has(id) && (
                             <button
                                 type="button"
-                                onClick={() => setIsDrilldownOpen(true)}
+                                onClick={() => {
+                                    setDrilldownInitialSelection(null);
+                                    setIsDrilldownOpen(true);
+                                }}
                                 className="bg-white text-neutral-800 px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider border border-neutral-200 hover:bg-neutral-50 transition-colors flex items-center gap-1.5"
                                 title="Detalhar (drill-down)"
                             >
@@ -656,6 +687,8 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                     entityValue={entityValue}
                     kind={drilldownConfig.kind}
                     options={drilldownConfig.options}
+                    initialSelectionValue={drilldownInitialSelection || undefined}
+                    autoLoadOnOpen={Boolean(drilldownInitialSelection)}
                     onClose={() => setIsDrilldownOpen(false)}
                 />
             )}
@@ -693,7 +726,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
 
                         {/* Chart Render Section */}
                         <div className="flex-1 w-full p-4 lg:p-6 relative min-h-0">
-                            {renderChart ? renderChart({ entityValue }) : chartComponent}
+                            {chartNode}
                         </div>
                     </div>
                 </div>

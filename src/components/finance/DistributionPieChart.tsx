@@ -1,6 +1,6 @@
 "use client";
 
-import { Distribution } from "@/services/finance-analytics.service";
+import { ChartSelection, Distribution } from "@/services/finance-analytics.service";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
 interface DistributionPieChartProps {
@@ -9,9 +9,10 @@ interface DistributionPieChartProps {
     title: string;
     colors?: string[];
     maxItems?: number;
+    onDrilldownSelect?: (selection: ChartSelection) => void;
 }
 
-export default function DistributionPieChart({ data, isLoading, title, colors, maxItems = 6 }: DistributionPieChartProps) {
+export default function DistributionPieChart({ data, isLoading, title, colors, maxItems = 6, onDrilldownSelect }: DistributionPieChartProps) {
     if (isLoading) {
         return <div className="h-[300px] w-full rounded-xl bg-neutral-50" />;
     }
@@ -63,7 +64,16 @@ export default function DistributionPieChart({ data, isLoading, title, colors, m
                                 nameKey="label"
                             >
                                 {visibleData.map((entry, index) => (
-                                    <Cell key={`cell-${entry.label}-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    <Cell
+                                        key={`cell-${entry.label}-${index}`}
+                                        fill={COLORS[index % COLORS.length]}
+                                        className={onDrilldownSelect && entry.label !== "Outros" ? "cursor-pointer" : undefined}
+                                        onClick={() => {
+                                            if (!onDrilldownSelect) return;
+                                            if (!entry?.label || entry.label === "Outros") return;
+                                            onDrilldownSelect({ kind: "category", key: entry.label, label: entry.label });
+                                        }}
+                                    />
                                 ))}
                             </Pie>
                             <Tooltip

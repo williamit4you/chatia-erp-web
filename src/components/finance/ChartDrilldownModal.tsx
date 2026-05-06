@@ -19,6 +19,8 @@ type ChartDrilldownModalProps = {
     entityValue: string | null;
     kind: DrilldownKind;
     options: DrilldownOption[];
+    initialSelectionValue?: string;
+    autoLoadOnOpen?: boolean;
     onClose: () => void;
 };
 
@@ -42,7 +44,19 @@ const formatCell = (value: any, kind?: string) => {
     return String(value);
 };
 
-export default function ChartDrilldownModal({ isOpen, chartId, title, startDate, endDate, entityValue, kind, options, onClose }: ChartDrilldownModalProps) {
+export default function ChartDrilldownModal({
+    isOpen,
+    chartId,
+    title,
+    startDate,
+    endDate,
+    entityValue,
+    kind,
+    options,
+    initialSelectionValue,
+    autoLoadOnOpen = false,
+    onClose,
+}: ChartDrilldownModalProps) {
     const [selected, setSelected] = useState<string>("");
     const [isLoading, setIsLoading] = useState(false);
     const [page, setPage] = useState(1);
@@ -51,10 +65,22 @@ export default function ChartDrilldownModal({ isOpen, chartId, title, startDate,
 
     useEffect(() => {
         if (!isOpen) return;
-        setSelected("");
+        setSelected(initialSelectionValue || "");
         setPage(1);
         setResult(null);
-    }, [isOpen, chartId]);
+    }, [isOpen, chartId, initialSelectionValue]);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        if (!autoLoadOnOpen) return;
+        if (!initialSelectionValue) return;
+        // Delay one tick to ensure state is applied before querying.
+        const t = window.setTimeout(() => {
+            load(1);
+        }, 0);
+        return () => window.clearTimeout(t);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [autoLoadOnOpen, initialSelectionValue, isOpen]);
 
     const total = result?.meta?.total ?? 0;
     const totalPages = useMemo(() => (total ? Math.max(1, Math.ceil(total / pageSize)) : 1), [total, pageSize]);

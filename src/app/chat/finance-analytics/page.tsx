@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import financeAnalyticsService, {
     AdvancedDashboard,
@@ -280,11 +280,55 @@ export default function FinanceAnalyticsDashboard() {
         }
     };
 
+    type CacheEntry<T> = {
+        value: T;
+        expiresAt: number;
+        touchedAt: number;
+    };
+
+    const ANALYSIS_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+    const ANALYSIS_CACHE_MAX_ADV = 5;
+    const ANALYSIS_CACHE_MAX_SMALL = 10;
+
+    const analysisAdvancedCacheRef = useRef<Map<string, CacheEntry<AdvancedDashboard>>>(new Map());
+    const analysisSummaryCacheRef = useRef<Map<string, CacheEntry<FinanceSummary>>>(new Map());
+    const analysisFlowCacheRef = useRef<Map<string, CacheEntry<MonthlyFlow[]>>>(new Map());
+    const analysisAiCacheRef = useRef<Map<string, CacheEntry<AiAnalysisData>>>(new Map());
+
+    const makeCacheKey = (chartId: string, start?: string, end?: string) => `${chartId}|${start || ""}|${end || ""}`;
+
+    const cacheGet = <T,>(map: Map<string, CacheEntry<T>>, key: string) => {
+        const entry = map.get(key);
+        if (!entry) return null;
+        const now = Date.now();
+        if (entry.expiresAt <= now) {
+            map.delete(key);
+            return null;
+        }
+        entry.touchedAt = now;
+        map.set(key, entry);
+        return entry.value;
+    };
+
+    const cacheSet = <T,>(map: Map<string, CacheEntry<T>>, key: string, value: T, maxEntries: number) => {
+        const now = Date.now();
+        map.set(key, { value, expiresAt: now + ANALYSIS_CACHE_TTL_MS, touchedAt: now });
+        if (map.size <= maxEntries) return;
+
+        const entries = Array.from(map.entries());
+        entries.sort((a, b) => a[1].touchedAt - b[1].touchedAt);
+        const toEvict = entries.slice(0, Math.max(0, map.size - maxEntries));
+        for (const [evictKey] of toEvict) map.delete(evictKey);
+    };
+
     const fetchAnalysisData = async (chartId: string, start?: string, end?: string) => {
+        const key = makeCacheKey(chartId, start, end);
         setAnalysisIsLoading(true);
         try {
             if (["summary"].includes(chartId)) {
-                const s = await financeAnalyticsService.getSummary(start, end);
+                const cached = cacheGet(analysisSummaryCacheRef.current, key);
+                const s = cached ?? (await financeAnalyticsService.getSummary(start, end));
+                if (!cached) cacheSet(analysisSummaryCacheRef.current, key, s, ANALYSIS_CACHE_MAX_SMALL);
                 setAnalysisSummary(s);
                 setAnalysisMonthlyFlow(null);
                 setAnalysisAiAnalysis(null);
@@ -293,7 +337,9 @@ export default function FinanceAnalyticsDashboard() {
             }
 
             if (["flow"].includes(chartId)) {
-                const f = await financeAnalyticsService.getMonthlyFlow(start, end);
+                const cached = cacheGet(analysisFlowCacheRef.current, key);
+                const f = cached ?? (await financeAnalyticsService.getMonthlyFlow(start, end));
+                if (!cached) cacheSet(analysisFlowCacheRef.current, key, f, ANALYSIS_CACHE_MAX_SMALL);
                 setAnalysisMonthlyFlow(f);
                 setAnalysisSummary(null);
                 setAnalysisAiAnalysis(null);
@@ -302,7 +348,9 @@ export default function FinanceAnalyticsDashboard() {
             }
 
             if (["ai"].includes(chartId)) {
-                const ai = await financeAnalyticsService.getAiAnalysisData(start, end);
+                const cached = cacheGet(analysisAiCacheRef.current, key);
+                const ai = cached ?? (await financeAnalyticsService.getAiAnalysisData(start, end));
+                if (!cached) cacheSet(analysisAiCacheRef.current, key, ai, ANALYSIS_CACHE_MAX_SMALL);
                 setAnalysisAiAnalysis(ai);
                 setAnalysisSummary(null);
                 setAnalysisMonthlyFlow(null);
@@ -311,7 +359,9 @@ export default function FinanceAnalyticsDashboard() {
             }
 
             // Default: charts derived from AdvancedDashboard
-            const adv = await financeAnalyticsService.getAdvancedAnalytics(start, end);
+            const cached = cacheGet(analysisAdvancedCacheRef.current, key);
+            const adv = cached ?? (await financeAnalyticsService.getAdvancedAnalytics(start, end));
+            if (!cached) cacheSet(analysisAdvancedCacheRef.current, key, adv, ANALYSIS_CACHE_MAX_ADV);
             setAnalysisAdvanced(adv);
             setAnalysisSummary(null);
             setAnalysisMonthlyFlow(null);

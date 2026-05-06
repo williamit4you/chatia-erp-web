@@ -322,7 +322,7 @@ export default function FinanceAnalyticsDashboard() {
                     setIsChartDetailsEnabled(Boolean(settings?.showChartDetails));
                 })
                 .catch((error) => {
-                    console.error("Erro ao carregar flag de detalhes dos graficos:", error);
+                    console.error("Erro ao carregar flag de detalhes dos gráficos:", error);
                 });
         }
     }, [session]);
@@ -464,16 +464,16 @@ export default function FinanceAnalyticsDashboard() {
 
     const getWidgetInfo = (id: string) => {
         const descriptions: Record<string, string> = {
-            kpis: "Visao geral dos principais indicadores de saude financeira, incluindo score, DSO e prazos medios.",
+            kpis: "Visão geral dos principais indicadores de saúde financeira, incluindo score, DSO e prazos médios.",
             summary: "Resumo consolidado dos valores totais a pagar, a receber e saldo projetado.",
             flow: "Comparativo mensal entre valores recebidos, pagos e previsoes de entradas.",
             projection: "Projecao detalhada de saldo e fluxo financeiro para os proximos 30 dias.",
-            aging: "Analise de documentos vencidos distribuidos por faixas de atraso.",
+            aging: "Análise de documentos vencidos distribuídos por faixas de atraso.",
             ai: "Insights gerados automaticamente pela IA baseados em tendencias dos dados.",
             performance: "Mede a pontualidade dos recebimentos historicos.",
             dist_pag_fornecedor: "Identifica quais fornecedores concentram a maior parte das despesas em aberto.",
             geo_pagar: "Distribuicao geografica das obrigacoes financeiras por estado.",
-            dist_tipo_pag: "Analise dos metodos de pagamento mais utilizados.",
+            dist_tipo_pag: "Análise dos métodos de pagamento mais utilizados.",
             dist_cond_pag: "Distribuicao das condicoes de parcelamento negociadas com fornecedores.",
             evolucao_pag: "Demonstra o volume de pagamentos realizados mes a mes.",
             curva_pag: "Visualizacao temporal do volume a pagar futuro.",
@@ -481,7 +481,7 @@ export default function FinanceAnalyticsDashboard() {
             faixa_pag: "Distribuicao dos titulos a pagar por faixas de valor.",
             dist_rec_cliente: "Identifica a concentracao de receita em clientes especificos.",
             geo_receber: "Distribuicao geografica das receitas por estado.",
-            evolucao_rec: "Evolucao mensal do volume total de recebimentos efetuados.",
+            evolucao_rec: "Evolução mensal do volume total de recebimentos efetuados.",
             curva_rec: "Visualizacao temporal do volume a receber futuro.",
             top_rec: "Lista dos 10 maiores recebiveis individuais em aberto.",
             faixa_rec: "Distribuicao dos titulos a receber por faixas de valor.",
@@ -500,8 +500,8 @@ export default function FinanceAnalyticsDashboard() {
         };
 
         return {
-            title: widgets.find((widget) => widget.id === id)?.name || "Analise de Grafico",
-            description: descriptions[id] || "Esta analise permite visualizar o comportamento dos dados financeiros.",
+            title: widgets.find((widget) => widget.id === id)?.name || "Análise de Gráfico",
+            description: descriptions[id] || "Esta análise permite visualizar o comportamento dos dados financeiros.",
             data: getWidgetData(id),
         };
     };
@@ -729,8 +729,8 @@ export default function FinanceAnalyticsDashboard() {
 
     const globalChartDetailsTitle =
         activeTab === "overview"
-            ? "Detalhamento dos graficos visiveis"
-            : `Detalhamento da visao ${DASHBOARD_TABS.find((tab) => tab.key === activeTab)?.label || "selecionada"}`;
+            ? "Detalhamento dos gráficos visíveis"
+            : `Detalhamento da visão ${DASHBOARD_TABS.find((tab) => tab.key === activeTab)?.label || "selecionada"}`;
 
     if (!mounted) return null;
 
@@ -748,7 +748,7 @@ export default function FinanceAnalyticsDashboard() {
                             </span>
                         </div>
                         <p className="text-sm font-medium text-neutral-500">
-                            Graficos e KPIs organizados por visao, tema e modulo financeiro.
+                            Gráficos e KPIs organizados por visão, tema e módulo financeiro.
                         </p>
                     </div>
 
@@ -775,7 +775,7 @@ export default function FinanceAnalyticsDashboard() {
                                     className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-1.5 text-xs font-black uppercase text-blue-700 transition-colors hover:bg-blue-100"
                                 >
                                     <BookOpenText className="h-4 w-4" />
-                                    Detalhes dos graficos
+                                    Detalhes dos gráficos
                                 </button>
                             )}
                         </div>
@@ -865,7 +865,7 @@ export default function FinanceAnalyticsDashboard() {
             {canManageChartDetails && isChartDetailsEnabled && (
                 <ChartDetailsModal
                     isOpen={Boolean(chartDetailsModalState)}
-                    title={chartDetailsModalState?.title || "Detalhes do grafico"}
+                    title={chartDetailsModalState?.title || "Detalhes do gráfico"}
                     entries={chartDetailsModalState?.entries || []}
                     onClose={() => setChartDetailsModalState(null)}
                     startDate={startDate}

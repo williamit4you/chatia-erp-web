@@ -315,9 +315,9 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
                         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                             <div className="space-y-1">
                                 <p className="text-xs font-black uppercase tracking-widest text-neutral-500">Flag de visualizacao</p>
-                                <h4 className="text-sm font-bold text-white">Exibir detalhes dos graficos</h4>
+                                <h4 className="text-sm font-bold text-white">Exibir detalhes dos gráficos</h4>
                                 <p className="text-sm text-neutral-400">
-                                    Libera, somente para usuarios com perfil <span className="font-bold text-white">TENANT_ADMIN</span>, o painel explicando calculo, origem e leitura dos graficos.
+                                    Libera, somente para usuários com perfil <span className="font-bold text-white">TENANT_ADMIN</span>, o painel explicando cálculo, origem e leitura dos gráficos.
                                 </p>
                             </div>
                             <button

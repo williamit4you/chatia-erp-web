@@ -144,7 +144,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
     const chartDetailsEntry = {
         id,
         title,
-        groupTitle: "Analise do grafico",
+        groupTitle: "Análise do gráfico",
         description,
         detail: getChartDetail(id, title, description),
     };
@@ -260,7 +260,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                 setIsChartDetailsEnabled(Boolean(settings?.showChartDetails));
             })
             .catch((error) => {
-                console.error("Erro ao carregar flag de detalhes do grafico:", error);
+                console.error("Erro ao carregar flag de detalhes do gráfico:", error);
             });
     }, [canManageChartDetails, session]);
 
@@ -448,7 +448,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                                 className="bg-blue-50 text-blue-700 px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider border border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1.5"
                             >
                                 <BookOpenText className="w-3.5 h-3.5" />
-                                Detalhes do grafico
+                                Detalhes do gráfico
                             </button>
                         )}
                     </div>

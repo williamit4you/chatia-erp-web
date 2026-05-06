@@ -40,7 +40,7 @@ const DashboardWidget = forwardRef<HTMLDivElement, DashboardWidgetProps>(
                                     onDetails(id);
                                 }}
                                 className="p-1 hover:bg-blue-50 rounded text-neutral-400 hover:text-blue-600 transition-colors"
-                                title="Entender este grafico"
+                                title="Entender este gráfico"
                             >
                                 <BookOpenText className="w-4 h-4" />
                             </button>

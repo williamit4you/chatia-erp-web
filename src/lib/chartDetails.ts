@@ -8,89 +8,89 @@ export type ChartDetail = {
 
 const DETAILS: Record<string, ChartDetail> = {
     kpis: {
-        objective: "Resume a saude financeira com indicadores executivos como score, prazos medios e equilibrio entre pagar e receber.",
+        objective: "Resume a saúde financeira com indicadores executivos como score, prazos médios e equilíbrio entre pagar e receber.",
         calculation: [
-            "Consolida indicadores calculados sobre o conjunto financeiro carregado no periodo selecionado.",
-            "Compara recebimentos, pagamentos, prazos e composicao da carteira para gerar os KPIs exibidos.",
+            "Consolida indicadores calculados sobre o conjunto financeiro carregado no período selecionado.",
+            "Compara recebimentos, pagamentos, prazos e composição da carteira para gerar os KPIs exibidos.",
         ],
         dataSources: [
-            "Resumo financeiro do dashboard avancado.",
+            "Resumo financeiro do dashboard avançado.",
             "Indicadores consolidados de pagar, receber e fluxo de caixa.",
         ],
         interpretation: [
-            "Use como leitura inicial do periodo antes de entrar nos graficos detalhados.",
-            "Mudancas fortes nesses indicadores costumam justificar abrir os grupos de receber, pagar e fluxo.",
+            "Use como leitura inicial do período antes de entrar nos gráficos detalhados.",
+            "Mudanças fortes nesses indicadores costumam justificar abrir os grupos de receber, pagar e fluxo.",
         ],
     },
     summary: {
-        objective: "Mostra os totais principais do periodo: pagar, receber e saldo consolidado.",
+        objective: "Mostra os totais principais do período: pagar, receber e saldo consolidado.",
         calculation: [
             "Soma os valores financeiros retornados para o intervalo de datas selecionado.",
-            "Apresenta os agregados mais importantes para uma leitura rapida do caixa.",
+            "Apresenta os agregados mais importantes para uma leitura rápida do caixa.",
         ],
         dataSources: [
             "Resumo financeiro consolidado da empresa.",
         ],
         interpretation: [
-            "Serve para validar volume geral antes de analisar distribuicoes ou tendencias.",
-            "Se o saldo ou os totais parecerem fora do esperado, vale revisar o filtro de datas e os graficos de evolucao.",
+            "Serve para validar volume geral antes de analisar distribuições ou tendências.",
+            "Se o saldo ou os totais parecerem fora do esperado, vale revisar o filtro de datas e os gráficos de evolução.",
         ],
     },
     flow: {
-        objective: "Compara entradas e saidas ao longo do tempo para mostrar a dinamica mensal do caixa.",
+        objective: "Compara entradas e saídas ao longo do tempo para mostrar a dinâmica mensal do caixa.",
         calculation: [
-            "Agrupa os movimentos por mes dentro do periodo filtrado.",
-            "Compara recebimentos, pagamentos e variacoes consolidadas por competencia.",
+            "Agrupa os movimentos por mês dentro do período filtrado.",
+            "Compara recebimentos, pagamentos e variações consolidadas por competência.",
         ],
         dataSources: [
-            "Historico mensal de valores recebidos e pagos.",
+            "Histórico mensal de valores recebidos e pagos.",
         ],
         interpretation: [
             "Picos ou quedas ajudam a identificar sazonalidade ou eventos pontuais.",
-            "Meses com descolamento entre entradas e saidas merecem investigacao nas visoes de pagar e receber.",
+            "Meses com descolamento entre entradas e saídas merecem investigação nas visões de pagar e receber.",
         ],
     },
     projection: {
-        objective: "Projeta o comportamento do caixa para os proximos 30 dias.",
+        objective: "Projeta o comportamento do caixa para os próximos 30 dias.",
         calculation: [
-            "Considera a agenda futura de titulos previstos dentro da janela de projecao.",
-            "Evolui o saldo dia a dia com base nas entradas e saidas previstas.",
+            "Considera a agenda futura de títulos previstos dentro da janela de projeção.",
+            "Evolui o saldo dia a dia com base nas entradas e saídas previstas.",
         ],
         dataSources: [
-            "Titulos futuros a pagar e a receber.",
-            "Projecao diaria de caixa do dashboard avancado.",
+            "Títulos futuros a pagar e a receber.",
+            "Projeção diária de caixa do dashboard avançado.",
         ],
         interpretation: [
             "Use para antecipar falta de caixa ou folga financeira no curto prazo.",
-            "Vale olhar em conjunto com top contas e curva de vencimento para entender concentracoes.",
+            "Vale olhar em conjunto com top contas e curva de vencimento para entender concentrações.",
         ],
     },
     aging: {
-        objective: "Mostra quanto da carteira esta vencido e ha quanto tempo.",
+        objective: "Mostra quanto da carteira está vencido e há quanto tempo.",
         calculation: [
             "Classifica os documentos em aberto por faixas de atraso.",
             "Soma a quantidade ou valor dentro de cada faixa de vencimento.",
         ],
         dataSources: [
-            "Titulos em aberto da carteira de receber.",
+            "Títulos em aberto da carteira de receber.",
         ],
         interpretation: [
             "Quanto mais a carteira migra para faixas longas, maior o risco de atraso estrutural.",
-            "Faixas recentes podem indicar questoes pontuais; faixas antigas sugerem necessidade de cobranca mais forte.",
+            "Faixas recentes podem indicar questões pontuais; faixas antigas sugerem necessidade de cobrança mais forte.",
         ],
     },
     performance: {
-        objective: "Avalia a pontualidade historica dos recebimentos.",
+        objective: "Avalia a pontualidade histórica dos recebimentos.",
         calculation: [
             "Separa os recebimentos por categorias de comportamento, como no prazo e com atraso.",
-            "Calcula a distribuicao do volume dentro dessas categorias.",
+            "Calcula a distribuição do volume dentro dessas categorias.",
         ],
         dataSources: [
-            "Historico de liquidez e comportamento de recebimento.",
+            "Histórico de liquidez e comportamento de recebimento.",
         ],
         interpretation: [
-            "Quanto maior a parcela no prazo, mais previsivel tende a ser o caixa.",
-            "Uma degradacao nessa distribuicao normalmente aparece junto de aging pior e prazo medio maior.",
+            "Quanto maior a parcela no prazo, mais previsível tende a ser o caixa.",
+            "Uma degradação nessa distribuição normalmente aparece junto de aging pior e prazo médio maior.",
         ],
     },
     dist_pag_fornecedor: {
@@ -103,70 +103,70 @@ const DETAILS: Record<string, ChartDetail> = {
             "Titulos em aberto de contas a pagar.",
         ],
         interpretation: [
-            "Alta concentracao pode aumentar dependencia de poucos parceiros.",
-            "Os maiores fornecedores devem ser avaliados junto com prazo medio e top contas.",
+            "Alta concentração pode aumentar dependência de poucos parceiros.",
+            "Os maiores fornecedores devem ser avaliados junto com prazo médio e top contas.",
         ],
     },
     geo_pagar: {
         objective: "Distribui os valores a pagar por estado.",
         calculation: [
-            "Normaliza a localizacao do documento ou parceiro para UF.",
+            "Normaliza a localização do documento ou parceiro para UF.",
             "Soma os valores financeiros por estado e colore o mapa pela intensidade relativa.",
         ],
         dataSources: [
-            "Titulos de pagar com referencia geografica.",
+            "Títulos de pagar com referência geográfica.",
         ],
         interpretation: [
-            "Ajuda a perceber concentracao regional das obrigacoes financeiras.",
-            "Estados muito destacados podem indicar polos operacionais ou concentracao de fornecedores.",
+            "Ajuda a perceber concentração regional das obrigações financeiras.",
+            "Estados muito destacados podem indicar polos operacionais ou concentração de fornecedores.",
         ],
     },
     dist_tipo_pag: {
         objective: "Mostra os meios de pagamento predominantes.",
         calculation: [
-            "Agrupa os movimentos por tipo ou metodo de pagamento.",
-            "Calcula a participacao de cada grupo no volume do periodo.",
+            "Agrupa os movimentos por tipo ou método de pagamento.",
+            "Calcula a participação de cada grupo no volume do período.",
         ],
         dataSources: [
-            "Titulos com classificacao de metodo de pagamento.",
+            "Títulos com classificação de método de pagamento.",
         ],
         interpretation: [
             "Ajuda a entender perfil operacional e possiveis custos financeiros indiretos.",
-            "Mudancas bruscas de mix podem refletir negociacao, risco ou estrategia de caixa.",
+            "Mudanças bruscas de mix podem refletir negociação, risco ou estratégia de caixa.",
         ],
     },
     dist_cond_pag: {
-        objective: "Explica como as condicoes de pagamento estao distribuidas.",
+        objective: "Explica como as condições de pagamento estão distribuídas.",
         calculation: [
-            "Agrupa os titulos por condicao de pagamento negociada.",
-            "Soma o volume de cada condicao dentro do periodo.",
+            "Agrupa os títulos por condição de pagamento negociada.",
+            "Soma o volume de cada condição dentro do período.",
         ],
         dataSources: [
-            "Titulos de pagar com campo de condicao de pagamento.",
+            "Títulos de pagar com campo de condição de pagamento.",
         ],
         interpretation: [
-            "Concentracoes em prazos curtos aumentam pressao no caixa.",
+            "Concentrações em prazos curtos aumentam pressão no caixa.",
             "Distribuicao mais alongada pode indicar maior folego financeiro.",
         ],
     },
     evolucao_pag: {
-        objective: "Mostra a evolucao mensal do volume pago.",
+        objective: "Mostra a evolução mensal do volume pago.",
         calculation: [
-            "Agrupa os pagamentos por mes.",
+            "Agrupa os pagamentos por mês.",
             "Plota a soma mensal para leitura de tendencia.",
         ],
         dataSources: [
-            "Historico mensal de pagamentos.",
+            "Histórico mensal de pagamentos.",
         ],
         interpretation: [
-            "Crescimento sustentado pode refletir aumento de operacao ou pressao de custos.",
-            "Vale comparar com evolucao de recebimentos para entender equilibrio.",
+            "Crescimento sustentado pode refletir aumento de operação ou pressão de custos.",
+            "Vale comparar com evolução de recebimentos para entender equilíbrio.",
         ],
     },
     curva_pag: {
-        objective: "Mostra em quais periodos o contas a pagar se concentra.",
+        objective: "Mostra em quais períodos o contas a pagar se concentra.",
         calculation: [
-            "Agrupa os titulos por janelas de vencimento ou referencia temporal.",
+            "Agrupa os títulos por janelas de vencimento ou referência temporal.",
             "Soma os valores de cada faixa para revelar a curva futura.",
         ],
         dataSources: [
@@ -174,21 +174,21 @@ const DETAILS: Record<string, ChartDetail> = {
         ],
         interpretation: [
             "Picos mostram quando o caixa sera mais exigido.",
-            "Ajuda a priorizar negociacoes ou necessidade de reforco de saldo.",
+            "Ajuda a priorizar negociações ou necessidade de reforço de saldo.",
         ],
     },
     top_pag: {
-        objective: "Lista os maiores titulos a pagar com maior impacto no caixa.",
+        objective: "Lista os maiores títulos a pagar com maior impacto no caixa.",
         calculation: [
             "Ordena os documentos de pagar por valor decrescente.",
-            "Seleciona os itens mais relevantes do periodo.",
+            "Seleciona os itens mais relevantes do período.",
         ],
         dataSources: [
             "Titulos individuais de contas a pagar.",
         ],
         interpretation: [
             "Serve para identificar rapidamente os pagamentos criticos.",
-            "Cruze com fornecedor, vencimento e condicao para priorizar acao.",
+            "Cruze com fornecedor, vencimento e condição para priorizar ação.",
         ],
     },
     faixa_pag: {
@@ -206,7 +206,7 @@ const DETAILS: Record<string, ChartDetail> = {
         ],
     },
     dist_rec_cliente: {
-        objective: "Mostra quais clientes concentram mais receita ou mais recebiveis.",
+        objective: "Mostra quais clientes concentram mais receita ou mais recebíveis.",
         calculation: [
             "Agrupa os documentos por cliente.",
             "Soma os valores por cliente e ordena os mais representativos.",
@@ -216,11 +216,11 @@ const DETAILS: Record<string, ChartDetail> = {
         ],
         interpretation: [
             "Ajuda a medir dependencia de poucos clientes.",
-            "Clientes muito relevantes merecem analise conjunta com prazo medio, ticket e aging.",
+            "Clientes muito relevantes merecem análise conjunta com prazo médio, ticket e aging.",
         ],
     },
     geo_receber: {
-        objective: "Distribui os recebiveis por estado.",
+        objective: "Distribui os recebíveis por estado.",
         calculation: [
             "Padroniza a UF relacionada ao cliente ou documento.",
             "Soma os valores por estado para leitura geografica.",
@@ -230,27 +230,27 @@ const DETAILS: Record<string, ChartDetail> = {
         ],
         interpretation: [
             "Destaca mercados regionais mais importantes para a receita.",
-            "Tambem ajuda a detectar exposicao regional excessiva.",
+            "Também ajuda a detectar exposição regional excessiva.",
         ],
     },
     evolucao_rec: {
-        objective: "Mostra a evolucao mensal dos recebimentos.",
+        objective: "Mostra a evolução mensal dos recebimentos.",
         calculation: [
-            "Agrupa os valores recebidos por mes.",
+            "Agrupa os valores recebidos por mês.",
             "Plota a serie para leitura de tendencia e sazonalidade.",
         ],
         dataSources: [
-            "Historico mensal de recebimentos.",
+            "Histórico mensal de recebimentos.",
         ],
         interpretation: [
-            "Serve para identificar crescimento, queda e meses atipicos.",
+            "Serve para identificar crescimento, queda e meses atípicos.",
             "Vale comparar com o fluxo consolidado e performance de recebimento.",
         ],
     },
     curva_rec: {
-        objective: "Mostra quando os recebimentos futuros estao concentrados.",
+        objective: "Mostra quando os recebimentos futuros estão concentrados.",
         calculation: [
-            "Agrupa os titulos a receber por periodo de vencimento.",
+            "Agrupa os títulos a receber por período de vencimento.",
             "Soma os valores por faixa para revelar a distribuicao temporal.",
         ],
         dataSources: [
@@ -262,17 +262,17 @@ const DETAILS: Record<string, ChartDetail> = {
         ],
     },
     top_rec: {
-        objective: "Lista os maiores recebiveis do periodo.",
+        objective: "Lista os maiores recebíveis do período.",
         calculation: [
-            "Ordena os titulos a receber por valor decrescente.",
+            "Ordena os títulos a receber por valor decrescente.",
             "Destaca os documentos com maior impacto potencial no caixa.",
         ],
         dataSources: [
             "Titulos individuais de contas a receber.",
         ],
         interpretation: [
-            "Bom para priorizar cobranca e acompanhamento de clientes relevantes.",
-            "Tambem ajuda a medir risco de concentracao em poucos documentos.",
+            "Bom para priorizar cobrança e acompanhamento de clientes relevantes.",
+            "Também ajuda a medir risco de concentração em poucos documentos.",
         ],
     },
     faixa_rec: {
@@ -285,77 +285,77 @@ const DETAILS: Record<string, ChartDetail> = {
             "Titulos em aberto da carteira de receber.",
         ],
         interpretation: [
-            "Mostra se a receita esta pulverizada ou concentrada em poucos titulos altos.",
-            "Concentracao maior pede mais atencao a inadimplencia dos principais clientes.",
+            "Mostra se a receita está pulverizada ou concentrada em poucos títulos altos.",
+            "Concentração maior pede mais atenção à inadimplência dos principais clientes.",
         ],
     },
     efficiency_kpis: {
-        objective: "Apresenta indicadores avancados de eficiencia, risco e concentracao.",
+        objective: "Apresenta indicadores avançados de eficiência, risco e concentração.",
         calculation: [
-            "Consolida KPIs derivados de operacao, liquidez, concentracao e comportamento financeiro.",
+            "Consolida KPIs derivados de operação, liquidez, concentração e comportamento financeiro.",
             "Resume em cards para leitura executiva de desempenho.",
         ],
         dataSources: [
-            "Indicadores avancados do dashboard financeiro.",
+            "Indicadores avançados do dashboard financeiro.",
         ],
         interpretation: [
-            "Use como painel gerencial para detectar sinais de alerta rapido.",
-            "Quando um KPI foge do esperado, aprofunde no grafico ligado ao tema.",
+            "Use como painel gerencial para detectar sinais de alerta rápido.",
+            "Quando um KPI foge do esperado, aprofunde no gráfico ligado ao tema.",
         ],
     },
     vol_dia_mes: {
-        objective: "Mostra como o volume financeiro se distribui ao longo dos dias do mes.",
+        objective: "Mostra como o volume financeiro se distribui ao longo dos dias do mês.",
         calculation: [
-            "Agrupa os movimentos pelo dia do mes.",
+            "Agrupa os movimentos pelo dia do mês.",
             "Soma o volume total de cada dia para identificar picos operacionais.",
         ],
         dataSources: [
-            "Movimentacoes diarias consolidadas.",
+            "Movimentações diárias consolidadas.",
         ],
         interpretation: [
-            "Ajuda a enxergar concentracao de trabalho ou caixa em datas especificas.",
-            "Picos recorrentes podem indicar rotina operacional ou politica de vencimento.",
+            "Ajuda a enxergar concentração de trabalho ou caixa em datas específicas.",
+            "Picos recorrentes podem indicar rotina operacional ou política de vencimento.",
         ],
     },
     vol_dia_semana: {
         objective: "Mostra o volume financeiro por dia da semana.",
         calculation: [
-            "Reclassifica os movimentos diaros para o dia da semana correspondente.",
+            "Reclassifica os movimentos diários para o dia da semana correspondente.",
             "Soma os valores para comparar comportamento semanal.",
         ],
         dataSources: [
-            "Movimentacoes diarias consolidadas.",
+            "Movimentações diárias consolidadas.",
         ],
         interpretation: [
-            "Ajuda a identificar padroes de operacao e carga ao longo da semana.",
-            "Pode ser util para planejar equipe, cobranca ou rotina de pagamentos.",
+            "Ajuda a identificar padrões de operação e carga ao longo da semana.",
+            "Pode ser útil para planejar equipe, cobrança ou rotina de pagamentos.",
         ],
     },
     liq_empresa: {
         objective: "Compara a liquidez por empresa, filial ou unidade.",
         calculation: [
             "Agrupa os indicadores de liquidez pela entidade organizacional retornada.",
-            "Compara o indice calculado entre as unidades.",
+            "Compara o índice calculado entre as unidades.",
         ],
         dataSources: [
             "Indicadores de liquidez por empresa ou filial.",
         ],
         interpretation: [
-            "Mostra quais unidades sustentam melhor seu proprio ciclo de caixa.",
+            "Mostra quais unidades sustentam melhor seu próprio ciclo de caixa.",
             "Unidades com liquidez baixa merecem leitura junto de receber, pagar e saldo acumulado.",
         ],
     },
     fluxo_diario_proj: {
-        objective: "Mostra a projecao diaria do caixa no curto prazo.",
+        objective: "Mostra a projeção diária do caixa no curto prazo.",
         calculation: [
-            "Evolui o saldo dia a dia usando a agenda prevista de entradas e saidas.",
-            "Permite ver os pontos de maior tensao ou folga no horizonte futuro.",
+            "Evolui o saldo dia a dia usando a agenda prevista de entradas e saídas.",
+            "Permite ver os pontos de maior tensão ou folga no horizonte futuro.",
         ],
         dataSources: [
-            "Fluxo diario projetado do dashboard avancado.",
+            "Fluxo diário projetado do dashboard avançado.",
         ],
         interpretation: [
-            "Ideal para identificar dias criticos antes que o problema aconteca.",
+            "Ideal para identificar dias críticos antes que o problema aconteça.",
             "Use em conjunto com top contas e curva de vencimento.",
         ],
     },
@@ -363,98 +363,98 @@ const DETAILS: Record<string, ChartDetail> = {
         objective: "Mostra o volume financeiro por documento identificador.",
         calculation: [
             "Agrupa os movimentos pelo CPF ou CNPJ relacionado.",
-            "Soma os valores para identificar concentracoes relevantes.",
+            "Soma os valores para identificar concentrações relevantes.",
         ],
         dataSources: [
-            "Movimentacoes consolidadas por documento fiscal.",
+            "Movimentações consolidadas por documento fiscal.",
         ],
         interpretation: [
-            "Ajuda a detectar concentracao em poucos grupos economicos.",
-            "Pode revelar clientes ou fornecedores relacionados operando com multiplos cadastros.",
+            "Ajuda a detectar concentração em poucos grupos econômicos.",
+            "Pode revelar clientes ou fornecedores relacionados operando com múltiplos cadastros.",
         ],
     },
     saldo_acumulado: {
-        objective: "Mostra a trajetoria acumulada do saldo ao longo do periodo.",
+        objective: "Mostra a trajetória acumulada do saldo ao longo do período.",
         calculation: [
             "Ordena os movimentos por data.",
-            "Acumula o saldo progressivamente para mostrar a curva da saude do caixa.",
+            "Acumula o saldo progressivamente para mostrar a curva da saúde do caixa.",
         ],
         dataSources: [
-            "Evolucao diaria de saldo acumulado.",
+            "Evolução diária de saldo acumulado.",
         ],
         interpretation: [
             "Quedas prolongadas sugerem consumo de caixa acima da reposicao.",
-            "Recuperacoes sustentadas sinalizam melhora de equilibrio financeiro.",
+            "Recuperações sustentadas sinalizam melhora de equilíbrio financeiro.",
         ],
     },
     dist_faixa_prazo: {
-        objective: "Mostra a distribuicao dos documentos por faixa de prazo ate o vencimento.",
+        objective: "Mostra a distribuição dos documentos por faixa de prazo até o vencimento.",
         calculation: [
-            "Classifica os documentos conforme a distancia para o vencimento.",
+            "Classifica os documentos conforme a distância para o vencimento.",
             "Consolida a carteira dentro de cada faixa temporal.",
         ],
         dataSources: [
-            "Titulos com informacao de vencimento.",
+            "Títulos com informação de vencimento.",
         ],
         interpretation: [
             "Ajuda a enxergar o perfil temporal da carteira.",
-            "Concentracao em janelas curtas pode gerar pressao operacional e de caixa.",
+            "Concentração em janelas curtas pode gerar pressão operacional e de caixa.",
         ],
     },
     pm_rec_cli: {
-        objective: "Mostra o prazo medio de recebimento por cliente.",
+        objective: "Mostra o prazo médio de recebimento por cliente.",
         calculation: [
-            "Calcula o tempo medio entre emissao e recebimento por cliente.",
+            "Calcula o tempo médio entre emissão e recebimento por cliente.",
             "Ordena os clientes conforme o prazo observado.",
         ],
         dataSources: [
-            "Historico de documentos e recebimentos por cliente.",
+            "Histórico de documentos e recebimentos por cliente.",
         ],
         interpretation: [
             "Clientes com prazo alto tendem a alongar o ciclo de caixa.",
-            "Compare com ticket medio e inadimplencia para avaliar risco.",
+            "Compare com ticket médio e inadimplência para avaliar risco.",
         ],
     },
     pm_pag_for: {
-        objective: "Mostra o prazo medio de pagamento por fornecedor.",
+        objective: "Mostra o prazo médio de pagamento por fornecedor.",
         calculation: [
-            "Calcula o tempo medio entre obrigacao e pagamento para cada fornecedor.",
+            "Calcula o tempo médio entre obrigação e pagamento para cada fornecedor.",
             "Compara os fornecedores com maior impacto no ciclo de caixa.",
         ],
         dataSources: [
-            "Historico de pagamentos por fornecedor.",
+            "Histórico de pagamentos por fornecedor.",
         ],
         interpretation: [
-            "Prazos maiores podem aliviar o caixa, desde que sustentaveis comercialmente.",
-            "Vale cruzar com concentracao por fornecedor e top contas.",
+            "Prazos maiores podem aliviar o caixa, desde que sustentáveis comercialmente.",
+            "Vale cruzar com concentração por fornecedor e top contas.",
         ],
     },
     tm_rec_cli: {
-        objective: "Mostra o ticket medio por cliente.",
+        objective: "Mostra o ticket médio por cliente.",
         calculation: [
-            "Divide o volume total pelo numero de documentos de cada cliente.",
-            "Compara o valor medio operacional entre clientes.",
+            "Divide o volume total pelo número de documentos de cada cliente.",
+            "Compara o valor médio operacional entre clientes.",
         ],
         dataSources: [
             "Documentos e volume financeiro por cliente.",
         ],
         interpretation: [
-            "Ajuda a diferenciar clientes de alto volume por recorrencia versus valor medio.",
-            "Tickets altos com pouca pulverizacao elevam risco de concentracao.",
+            "Ajuda a diferenciar clientes de alto volume por recorrência versus valor médio.",
+            "Tickets altos com pouca pulverização elevam risco de concentração.",
         ],
     },
     tm_pag_for: {
-        objective: "Mostra o ticket medio por fornecedor.",
+        objective: "Mostra o ticket médio por fornecedor.",
         calculation: [
-            "Divide o volume total pelo numero de documentos por fornecedor.",
-            "Compara o valor medio das operacoes com cada parceiro.",
+            "Divide o volume total pelo número de documentos por fornecedor.",
+            "Compara o valor médio das operações com cada parceiro.",
         ],
         dataSources: [
             "Documentos e volume financeiro por fornecedor.",
         ],
         interpretation: [
-            "Ajuda a entender perfil de compra e concentracao operacional.",
-            "Fornecedores com ticket alto pedem acompanhamento mais proximo.",
+            "Ajuda a entender perfil de compra e concentração operacional.",
+            "Fornecedores com ticket alto pedem acompanhamento mais próximo.",
         ],
     },
     docs_cli: {
@@ -467,8 +467,8 @@ const DETAILS: Record<string, ChartDetail> = {
             "Documentos financeiros por cliente.",
         ],
         interpretation: [
-            "Separa clientes de alta recorrencia de clientes de alto valor pontual.",
-            "Use junto com ticket medio e prazo medio para leitura mais completa.",
+            "Separa clientes de alta recorrência de clientes de alto valor pontual.",
+            "Use junto com ticket médio e prazo médio para leitura mais completa.",
         ],
     },
     docs_for: {
@@ -481,8 +481,8 @@ const DETAILS: Record<string, ChartDetail> = {
             "Documentos financeiros por fornecedor.",
         ],
         interpretation: [
-            "Ajuda a entender recorrencia operacional com cada parceiro.",
-            "Fornecedores com muitos documentos podem demandar revisao de processo ou negociacao.",
+            "Ajuda a entender recorrência operacional com cada parceiro.",
+            "Fornecedores com muitos documentos podem demandar revisão de processo ou negociação.",
         ],
     },
 };
@@ -492,18 +492,17 @@ export function getChartDetail(id: string, title: string, description?: string):
     if (detail) return detail;
 
     return {
-        objective: description || `Explica o objetivo e a leitura do grafico ${title}.`,
+        objective: description || `Explica o objetivo e a leitura do gráfico ${title}.`,
         calculation: [
-            "Usa os dados consolidados do periodo filtrado para montar a visualizacao.",
-            "Agrupa, soma ou compara os registros conforme o tipo do grafico selecionado.",
+            "Usa os dados consolidados do período filtrado para montar a visualização.",
+            "Agrupa, soma ou compara os registros conforme o tipo do gráfico selecionado.",
         ],
         dataSources: [
-            "Dados financeiros retornados pelo dashboard avancado para o tenant logado.",
+            "Dados financeiros retornados pelo dashboard avançado para o tenant logado.",
         ],
         interpretation: [
-            "Use a visualizacao para localizar concentracoes, tendencia e desvios.",
-            "Se algo parecer fora do esperado, compare com os demais graficos do mesmo grupo.",
+            "Use a visualização para localizar concentrações, tendência e desvios.",
+            "Se algo parecer fora do esperado, compare com os demais gráficos do mesmo grupo.",
         ],
     };
 }
-

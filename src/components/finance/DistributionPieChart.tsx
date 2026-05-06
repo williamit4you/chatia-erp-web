@@ -1,7 +1,8 @@
 "use client";
 
-import { ChartSelection, Distribution } from "@/services/finance-analytics.service";
+import type { ChartSelection, Distribution } from "@/services/finance-analytics.service";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { useDrilldownSelect } from "@/components/finance/drilldownContext";
 
 interface DistributionPieChartProps {
     data: Distribution[];
@@ -13,6 +14,8 @@ interface DistributionPieChartProps {
 }
 
 export default function DistributionPieChart({ data, isLoading, title, colors, maxItems = 6, onDrilldownSelect }: DistributionPieChartProps) {
+    const drilldownFromContext = useDrilldownSelect();
+    const drillHandler = onDrilldownSelect ?? drilldownFromContext ?? null;
     if (isLoading) {
         return <div className="h-[300px] w-full rounded-xl bg-neutral-50" />;
     }
@@ -62,17 +65,18 @@ export default function DistributionPieChart({ data, isLoading, title, colors, m
                                 paddingAngle={visibleData.length > 5 ? 3 : 5}
                                 dataKey="valor"
                                 nameKey="label"
+                                onClick={(entry: any) => {
+                                    if (!drillHandler) return;
+                                    const label = entry?.label;
+                                    if (!label || label === "Outros") return;
+                                    drillHandler({ kind: "category", key: String(label), label: String(label) });
+                                }}
                             >
                                 {visibleData.map((entry, index) => (
                                     <Cell
                                         key={`cell-${entry.label}-${index}`}
                                         fill={COLORS[index % COLORS.length]}
-                                        className={onDrilldownSelect && entry.label !== "Outros" ? "cursor-pointer" : undefined}
-                                        onClick={() => {
-                                            if (!onDrilldownSelect) return;
-                                            if (!entry?.label || entry.label === "Outros") return;
-                                            onDrilldownSelect({ kind: "category", key: entry.label, label: entry.label });
-                                        }}
+                                        className={drillHandler && entry.label !== "Outros" ? "cursor-pointer" : undefined}
                                     />
                                 ))}
                             </Pie>

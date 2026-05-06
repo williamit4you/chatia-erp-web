@@ -2,6 +2,7 @@
 
 import { Aging, ChartSelection } from "@/services/finance-analytics.service";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { useDrilldownSelect } from "@/components/finance/drilldownContext";
 
 interface AgingChartProps {
     data: Aging[];
@@ -10,6 +11,8 @@ interface AgingChartProps {
 }
 
 export default function AgingChart({ data, isLoading, onDrilldownSelect }: AgingChartProps) {
+    const drilldownFromContext = useDrilldownSelect();
+    const drillHandler = onDrilldownSelect ?? drilldownFromContext ?? null;
     if (isLoading) {
         return <div className="h-[300px] w-full bg-neutral-50 rounded-xl"></div>;
     }
@@ -42,12 +45,12 @@ export default function AgingChart({ data, isLoading, onDrilldownSelect }: Aging
                         <Bar
                             dataKey="valor"
                             radius={[4, 4, 0, 0]}
-                            className={onDrilldownSelect ? "cursor-pointer" : undefined}
+                            className={drillHandler ? "cursor-pointer" : undefined}
                             onClick={(d: any) => {
-                                if (!onDrilldownSelect) return;
+                                if (!drillHandler) return;
                                 const faixa = d?.payload?.faixa;
                                 if (!faixa) return;
-                                onDrilldownSelect({ kind: "range_bucket", key: String(faixa), label: String(faixa) });
+                                drillHandler({ kind: "range_bucket", key: String(faixa), label: String(faixa) });
                             }}
                         >
                             {data.map((entry, index) => (

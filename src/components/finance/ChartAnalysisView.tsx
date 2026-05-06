@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useMemo, useState, useEffect, useRef, isValidElement, cloneElement } from "react";
+import { ReactNode, useMemo, useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { Bot, User, X, Send, Loader2, ArrowLeft, Info, MessageSquare, Sparkles, Calendar, Database, ChevronDown, ChevronUp, RefreshCw, PlusCircle, History, Trash2, BookOpenText, Maximize2, Minimize2, Download, ListTree } from "lucide-react";
 import financeAnalyticsService from "@/services/finance-analytics.service";
@@ -11,6 +11,7 @@ import MarkdownLite from "@/components/chat/MarkdownLite";
 import MiaAvatar from "@/components/chat/MiaAvatar";
 import ChartDetailsModal from "@/components/finance/ChartDetailsModal";
 import ChartDrilldownModal from "@/components/finance/ChartDrilldownModal";
+import { DrilldownProvider } from "@/components/finance/drilldownContext";
 import { getChartDetail } from "@/lib/chartDetails";
 import { adminService } from "@/services/admin.service";
 import { downloadCsv } from "@/lib/csvExport";
@@ -265,18 +266,10 @@ export default function ChartAnalysisView({ id, title, description: propDescript
         setIsDrilldownOpen(true);
     };
 
-    const injectDrilldownHandler = (node: ReactNode) => {
-        if (!drilldownConfig) return node;
-        if (!CHARTS_WITH_DRILLDOWN_MVP.has(id)) return node;
-        if (!isValidElement(node)) return node;
-        return cloneElement(node as any, { onDrilldownSelect: handleDrilldownSelect });
-    };
-
     const chartNode = useMemo(() => {
-        if (renderChart) {
-            return injectDrilldownHandler(renderChart({ entityValue }));
-        }
-        return injectDrilldownHandler(chartComponent);
+        const inner = renderChart ? renderChart({ entityValue }) : chartComponent;
+        if (!drilldownConfig || !CHARTS_WITH_DRILLDOWN_MVP.has(id)) return inner;
+        return <DrilldownProvider value={handleDrilldownSelect as any}>{inner}</DrilldownProvider>;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [chartComponent, drilldownConfig, entityValue, id, renderChart]);
 

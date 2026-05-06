@@ -2,6 +2,7 @@
 
 import { Bar, BarChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { ChartSelection } from "@/services/finance-analytics.service";
+import { useDrilldownSelect } from "@/components/finance/drilldownContext";
 
 type BarLayout = "vertical" | "horizontal";
 
@@ -33,6 +34,8 @@ export default function DistributionBarChart({
     showZeroLine = false,
     onDrilldownSelect,
 }: DistributionBarChartProps) {
+    const drilldownFromContext = useDrilldownSelect();
+    const drillHandler = onDrilldownSelect ?? drilldownFromContext ?? null;
     if (isLoading) {
         return <div className="h-[300px] w-full rounded-xl bg-neutral-50" />;
     }
@@ -84,12 +87,12 @@ export default function DistributionBarChart({
                                 dataKey="valor"
                                 fill={color}
                                 radius={[0, 5, 5, 0]}
-                                className={onDrilldownSelect ? "cursor-pointer" : undefined}
+                                className={drillHandler ? "cursor-pointer" : undefined}
                                 onClick={(d: any) => {
-                                    if (!onDrilldownSelect) return;
+                                    if (!drillHandler) return;
                                     const label = d?.payload?.label;
                                     if (!label) return;
-                                    onDrilldownSelect({ kind: "category", key: String(label), label: String(label) });
+                                    drillHandler({ kind: "category", key: String(label), label: String(label) });
                                 }}
                             />
                         </BarChart>
@@ -126,12 +129,12 @@ export default function DistributionBarChart({
                         dataKey="valor"
                         fill={color}
                         radius={[5, 5, 0, 0]}
-                        className={onDrilldownSelect ? "cursor-pointer" : undefined}
+                        className={drillHandler ? "cursor-pointer" : undefined}
                         onClick={(d: any) => {
-                            if (!onDrilldownSelect) return;
+                            if (!drillHandler) return;
                             const label = d?.payload?.label;
                             if (!label) return;
-                            onDrilldownSelect({ kind: "category", key: String(label), label: String(label) });
+                            drillHandler({ kind: "category", key: String(label), label: String(label) });
                         }}
                     />
                 </BarChart>

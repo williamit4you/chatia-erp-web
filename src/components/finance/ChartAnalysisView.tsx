@@ -10,6 +10,7 @@ import { getDisplayContextUsage } from "@/lib/contextUtils";
 import MarkdownLite from "@/components/chat/MarkdownLite";
 import MiaAvatar from "@/components/chat/MiaAvatar";
 import ChartDetailsModal from "@/components/finance/ChartDetailsModal";
+import ChartDrilldownModal from "@/components/finance/ChartDrilldownModal";
 import { getChartDetail } from "@/lib/chartDetails";
 import { adminService } from "@/services/admin.service";
 import { downloadCsv } from "@/lib/csvExport";
@@ -114,6 +115,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
     const [isChartDetailsEnabled, setIsChartDetailsEnabled] = useState(false);
     const [isChartDetailsOpen, setIsChartDetailsOpen] = useState(false);
+    const [isDrilldownOpen, setIsDrilldownOpen] = useState(false);
     const [isChatWide, setIsChatWide] = useState(false);
     const [chatWidthPx, setChatWidthPx] = useState<number>(460);
     const [isResizingChat, setIsResizingChat] = useState(false);
@@ -183,12 +185,6 @@ export default function ChartAnalysisView({ id, title, description: propDescript
     };
 
     const handleExportCsv = () => {
-        const rows = getExportRows();
-        if (!rows) {
-            toast.error("NÃ£o foi possÃ­vel exportar: este grÃ¡fico nÃ£o possui dados tabulares para CSV.");
-            return;
-        }
-
         const safe = (value: string) =>
             value
                 .normalize("NFD")
@@ -200,8 +196,61 @@ export default function ChartAnalysisView({ id, title, description: propDescript
 
         const suffix = entityValue ? `-${safe(entityValue)}` : "";
         const filename = `finance-${safe(id)}${suffix}-${startDate}_${endDate}.csv`;
-        downloadCsv(rows, { filename, separator: ";" });
+
+        // Prefer backend export (consistent and can scale), fallback to local dataset export.
+        financeAnalyticsService
+            .exportChartCsv({ chartId: id, startDate, endDate, entityValue })
+            .then((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+            })
+            .catch(() => {
+                const rows = getExportRows();
+                if (!rows) {
+                    toast.error("Não foi possível exportar: este gráfico não possui dados tabulares para CSV.");
+                    return;
+                }
+                downloadCsv(rows, { filename, separator: ";" });
+            });
     };
+
+    const drilldownConfig = useMemo(() => {
+        const source = localData || data;
+        if (!Array.isArray(source)) return null;
+
+        const asString = (v: any) => (typeof v === "string" ? v.trim() : "");
+        const uniq = (arr: string[]) => Array.from(new Set(arr.filter(Boolean)));
+
+        // Category-based charts
+        if (["dist_pag_fornecedor", "dist_rec_cliente", "dist_tipo_pag", "dist_cond_pag"].includes(id)) {
+            const options = uniq(source.map((r: any) => asString(r?.label))).sort((a, b) => a.localeCompare(b, "pt-BR"));
+            return { kind: "category" as const, options: options.map((o) => ({ label: o, value: o })) };
+        }
+
+        // Range bucket charts
+        if (id === "aging") {
+            const options = uniq(source.map((r: any) => asString(r?.faixa))).sort((a, b) => a.localeCompare(b, "pt-BR"));
+            return { kind: "range_bucket" as const, options: options.map((o) => ({ label: o, value: o })) };
+        }
+        if (id === "dist_faixa_prazo") {
+            const options = uniq(source.map((r: any) => asString(r?.label))).sort((a, b) => a.localeCompare(b, "pt-BR"));
+            return { kind: "range_bucket" as const, options: options.map((o) => ({ label: o, value: o })) };
+        }
+
+        // Geo charts
+        if (["geo_pagar", "geo_receber"].includes(id)) {
+            const options = uniq(source.map((r: any) => asString(r?.local))).sort((a, b) => a.localeCompare(b, "pt-BR"));
+            return { kind: "geo_uf" as const, options: options.map((o) => ({ label: o, value: o })) };
+        }
+
+        return null;
+    }, [data, id, localData]);
 
     const loadMessages = async (sessionId: string) => {
         setIsTyping(true);
@@ -560,7 +609,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                             type="button"
                             onClick={handleExportCsv}
                             className="bg-white text-neutral-800 px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider border border-neutral-200 hover:bg-neutral-50 transition-colors flex items-center gap-1.5"
-                            title="Exportar dados do grÃ¡fico em CSV"
+                            title="Exportar dados do gráfico em CSV"
                         >
                             <Download className="w-3.5 h-3.5" />
                             Exportar CSV
@@ -568,11 +617,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                         {CHARTS_WITH_DRILLDOWN_MVP.has(id) && (
                             <button
                                 type="button"
-                                onClick={() =>
-                                    toast.message("Drill-down em desenvolvimento", {
-                                        description: "O modal de detalhamento serÃ¡ habilitado apÃ³s a API de drill-down ficar pronta.",
-                                    })
-                                }
+                                onClick={() => setIsDrilldownOpen(true)}
                                 className="bg-white text-neutral-800 px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider border border-neutral-200 hover:bg-neutral-50 transition-colors flex items-center gap-1.5"
                                 title="Detalhar (drill-down)"
                             >
@@ -598,6 +643,20 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                     onClose={() => setIsChartDetailsOpen(false)}
                     startDate={startDate}
                     endDate={endDate}
+                />
+            )}
+
+            {drilldownConfig && CHARTS_WITH_DRILLDOWN_MVP.has(id) && (
+                <ChartDrilldownModal
+                    isOpen={isDrilldownOpen}
+                    chartId={id}
+                    title={title}
+                    startDate={startDate}
+                    endDate={endDate}
+                    entityValue={entityValue}
+                    kind={drilldownConfig.kind}
+                    options={drilldownConfig.options}
+                    onClose={() => setIsDrilldownOpen(false)}
                 />
             )}
 

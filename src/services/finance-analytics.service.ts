@@ -131,6 +131,23 @@ export interface ChartQueryDetailsResponse {
     items: ChartQueryDetailsItem[];
 }
 
+export type ChartSelection =
+    | { kind: "category"; key: string; label?: string }
+    | { kind: "range_bucket"; key: string; label?: string }
+    | { kind: "geo_uf"; uf: string; label?: string };
+
+export interface DrilldownColumn {
+    key: string;
+    label: string;
+    kind?: "text" | "currency" | "date" | "number";
+}
+
+export interface ChartDrilldownResponse {
+    columns: DrilldownColumn[];
+    rows: Record<string, any>[];
+    meta: { page: number; pageSize: number; total?: number };
+}
+
 export interface AdvancedDashboard {
     aging: Aging[];
     geografico: Geographic[];
@@ -210,6 +227,47 @@ export const financeAnalyticsService = {
             chartIds: params.chartIds,
             startDate: params.startDate ? new Date(params.startDate).toISOString() : null,
             endDate: params.endDate ? new Date(params.endDate).toISOString() : null,
+        });
+        return response.data;
+    },
+
+    exportChartCsv: async (params: { chartId: string; startDate?: string; endDate?: string; entityValue?: string | null }): Promise<Blob> => {
+        const response = await apiClient.post(
+            "/api/finance-analytics/charts/export",
+            {
+                chartId: params.chartId,
+                startDate: params.startDate ? new Date(params.startDate).toISOString() : null,
+                endDate: params.endDate ? new Date(params.endDate).toISOString() : null,
+                entityValue: params.entityValue || null,
+                format: "csv",
+            },
+            { responseType: "blob" }
+        );
+        return response.data as Blob;
+    },
+
+    getChartDrilldown: async (params: {
+        chartId: string;
+        startDate?: string;
+        endDate?: string;
+        entityValue?: string | null;
+        selection: ChartSelection;
+        page?: number;
+        pageSize?: number;
+    }): Promise<ChartDrilldownResponse> => {
+        const selectionDto =
+            params.selection.kind === "geo_uf"
+                ? { kind: params.selection.kind, uf: params.selection.uf, label: params.selection.label || null }
+                : { kind: params.selection.kind, key: params.selection.key, label: params.selection.label || null };
+
+        const response = await apiClient.post("/api/finance-analytics/charts/drilldown", {
+            chartId: params.chartId,
+            startDate: params.startDate ? new Date(params.startDate).toISOString() : null,
+            endDate: params.endDate ? new Date(params.endDate).toISOString() : null,
+            entityValue: params.entityValue || null,
+            selection: selectionDto,
+            page: params.page ?? 1,
+            pageSize: params.pageSize ?? 50,
         });
         return response.data;
     },

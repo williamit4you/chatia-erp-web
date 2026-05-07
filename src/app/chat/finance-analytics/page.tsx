@@ -258,7 +258,6 @@ export default function FinanceAnalyticsDashboard() {
 
     const userId = session?.user?.id || "default";
     const userRole = (session?.user as any)?.role || "";
-    const canManageChartDetails = userRole === "TENANT_ADMIN";
 
     const fetchData = async (start?: string, end?: string) => {
         setIsLoading(true);
@@ -393,6 +392,7 @@ export default function FinanceAnalyticsDashboard() {
         const currentUserId = user.id || "default";
         const isAdmin = user.role === "TENANT_ADMIN" || user.role === "SUPER_ADMIN" || user.role === "ADMIN";
         const isTenantAdmin = user.role === "TENANT_ADMIN";
+        const isSuperAdmin = user.role === "SUPER_ADMIN";
         const hasAnyAccess =
             isAdmin ||
             user.hasPayableDashboardAccess ||
@@ -412,7 +412,7 @@ export default function FinanceAnalyticsDashboard() {
         });
 
         setWidgets(availableWidgets);
-        setIsChartDetailsEnabled(Boolean(user.showChartDetails) && isTenantAdmin);
+        setIsChartDetailsEnabled(Boolean(user.showChartDetails) && (isTenantAdmin || isSuperAdmin));
 
         const savedScope = localStorage.getItem(`finance_v5_dashboard_scope_${currentUserId}`);
         if (savedScope && DASHBOARD_SCOPES.some((scope) => scope.key === savedScope)) {
@@ -879,7 +879,7 @@ export default function FinanceAnalyticsDashboard() {
                         fetchAnalysisData(selectedId, startDate, endDate);
                     }}
                     onDetails={
-                        canManageChartDetails && isChartDetailsEnabled
+                        isChartDetailsEnabled
                             ? (selectedId) => {
                                   const info = getWidgetInfo(selectedId);
                                   const group = DASHBOARD_GROUPS.find((item) => item.widgetIds.includes(selectedId));
@@ -1113,7 +1113,7 @@ export default function FinanceAnalyticsDashboard() {
                             <button onClick={handleFilter} className="rounded-lg bg-neutral-900 px-5 py-1.5 text-xs font-black uppercase text-white transition-colors hover:bg-black">
                                 Atualizar
                             </button>
-                            {canManageChartDetails && isChartDetailsEnabled && (
+                            {isChartDetailsEnabled && (
                                 <button
                                     type="button"
                                     onClick={() =>
@@ -1216,7 +1216,7 @@ export default function FinanceAnalyticsDashboard() {
                 )}
             </div>
 
-            {canManageChartDetails && isChartDetailsEnabled && (
+            {isChartDetailsEnabled && (
                 <ChartDetailsModal
                     isOpen={Boolean(chartDetailsModalState)}
                     title={chartDetailsModalState?.title || "Detalhes do gráfico"}

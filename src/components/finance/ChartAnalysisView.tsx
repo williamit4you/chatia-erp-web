@@ -166,7 +166,6 @@ export default function ChartAnalysisView({ id, title, description: propDescript
     const userRole = (session?.user as any)?.role;
     const userId = (session?.user as any)?.id;
     const isAdmin = userRole === 'TENANT_ADMIN' || userRole === 'SUPER_ADMIN' || userRole === 'ADMIN';
-    const canManageChartDetails = userRole === "TENANT_ADMIN";
 
     const hint = getChartHint(id);
     const description = hint.description || propDescription;
@@ -405,7 +404,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
     }, [id, title, description, userId]);
 
     useEffect(() => {
-        if (!canManageChartDetails) {
+        if (!session?.user) {
             setIsChartDetailsEnabled(false);
             return;
         }
@@ -413,6 +412,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
         const sessionValue = Boolean((session?.user as any)?.showChartDetails);
         setIsChartDetailsEnabled(sessionValue);
 
+        if (userRole !== "TENANT_ADMIN") return;
         if (didLoadSettingsRef.current) return;
         didLoadSettingsRef.current = true;
 
@@ -424,7 +424,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
             .catch((error) => {
                 console.error("Erro ao carregar flag de detalhes do gráfico:", error);
             });
-    }, [canManageChartDetails, (session?.user as any)?.showChartDetails]);
+    }, [session?.user, (session?.user as any)?.showChartDetails, userRole]);
 
     useEffect(() => {
         if (scrollRef.current && viewMode === "chat") {
@@ -669,7 +669,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                             {isReloading ? <RefreshCw className="w-3 h-3 animate-spin" /> : null}
                             Filtrar
                         </button>
-                        {canManageChartDetails && isChartDetailsEnabled && (
+                        {isChartDetailsEnabled && (
                             <button
                                 type="button"
                                 onClick={() => setIsChartDetailsOpen(true)}
@@ -712,7 +712,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                 </div>
             </header>
 
-            {canManageChartDetails && isChartDetailsEnabled && (
+            {isChartDetailsEnabled && (
                 <ChartDetailsModal
                     isOpen={isChartDetailsOpen}
                     title={title}

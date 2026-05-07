@@ -5,6 +5,7 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { useDrilldownSelect } from "@/components/finance/drilldownContext";
 import { formatCurrency } from "@/lib/formatters/financeFormat";
 import { payableColors, semanticColors } from "@/lib/financeChartTokens";
+import { useEffect, useState } from "react";
 
 interface DistributionPieChartProps {
     data: Distribution[];
@@ -18,6 +19,17 @@ interface DistributionPieChartProps {
 export default function DistributionPieChart({ data, isLoading, title, colors, maxItems = 6, onDrilldownSelect }: DistributionPieChartProps) {
     const drilldownFromContext = useDrilldownSelect();
     const drillHandler = onDrilldownSelect ?? drilldownFromContext ?? null;
+    const [isXL, setIsXL] = useState(false);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        const mq = window.matchMedia("(min-width: 1280px)");
+        const apply = () => setIsXL(mq.matches);
+        apply();
+        mq.addEventListener?.("change", apply);
+        return () => mq.removeEventListener?.("change", apply);
+    }, []);
+
     if (isLoading) {
         return <div className="h-[300px] w-full rounded-xl bg-neutral-50" />;
     }
@@ -54,13 +66,13 @@ export default function DistributionPieChart({ data, isLoading, title, colors, m
     return (
         <div className="flex h-[300px] w-full flex-col gap-3">
             {title && <h3 className="text-sm font-black text-neutral-900">{title}</h3>}
-            <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1fr)_118px]">
+            <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(180px,260px)]">
                 <div className="relative min-h-[210px]">
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                             <Pie
                                 data={visibleData}
-                                cx="50%"
+                                cx={isXL ? "42%" : "50%"}
                                 cy="50%"
                                 innerRadius={innerRadius}
                                 outerRadius={outerRadius}
@@ -93,11 +105,11 @@ export default function DistributionPieChart({ data, isLoading, title, colors, m
                         <span className="text-xs font-black text-neutral-900">{formatMoney(total, true)}</span>
                     </div>
                 </div>
-                <div className="flex min-w-0 flex-row flex-wrap content-center gap-2 overflow-hidden xl:flex-col xl:flex-nowrap xl:justify-center">
+                <div className="flex min-w-0 flex-row flex-wrap content-center gap-2 overflow-hidden xl:flex-col xl:flex-nowrap xl:justify-center xl:overflow-visible">
                     {visibleData.map((item, index) => (
                         <div key={`${item.label}-${index}`} className="flex min-w-0 items-center gap-2 text-[11px] font-bold text-neutral-700">
                             <span className="h-3 w-3 shrink-0 rounded-sm" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                            <span className="truncate" title={item.label}>
+                            <span className="truncate xl:whitespace-normal xl:break-words xl:line-clamp-2 xl:leading-4" title={item.label}>
                                 {item.label}
                             </span>
                         </div>

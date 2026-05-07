@@ -22,10 +22,12 @@ interface EfficiencyKpiCardsProps {
 export default function EfficiencyKpiCards({ data, isLoading }: EfficiencyKpiCardsProps) {
     if (isLoading || !data) {
         return (
-            <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                {[...Array(10)].map((_, i) => (
-                    <div key={i} className="bg-white p-3 rounded-xl border border-neutral-100 h-20"></div>
-                ))}
+            <div className="p-4">
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-5">
+                    {[...Array(10)].map((_, i) => (
+                        <div key={i} className="h-20 rounded-xl border border-neutral-100 bg-white p-3" />
+                    ))}
+                </div>
             </div>
         );
     }
@@ -69,21 +71,23 @@ export default function EfficiencyKpiCards({ data, isLoading }: EfficiencyKpiCar
     ];
 
     return (
-        <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {kpis.map((kpi, idx) => (
-                <div key={idx} className="bg-white p-3 rounded-xl border border-yellow-100 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className={`p-1.5 rounded-lg ${kpi.bg} ${kpi.color}`}>
-                            <kpi.icon className="w-4 h-4" />
+        <div className="p-4">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-5">
+                {kpis.map((kpi, idx) => (
+                    <div key={idx} className="rounded-xl border border-yellow-100 bg-white p-3 shadow-sm transition-shadow hover:shadow-md">
+                        <div className="mb-2 flex items-center gap-3">
+                            <div className={`rounded-lg p-1.5 ${kpi.bg} ${kpi.color}`}>
+                                <kpi.icon className="h-4 w-4" />
+                            </div>
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">{kpi.label}</p>
                         </div>
-                        <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">{kpi.label}</p>
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-sm font-black text-neutral-900">{kpi.value}</span>
+                        </div>
+                        <p className="mt-0.5 text-[9px] font-medium text-neutral-400">{kpi.sub}</p>
                     </div>
-                    <div className="flex items-baseline gap-1">
-                        <span className="text-sm font-black text-neutral-900">{kpi.value}</span>
-                    </div>
-                    <p className="text-[9px] text-neutral-400 font-medium mt-0.5">{kpi.sub}</p>
-                </div>
-            ))}
+                ))}
+            </div>
         </div>
     );
 }

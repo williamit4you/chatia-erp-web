@@ -1,5 +1,7 @@
 import { ReactNode, forwardRef } from "react";
 import { BookOpenText, X, Search } from "lucide-react";
+import type { ChartMetricsItem } from "@/services/finance-analytics.service";
+import { formatPercent } from "@/lib/formatters/financeFormat";
 
 interface DashboardWidgetProps {
     id: string;
@@ -14,10 +16,18 @@ interface DashboardWidgetProps {
     onMouseDown?: React.MouseEventHandler;
     onMouseUp?: React.MouseEventHandler;
     onTouchEnd?: React.TouchEventHandler;
+    metrics?: ChartMetricsItem | null;
 }
 
 const DashboardWidget = forwardRef<HTMLDivElement, DashboardWidgetProps>(
-    ({ id, title, children, onRemove, onAnalyze, onDetails, showControls = false, className, style, onMouseDown, onMouseUp, onTouchEnd }, ref) => {
+    ({ id, title, children, onRemove, onAnalyze, onDetails, showControls = false, className, style, onMouseDown, onMouseUp, onTouchEnd, metrics }, ref) => {
+        const deltaPct = metrics?.deltaPct ?? null;
+        const direction = metrics?.direction ?? "flat";
+        const showDelta = deltaPct !== null && Number.isFinite(deltaPct);
+        const deltaColor =
+            direction === "up" ? "text-emerald-700" : direction === "down" ? "text-red-700" : "text-neutral-500";
+        const deltaArrow = direction === "up" ? "▲" : direction === "down" ? "▼" : "•";
+
         return (
             <div
                 ref={ref}
@@ -30,7 +40,14 @@ const DashboardWidget = forwardRef<HTMLDivElement, DashboardWidgetProps>(
                 {/* Header Area */}
                 <div className="flex items-center justify-between px-4 py-2 border-b border-neutral-50">
                     <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-bold text-neutral-700 truncate">{title}</h3>
+                        <div className="min-w-0">
+                            <h3 className="text-sm font-bold text-neutral-700 truncate">{title}</h3>
+                            {showDelta ? (
+                                <div className={`text-[10px] font-black uppercase tracking-wider ${deltaColor}`}>
+                                    {deltaArrow} {formatPercent(deltaPct, { maximumFractionDigits: 0 })} <span className="font-bold normal-case tracking-normal text-neutral-400">vs per. anterior</span>
+                                </div>
+                            ) : null}
+                        </div>
                     </div>
                     <div className="flex items-center gap-1">
                         {!showControls && onDetails && (

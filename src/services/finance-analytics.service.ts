@@ -131,6 +131,21 @@ export interface ChartQueryDetailsResponse {
     items: ChartQueryDetailsItem[];
 }
 
+export type ChartMetricDirection = "up" | "down" | "flat";
+
+export interface ChartMetricsItem {
+    chartId: string;
+    currentValue: number;
+    previousValue: number;
+    deltaAbs: number;
+    deltaPct: number | null;
+    direction: ChartMetricDirection;
+}
+
+export interface ChartMetricsResponse {
+    items: ChartMetricsItem[];
+}
+
 export type ChartSelection =
     | { kind: "category"; key: string; label?: string }
     | { kind: "range_bucket"; key: string; label?: string }
@@ -224,6 +239,15 @@ export const financeAnalyticsService = {
 
     getChartQueryDetails: async (params: { chartIds: string[]; startDate?: string; endDate?: string }): Promise<ChartQueryDetailsResponse> => {
         const response = await apiClient.post("/api/finance-analytics/chart-query-details", {
+            chartIds: params.chartIds,
+            startDate: params.startDate ? new Date(params.startDate).toISOString() : null,
+            endDate: params.endDate ? new Date(params.endDate).toISOString() : null,
+        });
+        return response.data;
+    },
+
+    getChartMetrics: async (params: { chartIds: string[]; startDate?: string; endDate?: string }): Promise<ChartMetricsResponse> => {
+        const response = await apiClient.post("/api/finance-analytics/charts/metrics", {
             chartIds: params.chartIds,
             startDate: params.startDate ? new Date(params.startDate).toISOString() : null,
             endDate: params.endDate ? new Date(params.endDate).toISOString() : null,

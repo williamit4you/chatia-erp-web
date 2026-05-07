@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import financeAnalyticsService, {
     AdvancedDashboard,
     AiAnalysisData,
+    ChartMetricsItem,
     FinanceSummary,
     MonthlyFlow,
 } from "@/services/finance-analytics.service";
@@ -246,6 +247,7 @@ export default function FinanceAnalyticsDashboard() {
     const [activeScope, setActiveScope] = useState<DashboardScope>("all");
     const [activeTab, setActiveTab] = useState<DashboardTabKey>("overview");
     const [widgets, setWidgets] = useState<WidgetConfig[]>(DEFAULT_WIDGETS);
+    const [chartMetrics, setChartMetrics] = useState<Record<string, ChartMetricsItem>>({});
 
     const [startDate, setStartDate] = useState<string>(() => {
         const d = new Date();
@@ -262,16 +264,20 @@ export default function FinanceAnalyticsDashboard() {
         setIsLoading(true);
         setError(null);
         try {
-            const [summaryData, flowData, aiData, advancedData] = await Promise.all([
+            const [summaryData, flowData, aiData, advancedData, metricsRes] = await Promise.all([
                 financeAnalyticsService.getSummary(start, end),
                 financeAnalyticsService.getMonthlyFlow(start, end),
                 financeAnalyticsService.getAiAnalysisData(start, end),
                 financeAnalyticsService.getAdvancedAnalytics(start, end),
+                financeAnalyticsService.getChartMetrics({ chartIds: widgets.map((w) => w.id), startDate: start, endDate: end }),
             ]);
             setSummary(summaryData);
             setMonthlyFlow(flowData);
             setAiAnalysis(aiData);
             setAdvanced(advancedData);
+            const nextMap: Record<string, ChartMetricsItem> = {};
+            for (const item of metricsRes.items || []) nextMap[item.chartId] = item;
+            setChartMetrics(nextMap);
         } catch (err: unknown) {
             console.error(err);
             setError("Erro ao carregar dados financeiros.");
@@ -861,6 +867,7 @@ export default function FinanceAnalyticsDashboard() {
                 <DashboardWidget
                     id={id}
                     title={widget.name}
+                    metrics={chartMetrics[id] ?? null}
                     onAnalyze={(selectedId) => {
                         setAnalysisChartId(selectedId);
                         setAnalysisStartDate(startDate);

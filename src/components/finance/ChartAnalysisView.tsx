@@ -3,7 +3,7 @@
 import { ReactNode, useMemo, useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { Bot, User, X, Send, Loader2, ArrowLeft, Info, MessageSquare, Sparkles, Calendar, Database, ChevronDown, ChevronUp, RefreshCw, PlusCircle, History, Trash2, BookOpenText, Maximize2, Minimize2, Download, ListTree } from "lucide-react";
-import financeAnalyticsService from "@/services/finance-analytics.service";
+import financeAnalyticsService, { type ChartMetricsItem } from "@/services/finance-analytics.service";
 import { getChartHint } from "@/lib/chartHints";
 import { toast } from "sonner";
 import { getDisplayContextUsage } from "@/lib/contextUtils";
@@ -16,6 +16,7 @@ import { getChartDetail } from "@/lib/chartDetails";
 import { adminService } from "@/services/admin.service";
 import { downloadCsv } from "@/lib/csvExport";
 import { chartCapabilities, getChartCapabilities } from "@/lib/chartCapabilities";
+import { formatPercent } from "@/lib/formatters/financeFormat";
 
 type ChartRenderFilters = {
     entityValue: string | null;
@@ -133,6 +134,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
     const [isReloading, setIsReloading] = useState(false);
     const [localData, setLocalData] = useState<any>(data);
     const [entityValue, setEntityValue] = useState<string | null>(null);
+    const [metrics, setMetrics] = useState<ChartMetricsItem | null>(null);
 
     useEffect(() => {
         setLocalData(data);
@@ -141,6 +143,24 @@ export default function ChartAnalysisView({ id, title, description: propDescript
     useEffect(() => {
         setEntityValue(null);
     }, [id]);
+
+    useEffect(() => {
+        let cancelled = false;
+        financeAnalyticsService
+            .getChartMetrics({ chartIds: [id], startDate, endDate })
+            .then((res) => {
+                if (cancelled) return;
+                const item = (res.items || []).find((x) => x.chartId === id) || null;
+                setMetrics(item);
+            })
+            .catch(() => {
+                if (cancelled) return;
+                setMetrics(null);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [endDate, id, startDate]);
 
     // Admin detection
     const userRole = (session?.user as any)?.role;
@@ -563,6 +583,21 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                     <div className="h-6 w-px bg-neutral-200"></div>
                     <div>
                         <h2 className="text-lg font-black text-neutral-900 uppercase tracking-tight">{title}</h2>
+                        {metrics?.deltaPct !== null && metrics?.deltaPct !== undefined ? (
+                            <div
+                                className={`text-[10px] font-black uppercase tracking-wider ${
+                                    metrics.direction === "up"
+                                        ? "text-emerald-700"
+                                        : metrics.direction === "down"
+                                          ? "text-red-700"
+                                          : "text-neutral-500"
+                                }`}
+                            >
+                                {metrics.direction === "up" ? "▲" : metrics.direction === "down" ? "▼" : "•"}{" "}
+                                {formatPercent(metrics.deltaPct, { maximumFractionDigits: 0 })}{" "}
+                                <span className="font-bold normal-case tracking-normal text-neutral-400">vs per. anterior</span>
+                            </div>
+                        ) : null}
                         <div className="flex items-center gap-3">
                             <div className="flex items-center gap-1.5 text-[10px] text-indigo-600 font-bold uppercase tracking-wider">
                                 <Bot className="w-3 h-3" />

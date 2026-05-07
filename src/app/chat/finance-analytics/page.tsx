@@ -257,7 +257,6 @@ export default function FinanceAnalyticsDashboard() {
     const [endDate, setEndDate] = useState<string>(() => new Date().toISOString().split("T")[0]);
 
     const userId = session?.user?.id || "default";
-    const userRole = (session?.user as any)?.role || "";
 
     const fetchData = async (start?: string, end?: string) => {
         setIsLoading(true);
@@ -391,8 +390,6 @@ export default function FinanceAnalyticsDashboard() {
         const user = session.user as any;
         const currentUserId = user.id || "default";
         const isAdmin = user.role === "TENANT_ADMIN" || user.role === "SUPER_ADMIN" || user.role === "ADMIN";
-        const isTenantAdmin = user.role === "TENANT_ADMIN";
-        const isSuperAdmin = user.role === "SUPER_ADMIN";
         const hasAnyAccess =
             isAdmin ||
             user.hasPayableDashboardAccess ||
@@ -412,7 +409,7 @@ export default function FinanceAnalyticsDashboard() {
         });
 
         setWidgets(availableWidgets);
-        setIsChartDetailsEnabled(Boolean(user.showChartDetails) && (isTenantAdmin || isSuperAdmin));
+        setIsChartDetailsEnabled(Boolean(user.showChartDetails));
 
         const savedScope = localStorage.getItem(`finance_v5_dashboard_scope_${currentUserId}`);
         if (savedScope && DASHBOARD_SCOPES.some((scope) => scope.key === savedScope)) {
@@ -426,7 +423,7 @@ export default function FinanceAnalyticsDashboard() {
 
         fetchData(startDate, endDate);
 
-        if (isTenantAdmin) {
+        if (user.role === "TENANT_ADMIN") {
             adminService
                 .getSettings()
                 .then((settings) => {

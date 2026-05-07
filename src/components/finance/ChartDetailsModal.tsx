@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { X, FileText, Database, Sigma, TrendingUp, AlertTriangle } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { ChartDetail } from "@/lib/chartDetails";
 import financeAnalyticsService, { ChartQueryDetailsItem } from "@/services/finance-analytics.service";
 
@@ -50,9 +51,9 @@ function SectionList({
 }
 
 export default function ChartDetailsModal({ isOpen, title, entries, onClose, startDate, endDate }: ChartDetailsModalProps) {
-    if (!isOpen) return null;
-
     const isSingle = entries.length === 1;
+    const { data: session } = useSession();
+    const canSeeSql = session?.user?.role === "TENANT_ADMIN" || session?.user?.role === "SUPER_ADMIN";
 
     const [queryDetailsByChartId, setQueryDetailsByChartId] = useState<Record<string, ChartQueryDetailsItem>>({});
     const [isLoadingQueries, setIsLoadingQueries] = useState(false);
@@ -94,6 +95,8 @@ export default function ChartDetailsModal({ isOpen, title, entries, onClose, sta
                 setIsLoadingQueries(false);
             });
     }, [chartIds, endDate, isOpen, queryKey, startDate]);
+
+    if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-neutral-950/55 p-4 backdrop-blur-sm">
@@ -185,7 +188,13 @@ export default function ChartDetailsModal({ isOpen, title, entries, onClose, sta
                                             </div>
                                         )}
 
-                                        {queryDetailsByChartId[entry.id]?.sqlQueries?.length > 0 && (
+                                        {!canSeeSql && (
+                                            <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">
+                                                SQL (SELECT/query) disponivel apenas para perfis TENANT_ADMIN e SUPER_ADMIN.
+                                            </div>
+                                        )}
+
+                                        {canSeeSql && queryDetailsByChartId[entry.id]?.sqlQueries?.length > 0 && (
                                             <div className="mt-4">
                                                 <p className="text-[11px] font-black uppercase tracking-[0.18em] text-neutral-500">SQL</p>
                                                 <div className="mt-2 space-y-2">

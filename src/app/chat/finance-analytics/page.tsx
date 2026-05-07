@@ -699,20 +699,28 @@ export default function FinanceAnalyticsDashboard() {
         items?.map((item) => ({ label: item.label || item.mesAno || "", valor: item.valor })) || [];
 
     const getWeekdayVolumeData = () => {
-        const labels = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
-        const totals = new Array(7).fill(0) as number[];
+        const weekdayLabels = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
 
-        advanced?.volumePorDia?.forEach((item) => {
-            const day = Number.parseInt(String(item.label).replace(/\D/g, ""), 10);
-            if (!Number.isFinite(day) || day < 1) return;
+        const fromApi = advanced?.volumePorDiaSemana;
+        if (Array.isArray(fromApi) && fromApi.length > 0) {
+            const totals: Record<string, number> = {};
+            for (const item of fromApi) {
+                if (!item?.label) continue;
+                totals[item.label] = (totals[item.label] || 0) + Number(item.valor || 0);
+            }
 
-            const referenceDate = new Date(2024, 0, day);
-            totals[referenceDate.getDay()] += item.valor;
-        });
+            // Keep UI ordering aligned with the design (Seg..Dom).
+            return [1, 2, 3, 4, 5, 6, 0].map((dayIndex) => ({
+                label: weekdayLabels[dayIndex],
+                valor: totals[weekdayLabels[dayIndex]] || 0,
+            }));
+        }
 
+        // Fallback: older backends didn't provide `volumePorDiaSemana`.
+        // We can't reliably derive weekday from day-of-month buckets, so return zeros.
         return [1, 2, 3, 4, 5, 6, 0].map((dayIndex) => ({
-            label: labels[dayIndex],
-            valor: totals[dayIndex],
+            label: weekdayLabels[dayIndex],
+            valor: 0,
         }));
     };
 

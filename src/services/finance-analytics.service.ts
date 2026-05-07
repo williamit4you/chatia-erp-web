@@ -189,6 +189,7 @@ export interface AdvancedDashboard {
 
     // Novas Coleções Fase 2
     volumePorDia: Distribution[];
+    volumePorDiaSemana: Distribution[];
     indiceLiquidezPorEmpresa: Distribution[];
     fluxoCaixaDiarioProjetado: MonthlyEvolution[];
     volumePorCpfCnpj: Distribution[];

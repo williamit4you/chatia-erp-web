@@ -11,10 +11,12 @@ interface AdvancedKpiCardsProps {
 export default function AdvancedKpiCards({ data, isLoading }: AdvancedKpiCardsProps) {
     if (isLoading || !data) {
         return (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="bg-white p-4 rounded-xl border border-neutral-100 shadow-sm h-24"></div>
-                ))}
+            <div className="p-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="h-24 rounded-xl border border-neutral-100 bg-white p-4 shadow-sm" />
+                    ))}
+                </div>
             </div>
         );
     }
@@ -79,22 +81,24 @@ export default function AdvancedKpiCards({ data, isLoading }: AdvancedKpiCardsPr
     ];
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            {kpis.map((kpi, idx) => (
-                <div key={idx} className="bg-white p-4 rounded-xl border border-neutral-100 shadow-sm flex items-center gap-4">
-                    <div className={`p-3 rounded-lg ${kpi.bgColor} ${kpi.color}`}>
-                        <kpi.icon className="w-6 h-6" />
-                    </div>
-                    <div>
-                        <p className="text-xs text-neutral-500 font-medium">{kpi.label}</p>
-                        <div className="flex items-baseline gap-1">
-                            <span className="text-xl font-bold text-neutral-900">{kpi.value}</span>
-                            <span className="text-xs text-neutral-400 font-medium">{kpi.suffix}</span>
+        <div className="p-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {kpis.map((kpi, idx) => (
+                    <div key={idx} className="flex items-center gap-4 rounded-xl border border-neutral-100 bg-white p-4 shadow-sm">
+                        <div className={`rounded-lg p-3 ${kpi.bgColor} ${kpi.color}`}>
+                            <kpi.icon className="h-6 w-6" />
                         </div>
-                        <p className="text-[10px] text-neutral-400 mt-0.5">{kpi.sub}</p>
+                        <div>
+                            <p className="text-xs font-medium text-neutral-500">{kpi.label}</p>
+                            <div className="flex items-baseline gap-1">
+                                <span className="text-xl font-bold text-neutral-900">{kpi.value}</span>
+                                <span className="text-xs font-medium text-neutral-400">{kpi.suffix}</span>
+                            </div>
+                            <p className="mt-0.5 text-[10px] text-neutral-400">{kpi.sub}</p>
+                        </div>
                     </div>
-                </div>
-            ))}
+                ))}
+            </div>
         </div>
     );
 }

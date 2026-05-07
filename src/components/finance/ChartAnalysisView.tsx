@@ -571,8 +571,8 @@ export default function ChartAnalysisView({ id, title, description: propDescript
     return (
         <div className="fixed inset-0 z-[110] bg-neutral-50 flex flex-col overflow-hidden animate-in fade-in duration-300">
             {/* Header */}
-            <header className="h-16 bg-white border-b border-neutral-200 flex items-center justify-between px-6 shrink-0">
-                <div className="flex items-center gap-4">
+            <header className="min-h-[64px] bg-white border-b border-neutral-200 flex flex-col gap-3 px-6 py-3 shrink-0 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex items-center gap-4 min-w-0">
                     <button 
                         onClick={onClose}
                         className="p-2 hover:bg-neutral-100 rounded-lg text-neutral-500 transition-colors"
@@ -633,7 +633,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                 </div>
 
                 {/* Date Filter */}
-                <div className="flex items-start gap-3">
+                <div className="flex items-start justify-end gap-3 flex-wrap lg:flex-nowrap">
                     <div className="flex flex-col gap-2 bg-neutral-50 p-2 rounded-xl border border-neutral-200">
                         <div className="flex flex-wrap items-center gap-2">
                         <Calendar className="w-4 h-4 text-neutral-400 ml-2" />

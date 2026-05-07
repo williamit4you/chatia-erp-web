@@ -3,6 +3,8 @@
 import type { ChartSelection, Distribution } from "@/services/finance-analytics.service";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { useDrilldownSelect } from "@/components/finance/drilldownContext";
+import { formatCurrency } from "@/lib/formatters/financeFormat";
+import { payableColors, semanticColors } from "@/lib/financeChartTokens";
 
 interface DistributionPieChartProps {
     data: Distribution[];
@@ -20,7 +22,8 @@ export default function DistributionPieChart({ data, isLoading, title, colors, m
         return <div className="h-[300px] w-full rounded-xl bg-neutral-50" />;
     }
 
-    const COLORS = colors || ["#2563eb", "#16a34a", "#f59e0b", "#f97316", "#8b5cf6", "#06b6d4", "#64748b"];
+    const COLORS =
+        colors || [semanticColors.info, semanticColors.positive, semanticColors.warning, payableColors.outflow, "#8b5cf6", "#06b6d4", semanticColors.neutral];
     const sortedData = [...(data || [])].filter((item) => Number.isFinite(item.valor)).sort((a, b) => b.valor - a.valor);
     const visibleData =
         sortedData.length > maxItems
@@ -46,8 +49,7 @@ export default function DistributionPieChart({ data, isLoading, title, colors, m
     const innerRadius = visibleData.length > 5 ? 52 : 58;
     const outerRadius = visibleData.length > 5 ? 78 : 86;
 
-    const formatCurrency = (value: number) =>
-        new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", notation: "compact", maximumFractionDigits: 1 }).format(value);
+    const formatMoney = (value: number, compact: boolean) => formatCurrency(value, { compact, maximumFractionDigits: compact ? 1 : 2 });
 
     return (
         <div className="flex h-[300px] w-full flex-col gap-3">
@@ -82,13 +84,13 @@ export default function DistributionPieChart({ data, isLoading, title, colors, m
                             </Pie>
                             <Tooltip
                                 contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
-                                formatter={(value: any) => formatCurrency(Number(value))}
+                                formatter={(value: any) => formatMoney(Number(value), false)}
                             />
                         </PieChart>
                     </ResponsiveContainer>
                     <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
                         <span className="text-[10px] font-black text-neutral-500">Total</span>
-                        <span className="text-xs font-black text-neutral-900">{formatCurrency(total)}</span>
+                        <span className="text-xs font-black text-neutral-900">{formatMoney(total, true)}</span>
                     </div>
                 </div>
                 <div className="flex min-w-0 flex-row flex-wrap content-center gap-2 overflow-hidden xl:flex-col xl:flex-nowrap xl:justify-center">

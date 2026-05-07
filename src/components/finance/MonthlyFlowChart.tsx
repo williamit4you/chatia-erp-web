@@ -2,6 +2,8 @@
 
 import { MonthlyFlow } from "@/services/finance-analytics.service";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { formatCurrency } from "@/lib/formatters/financeFormat";
+import { payableColors, semanticColors } from "@/lib/financeChartTokens";
 
 interface MonthlyFlowChartProps {
     data: MonthlyFlow[];
@@ -18,9 +20,8 @@ export default function MonthlyFlowChart({ data, isLoading }: MonthlyFlowChartPr
         );
     }
 
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(value);
-    };
+    const formatAxis = (value: number) => formatCurrency(value, { compact: true, maximumFractionDigits: 1 });
+    const formatTooltip = (value: number) => formatCurrency(value, { compact: false, maximumFractionDigits: 2 });
 
     return (
         <div className="bg-white rounded-xl border border-neutral-200 shadow-sm p-5 flex flex-col h-full">
@@ -39,12 +40,12 @@ export default function MonthlyFlowChart({ data, isLoading }: MonthlyFlowChartPr
                         >
                             <defs>
                                 <linearGradient id="colorRecebidos" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#059669" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#059669" stopOpacity={0} />
+                                    <stop offset="5%" stopColor={semanticColors.positive} stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor={semanticColors.positive} stopOpacity={0} />
                                 </linearGradient>
                                 <linearGradient id="colorPagos" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#f97316" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+                                    <stop offset="5%" stopColor={payableColors.outflow} stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor={payableColors.outflow} stopOpacity={0} />
                                 </linearGradient>
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
@@ -60,15 +61,15 @@ export default function MonthlyFlowChart({ data, isLoading }: MonthlyFlowChartPr
                                 fontSize={12}
                                 tickLine={false}
                                 axisLine={false}
-                                tickFormatter={formatCurrency}
+                                tickFormatter={formatAxis}
                             />
                             <Tooltip
-                                formatter={(value: any) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
+                                formatter={(value: any) => formatTooltip(Number(value))}
                                 contentStyle={{ borderRadius: '12px', border: '1px solid #E5E7EB', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                             />
-                            <Area type="monotone" name="Recebidos" dataKey="valoresRecebidos" stroke="#059669" fillOpacity={1} fill="url(#colorRecebidos)" />
-                            <Area type="monotone" name="Pagos" dataKey="valoresPagos" stroke="#f97316" fillOpacity={1} fill="url(#colorPagos)" />
-                            <Area type="monotone" name="A Vencer" dataKey="valoresAVencer" stroke="#f59e0b" fillOpacity={0} strokeDasharray="5 5" />
+                            <Area type="monotone" name="Recebidos" dataKey="valoresRecebidos" stroke={semanticColors.positive} fillOpacity={1} fill="url(#colorRecebidos)" />
+                            <Area type="monotone" name="Pagos" dataKey="valoresPagos" stroke={payableColors.outflow} fillOpacity={1} fill="url(#colorPagos)" />
+                            <Area type="monotone" name="A Vencer" dataKey="valoresAVencer" stroke={semanticColors.warning} fillOpacity={0} strokeDasharray="5 5" />
                         </AreaChart>
                     </ResponsiveContainer>
                 </div>

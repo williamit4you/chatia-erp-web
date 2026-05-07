@@ -15,6 +15,7 @@ import { DrilldownProvider } from "@/components/finance/drilldownContext";
 import { getChartDetail } from "@/lib/chartDetails";
 import { adminService } from "@/services/admin.service";
 import { downloadCsv } from "@/lib/csvExport";
+import { chartCapabilities, getChartCapabilities } from "@/lib/chartCapabilities";
 
 type ChartRenderFilters = {
     entityValue: string | null;
@@ -47,24 +48,19 @@ interface ChartAnalysisViewProps {
 }
 
 const getEntityFilterLabel = (chartId: string) => {
-    if (["liq_empresa"].includes(chartId)) return "Empresa";
-    if (["dist_rec_cliente", "pm_rec_cli", "tm_rec_cli", "docs_cli"].includes(chartId)) return "Cliente";
-    if (["dist_pag_fornecedor", "pm_pag_for", "tm_pag_for", "docs_for"].includes(chartId)) return "Fornecedor";
-    return null;
+    const dims = getChartCapabilities(chartId).dimensions ?? [];
+    if (dims.length === 0) return null;
+    if (dims.includes("empresa")) return "Empresa";
+    if (dims.includes("cliente")) return "Cliente";
+    if (dims.includes("fornecedor")) return "Fornecedor";
+    return "Entidade";
 };
 
-const CHARTS_WITH_DRILLDOWN_MVP = new Set<string>([
-    "dist_pag_fornecedor",
-    "dist_rec_cliente",
-    "dist_tipo_pag",
-    "dist_cond_pag",
-    "aging",
-    "dist_faixa_prazo",
-    "geo_pagar",
-    "geo_receber",
-    "top_pag",
-    "top_rec",
-]);
+const CHARTS_WITH_DRILLDOWN_MVP = new Set<string>(
+    Object.entries(chartCapabilities)
+        .filter(([, cap]) => cap.supportsDrilldown)
+        .map(([chartId]) => chartId)
+);
 
 function SqlViewer({ sqlQueries }: { sqlQueries: string }) {
     const [isOpen, setIsOpen] = useState(false);

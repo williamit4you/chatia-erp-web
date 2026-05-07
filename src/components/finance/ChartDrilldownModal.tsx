@@ -81,7 +81,7 @@ export default function ChartDrilldownModal({
         // Delay one tick to ensure state is applied before querying.
         const t = window.setTimeout(() => {
             lastAutoLoadedSelectionRef.current = initialSelectionValue;
-            load(1);
+            load(1, initialSelectionValue);
         }, 0);
         return () => window.clearTimeout(t);
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -96,7 +96,7 @@ export default function ChartDrilldownModal({
         if (lastAutoLoadedSelectionRef.current === selected) return;
 
         const t = window.setTimeout(() => {
-            load(1);
+            load(1, selected);
         }, 150);
         return () => window.clearTimeout(t);
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -105,16 +105,16 @@ export default function ChartDrilldownModal({
     const total = result?.meta?.total ?? 0;
     const totalPages = useMemo(() => (total ? Math.max(1, Math.ceil(total / pageSize)) : 1), [total, pageSize]);
 
-    const buildSelection = (): ChartSelection | null => {
-        if (!selected) return null;
-        if (kind === "geo_uf") return { kind, uf: selected, label: selected };
-        return { kind, key: selected, label: selected } as any;
+    const buildSelection = (value: string): ChartSelection | null => {
+        if (!value) return null;
+        if (kind === "geo_uf") return { kind, uf: value, label: value };
+        return { kind, key: value, label: value } as any;
     };
 
     const canSearch = Boolean(selected);
 
-    const load = async (nextPage?: number) => {
-        const selection = buildSelection();
+    const load = async (nextPage?: number, selectionValue?: string) => {
+        const selection = buildSelection(selectionValue ?? selected);
         if (!selection) {
             toast.error("Selecione um recorte para detalhar.");
             return;
@@ -199,7 +199,7 @@ export default function ChartDrilldownModal({
                         <button
                             type="button"
                             disabled={!canSearch || isLoading}
-                            onClick={() => load(1)}
+                            onClick={() => load(1, selected)}
                             className="h-11 shrink-0 rounded-2xl bg-neutral-900 px-5 text-xs font-black uppercase tracking-widest text-white transition hover:bg-black disabled:opacity-50 flex items-center justify-center gap-2"
                         >
                             <Search className="h-4 w-4" />
@@ -217,7 +217,7 @@ export default function ChartDrilldownModal({
                                 <button
                                     type="button"
                                     disabled={isLoading || page <= 1}
-                                    onClick={() => load(page - 1)}
+                                    onClick={() => load(page - 1, selected)}
                                     className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-200 text-neutral-700 hover:bg-neutral-50 disabled:opacity-40"
                                     title="Anterior"
                                 >
@@ -229,7 +229,7 @@ export default function ChartDrilldownModal({
                                 <button
                                     type="button"
                                     disabled={isLoading || page >= totalPages}
-                                    onClick={() => load(page + 1)}
+                                    onClick={() => load(page + 1, selected)}
                                     className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-200 text-neutral-700 hover:bg-neutral-50 disabled:opacity-40"
                                     title="Próxima"
                                 >

@@ -2,6 +2,8 @@
 
 import { CashProjection } from "@/services/finance-analytics.service";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { formatCurrency } from "@/lib/formatters/financeFormat";
+import { payableColors, semanticColors } from "@/lib/financeChartTokens";
 
 interface CashProjectionChartProps {
     data: CashProjection[];
@@ -36,19 +38,19 @@ export default function CashProjectionChart({ data, isLoading }: CashProjectionC
                             axisLine={false}
                             tickLine={false}
                             tick={{ fill: '#737373', fontSize: 12 }}
-                            tickFormatter={(value) => `R$ ${value >= 1000 ? (value / 1000).toFixed(0) + 'k' : value}`}
+                            tickFormatter={(value) => formatCurrency(Number(value), { compact: true, maximumFractionDigits: 1 })}
                         />
                         <Tooltip
                             labelFormatter={(label: any) => formatDate(String(label))}
                             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                            formatter={(value: any) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value))}
+                            formatter={(value: any) => formatCurrency(Number(value), { compact: false, maximumFractionDigits: 2 })}
                         />
                         <Legend verticalAlign="top" align="right" />
                         <Line
                             type="monotone"
                             dataKey="pagamentos"
                             name="Pagamentos"
-                            stroke="#f97316"
+                            stroke={payableColors.outflow}
                             strokeWidth={3}
                             dot={false}
                         />
@@ -56,7 +58,7 @@ export default function CashProjectionChart({ data, isLoading }: CashProjectionC
                             type="monotone"
                             dataKey="recebimentos"
                             name="Recebimentos"
-                            stroke="#10b981"
+                            stroke={semanticColors.positive}
                             strokeWidth={3}
                             dot={false}
                         />

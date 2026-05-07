@@ -3,6 +3,8 @@
 import { Aging, ChartSelection } from "@/services/finance-analytics.service";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { useDrilldownSelect } from "@/components/finance/drilldownContext";
+import { formatCurrency } from "@/lib/formatters/financeFormat";
+import { payableColors, semanticColors } from "@/lib/financeChartTokens";
 
 interface AgingChartProps {
     data: Aging[];
@@ -17,7 +19,7 @@ export default function AgingChart({ data, isLoading, onDrilldownSelect }: Aging
         return <div className="h-[300px] w-full bg-neutral-50 rounded-xl"></div>;
     }
 
-    const COLORS = ['#10b981', '#f59e0b', '#f97316', '#ef4444', '#7f1d1d'];
+    const COLORS = [semanticColors.positive, semanticColors.warning, payableColors.outflow, semanticColors.negative, "#7f1d1d"];
 
     return (
         <div className="bg-white p-6 rounded-xl border border-neutral-100 shadow-sm">
@@ -36,11 +38,11 @@ export default function AgingChart({ data, isLoading, onDrilldownSelect }: Aging
                             axisLine={false}
                             tickLine={false}
                             tick={{ fill: '#737373', fontSize: 12 }}
-                            tickFormatter={(value) => `R$ ${value >= 1000 ? (value / 1000).toFixed(0) + 'k' : value}`}
+                            tickFormatter={(value) => formatCurrency(Number(value), { compact: true, maximumFractionDigits: 1 })}
                         />
                         <Tooltip
                             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                            formatter={(value: any) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value))}
+                            formatter={(value: any) => formatCurrency(Number(value), { compact: false, maximumFractionDigits: 2 })}
                         />
                         <Bar
                             dataKey="valor"

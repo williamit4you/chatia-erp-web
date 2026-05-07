@@ -3,6 +3,7 @@
 import { Bar, BarChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { ChartSelection } from "@/services/finance-analytics.service";
 import { useDrilldownSelect } from "@/components/finance/drilldownContext";
+import { formatCurrency, formatNumber } from "@/lib/formatters/financeFormat";
 
 type BarLayout = "vertical" | "horizontal";
 
@@ -60,12 +61,10 @@ export default function DistributionBarChart({
     }));
 
     const chartHeight = layout === "horizontal" ? Math.max(260, chartData.length * 38) : 300;
-    const formatValue = (value: number) => {
-        if (valueKind === "number") {
-            return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 }).format(value);
-        }
-        return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", notation: "compact", maximumFractionDigits: 1 }).format(value);
-    };
+    const formatValue = (value: number) =>
+        valueKind === "number"
+            ? formatNumber(value, { compact: false, maximumFractionDigits: 0 })
+            : formatCurrency(value, { compact: true, maximumFractionDigits: 1 });
 
     if (layout === "horizontal") {
         return (

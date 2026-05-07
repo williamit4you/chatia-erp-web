@@ -29,9 +29,9 @@ export const chartCapabilities: Record<string, ChartCapabilities> = {
     geo_receber: { supportsPeriod: true, supportsDrilldown: true, supportsExport: true },
     top_pag: { supportsPeriod: true, supportsDrilldown: true, supportsExport: true },
     top_rec: { supportsPeriod: true, supportsDrilldown: true, supportsExport: true },
+    vol_cpf_cnpj: { supportsPeriod: true, supportsDrilldown: true, supportsExport: true },
 };
 
 export function getChartCapabilities(chartId: string): ChartCapabilities {
     return chartCapabilities[chartId] ?? { supportsPeriod: true };
 }
-

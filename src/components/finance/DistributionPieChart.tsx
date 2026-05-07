@@ -60,15 +60,16 @@ export default function DistributionPieChart({ data, isLoading, title, colors, m
     const total = visibleData.reduce((sum, item) => sum + item.valor, 0);
     const innerRadius = visibleData.length > 5 ? 52 : 58;
     const outerRadius = visibleData.length > 5 ? 78 : 86;
-    const chartCx = isXL ? (visibleData.length > 4 ? "36%" : "38%") : "50%";
+    // Shift slightly left on desktop, but keep enough margin to avoid clipping.
+    const chartCx = isXL ? "46%" : "50%";
 
     const formatMoney = (value: number, compact: boolean) => formatCurrency(value, { compact, maximumFractionDigits: compact ? 1 : 2 });
 
     return (
         <div className="flex h-[300px] w-full flex-col gap-3">
             {title && <h3 className="text-sm font-black text-neutral-900">{title}</h3>}
-            <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(180px,260px)]">
-                <div className="relative min-h-[210px]">
+            <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 xl:grid-cols-[minmax(220px,1fr)_minmax(180px,260px)]">
+                <div className="relative min-h-[210px] xl:pl-2">
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                             <Pie

@@ -633,8 +633,9 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                 </div>
 
                 {/* Date Filter */}
-                <div className="flex items-center gap-3">
-                    <div className="flex flex-wrap items-center gap-2 bg-neutral-50 p-1.5 rounded-xl border border-neutral-200">
+                <div className="flex items-start gap-3">
+                    <div className="flex flex-col gap-2 bg-neutral-50 p-2 rounded-xl border border-neutral-200">
+                        <div className="flex flex-wrap items-center gap-2">
                         <Calendar className="w-4 h-4 text-neutral-400 ml-2" />
                         <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="text-xs font-bold outline-none w-28 text-neutral-700 bg-transparent" />
                         <span className="text-neutral-300">/</span>
@@ -669,6 +670,8 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                             {isReloading ? <RefreshCw className="w-3 h-3 animate-spin" /> : null}
                             Filtrar
                         </button>
+                        </div>
+                        <div className="flex flex-wrap items-center justify-end gap-2">
                         {isChartDetailsEnabled && (
                             <button
                                 type="button"
@@ -702,6 +705,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                                 Drill-down
                             </button>
                         )}
+                        </div>
                     </div>
                     <button 
                         onClick={onClose}

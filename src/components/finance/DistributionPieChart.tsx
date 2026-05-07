@@ -60,6 +60,7 @@ export default function DistributionPieChart({ data, isLoading, title, colors, m
     const total = visibleData.reduce((sum, item) => sum + item.valor, 0);
     const innerRadius = visibleData.length > 5 ? 52 : 58;
     const outerRadius = visibleData.length > 5 ? 78 : 86;
+    const chartCx = isXL ? (visibleData.length > 4 ? "36%" : "38%") : "50%";
 
     const formatMoney = (value: number, compact: boolean) => formatCurrency(value, { compact, maximumFractionDigits: compact ? 1 : 2 });
 
@@ -72,7 +73,7 @@ export default function DistributionPieChart({ data, isLoading, title, colors, m
                         <PieChart>
                             <Pie
                                 data={visibleData}
-                                cx={isXL ? "42%" : "50%"}
+                                cx={chartCx}
                                 cy="50%"
                                 innerRadius={innerRadius}
                                 outerRadius={outerRadius}

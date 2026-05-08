@@ -38,8 +38,8 @@ type GeoGeometry =
 
 const DEFAULT_MAP_WIDTH = 330;
 const DEFAULT_MAP_HEIGHT = 300;
-const DETAIL_MAP_WIDTH = 300;
-const DETAIL_MAP_HEIGHT = 240;
+const DETAIL_MAP_WIDTH = 420;
+const DETAIL_MAP_HEIGHT = 320;
 
 const IBGE_CODE_TO_UF: Record<string, string> = {
     "11": "RO",
@@ -215,7 +215,7 @@ export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a", d
     const hoveredValue = hoveredUf ? valuesByUf.get(hoveredUf) || 0 : null;
 
     return (
-        <div className={`grid w-full items-center ${isDetailMode ? "h-[260px] grid-cols-[minmax(0,1fr)_72px] gap-3" : "h-[300px] grid-cols-[minmax(0,1fr)_92px] gap-4"}`}>
+        <div className={`grid w-full items-center ${isDetailMode ? "h-[320px] grid-cols-[minmax(0,1fr)_72px] gap-3" : "h-[300px] grid-cols-[minmax(0,1fr)_92px] gap-4"}`}>
             <div className="relative flex h-full min-w-0 items-center justify-center overflow-hidden">
                 <svg
                     viewBox={`0 0 ${mapWidth} ${mapHeight}`}

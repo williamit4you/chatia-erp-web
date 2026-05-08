@@ -942,6 +942,7 @@ export default function FinanceAnalyticsDashboard() {
                         data={adv?.performanceRecebimento?.map((item) => ({ label: item.categoria, valor: item.valor, percentual: 0 })) || []}
                         isLoading={analysisIsLoading}
                         colors={receivableTheme.chartPalette}
+                        displayMode="detail"
                     />
                 );
             case "dist_pag_fornecedor":
@@ -957,15 +958,17 @@ export default function FinanceAnalyticsDashboard() {
             case "geo_pagar":
                 return <BrazilUfMapChart data={adv?.geograficoPagar || []} isLoading={analysisIsLoading} color={payableTheme.primary} />;
             case "dist_tipo_pag":
-                return <DistributionPieChart title="" data={adv?.distribuicaoTipoPagamento || []} isLoading={analysisIsLoading} colors={payableTheme.chartPalette} />;
+                return <DistributionPieChart title="" data={adv?.distribuicaoTipoPagamento || []} isLoading={analysisIsLoading} colors={payableTheme.chartPalette} displayMode="detail" />;
             case "dist_cond_pag":
-                return <DistributionPieChart title="" data={adv?.distribuicaoCondicaoPagamento || []} isLoading={analysisIsLoading} colors={payableTheme.chartPalette} maxItems={6} />;
+                return <DistributionPieChart title="" data={adv?.distribuicaoCondicaoPagamento || []} isLoading={analysisIsLoading} colors={payableTheme.chartPalette} maxItems={6} displayMode="detail" />;
             case "faixa_pag":
                 return <DistributionBarChart data={adv?.distribuicaoFaixaValorPagar || []} isLoading={analysisIsLoading} color={payableTheme.primary} maxItems={6} />;
             case "evolucao_pag":
                 return <MonthlyEvolutionChart title="" data={adv?.evolucaoMensalPagamento || []} isLoading={analysisIsLoading} color={payableTheme.primary} fillColor={payableTheme.primary} dataKey="valor" />;
             case "curva_pag":
                 return <DistributionBarChart data={toBarData(adv?.curvaVencimentoPagar)} isLoading={analysisIsLoading} color={payableTheme.primary} maxItems={8} />;
+            case "top_pag":
+                return <DistributionPieChart title="" data={adv?.distribuicaoPagarFornecedor || []} isLoading={analysisIsLoading} colors={payableTheme.chartPalette} maxItems={6} displayMode="detail" />;
             case "dist_rec_cliente":
                 return (
                     <DistributionBarChart
@@ -984,10 +987,12 @@ export default function FinanceAnalyticsDashboard() {
                 return <MonthlyEvolutionChart title="" data={adv?.evolucaoMensalRecebimento || []} isLoading={analysisIsLoading} color={receivableTheme.primary} fillColor={receivableTheme.primary} dataKey="valor" />;
             case "curva_rec":
                 return <DistributionBarChart data={toBarData(adv?.curvaVencimentoReceber)} isLoading={analysisIsLoading} color={receivableTheme.primary} maxItems={8} />;
+            case "top_rec":
+                return <DistributionPieChart title="" data={adv?.distribuicaoReceberCliente || []} isLoading={analysisIsLoading} colors={receivableTheme.chartPalette} maxItems={6} displayMode="detail" />;
             case "efficiency_kpis":
                 return <EfficiencyKpiCards data={adv?.saudeFinanceira || null} isLoading={analysisIsLoading} />;
             case "vol_dia_mes":
-                return <DistributionPieChart title="" data={adv?.volumePorDia || []} isLoading={analysisIsLoading} colors={cashflowTheme.chartPalette} />;
+                return <DistributionPieChart title="" data={adv?.volumePorDia || []} isLoading={analysisIsLoading} colors={cashflowTheme.chartPalette} displayMode="detail" />;
             case "vol_dia_semana":
                 return <DistributionBarChart data={getWeekdayVolumeData()} isLoading={analysisIsLoading} color={cashflowTheme.primary} maxItems={7} preserveOrder />;
             case "liq_empresa":

@@ -23,6 +23,8 @@ export const chartCapabilities: Record<string, ChartCapabilities> = {
     // Drilldown MVP list from ChartAnalysisView
     dist_tipo_pag: { supportsPeriod: true, supportsDrilldown: true, supportsExport: true },
     dist_cond_pag: { supportsPeriod: true, supportsDrilldown: true, supportsExport: true },
+    curva_pag: { supportsPeriod: true, supportsDrilldown: true, supportsExport: true },
+    curva_rec: { supportsPeriod: true, supportsDrilldown: true, supportsExport: true },
     aging: { supportsPeriod: true, supportsDrilldown: true, supportsExport: true },
     dist_faixa_prazo: { supportsPeriod: true, supportsDrilldown: true, supportsExport: true },
     geo_pagar: { supportsPeriod: true, supportsDrilldown: true, supportsExport: true },

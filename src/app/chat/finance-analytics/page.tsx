@@ -785,7 +785,7 @@ export default function FinanceAnalyticsDashboard() {
             case "evolucao_pag":
                 return <MonthlyEvolutionChart title="" data={advanced?.evolucaoMensalPagamento || []} isLoading={isLoading} color={payableTheme.primary} fillColor={payableTheme.primary} dataKey="valor" />;
             case "curva_pag":
-                return <DistributionBarChart data={toBarData(advanced?.curvaVencimentoPagar)} isLoading={isLoading} color={payableTheme.primary} maxItems={8} />;
+                return <DistributionBarChart data={toBarData(advanced?.curvaVencimentoPagar)} isLoading={isLoading} color={payableTheme.primary} maxItems={8} drilldownKind="time_bucket" timeBucket="month" />;
             case "top_pag":
                 return <DistributionPieChart title="" data={advanced?.distribuicaoPagarFornecedor || []} isLoading={isLoading} colors={payableTheme.chartPalette} maxItems={6} />;
             case "dist_rec_cliente":
@@ -807,7 +807,7 @@ export default function FinanceAnalyticsDashboard() {
             case "evolucao_rec":
                 return <MonthlyEvolutionChart title="" data={advanced?.evolucaoMensalRecebimento || []} isLoading={isLoading} color={receivableTheme.primary} fillColor={receivableTheme.primary} dataKey="valor" />;
             case "curva_rec":
-                return <DistributionBarChart data={toBarData(advanced?.curvaVencimentoReceber)} isLoading={isLoading} color={receivableTheme.primary} maxItems={8} />;
+                return <DistributionBarChart data={toBarData(advanced?.curvaVencimentoReceber)} isLoading={isLoading} color={receivableTheme.primary} maxItems={8} drilldownKind="time_bucket" timeBucket="month" />;
             case "top_rec":
                 return <DistributionPieChart title="" data={advanced?.distribuicaoReceberCliente || []} isLoading={isLoading} colors={receivableTheme.chartPalette} maxItems={6} />;
             case "efficiency_kpis":
@@ -966,7 +966,7 @@ export default function FinanceAnalyticsDashboard() {
             case "evolucao_pag":
                 return <MonthlyEvolutionChart title="" data={adv?.evolucaoMensalPagamento || []} isLoading={analysisIsLoading} color={payableTheme.primary} fillColor={payableTheme.primary} dataKey="valor" />;
             case "curva_pag":
-                return <DistributionBarChart data={toBarData(adv?.curvaVencimentoPagar)} isLoading={analysisIsLoading} color={payableTheme.primary} maxItems={8} />;
+                return <DistributionBarChart data={toBarData(adv?.curvaVencimentoPagar)} isLoading={analysisIsLoading} color={payableTheme.primary} maxItems={8} drilldownKind="time_bucket" timeBucket="month" />;
             case "top_pag":
                 return <DistributionPieChart title="" data={adv?.distribuicaoPagarFornecedor || []} isLoading={analysisIsLoading} colors={payableTheme.chartPalette} maxItems={6} displayMode="detail" />;
             case "dist_rec_cliente":
@@ -986,7 +986,7 @@ export default function FinanceAnalyticsDashboard() {
             case "evolucao_rec":
                 return <MonthlyEvolutionChart title="" data={adv?.evolucaoMensalRecebimento || []} isLoading={analysisIsLoading} color={receivableTheme.primary} fillColor={receivableTheme.primary} dataKey="valor" />;
             case "curva_rec":
-                return <DistributionBarChart data={toBarData(adv?.curvaVencimentoReceber)} isLoading={analysisIsLoading} color={receivableTheme.primary} maxItems={8} />;
+                return <DistributionBarChart data={toBarData(adv?.curvaVencimentoReceber)} isLoading={analysisIsLoading} color={receivableTheme.primary} maxItems={8} drilldownKind="time_bucket" timeBucket="month" />;
             case "top_rec":
                 return <DistributionPieChart title="" data={adv?.distribuicaoReceberCliente || []} isLoading={analysisIsLoading} colors={receivableTheme.chartPalette} maxItems={6} displayMode="detail" />;
             case "efficiency_kpis":
@@ -1241,6 +1241,7 @@ export default function FinanceAnalyticsDashboard() {
                 <ChartAnalysisView
                     id={analysisChartId}
                     {...getWidgetInfo(analysisChartId)}
+                    data={getAnalysisWidgetData(analysisChartId)}
                     chartComponent={<div className="flex h-full w-full flex-col min-h-[500px]">{renderAnalysisWidgetContent(analysisChartId)}</div>}
                     renderChart={({ entityValue }) => (
                         <div className="flex h-full w-full flex-col min-h-[500px]">{renderAnalysisWidgetContent(analysisChartId, { entityValue })}</div>

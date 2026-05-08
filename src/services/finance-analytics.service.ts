@@ -148,6 +148,7 @@ export interface ChartMetricsResponse {
 
 export type ChartSelection =
     | { kind: "category"; key: string; label?: string }
+    | { kind: "time_bucket"; bucket: "day" | "month"; value: string; label?: string }
     | { kind: "range_bucket"; key: string; label?: string }
     | { kind: "geo_uf"; uf: string; label?: string };
 
@@ -283,6 +284,8 @@ export const financeAnalyticsService = {
         const selectionDto =
             params.selection.kind === "geo_uf"
                 ? { kind: params.selection.kind, uf: params.selection.uf, label: params.selection.label || null }
+                : params.selection.kind === "time_bucket"
+                  ? { kind: params.selection.kind, bucket: params.selection.bucket, value: params.selection.value, label: params.selection.label || null }
                 : { kind: params.selection.kind, key: params.selection.key, label: params.selection.label || null };
 
         const response = await apiClient.post("/api/finance-analytics/charts/drilldown", {

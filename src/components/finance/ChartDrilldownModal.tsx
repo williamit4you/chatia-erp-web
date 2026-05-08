@@ -123,6 +123,7 @@ export default function ChartDrilldownModal({
     const buildSelection = (value: string): ChartSelection | null => {
         if (!value) return null;
         if (kind === "geo_uf") return { kind, uf: value, label: value };
+        if (kind === "time_bucket") return { kind, bucket: "month", value, label: value };
         return { kind, key: value, label: value } as any;
     };
 

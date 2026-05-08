@@ -21,6 +21,8 @@ interface DistributionBarChartProps {
     valueKind?: "currency" | "number";
     preserveOrder?: boolean;
     showZeroLine?: boolean;
+    drilldownKind?: "category" | "time_bucket";
+    timeBucket?: "day" | "month";
     onDrilldownSelect?: (selection: ChartSelection) => void;
 }
 
@@ -33,6 +35,8 @@ export default function DistributionBarChart({
     valueKind = "currency",
     preserveOrder = false,
     showZeroLine = false,
+    drilldownKind = "category",
+    timeBucket = "month",
     onDrilldownSelect,
 }: DistributionBarChartProps) {
     const drilldownFromContext = useDrilldownSelect();
@@ -59,6 +63,10 @@ export default function DistributionBarChart({
         valor: item.valor,
         shortLabel: item.label.length > 11 ? `${item.label.slice(0, 10)}.` : item.label,
     }));
+    const buildDrilldownSelection = (label: string): ChartSelection =>
+        drilldownKind === "time_bucket"
+            ? { kind: "time_bucket", bucket: timeBucket, value: String(label), label: String(label) }
+            : { kind: "category", key: String(label), label: String(label) };
 
     const chartHeight = layout === "horizontal" ? Math.max(260, chartData.length * 38) : 300;
     const formatValue = (value: number) =>
@@ -91,7 +99,7 @@ export default function DistributionBarChart({
                                     if (!drillHandler) return;
                                     const label = d?.payload?.label;
                                     if (!label) return;
-                                    drillHandler({ kind: "category", key: String(label), label: String(label) });
+                                    drillHandler(buildDrilldownSelection(String(label)));
                                 }}
                             />
                         </BarChart>
@@ -133,7 +141,7 @@ export default function DistributionBarChart({
                             if (!drillHandler) return;
                             const label = d?.payload?.label;
                             if (!label) return;
-                            drillHandler({ kind: "category", key: String(label), label: String(label) });
+                            drillHandler(buildDrilldownSelection(String(label)));
                         }}
                     />
                 </BarChart>

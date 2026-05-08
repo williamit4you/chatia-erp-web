@@ -275,6 +275,11 @@ export default function ChartAnalysisView({ id, title, description: propDescript
             return { kind: "category" as const, options: options.map((o) => ({ label: o, value: o })) };
         }
 
+        if (["curva_pag", "curva_rec"].includes(id)) {
+            const options = uniq(source.map((r: any) => asString(r?.mesAno || r?.label))).sort((a, b) => b.localeCompare(a, "pt-BR"));
+            return { kind: "time_bucket" as const, options: options.map((o) => ({ label: o, value: o })) };
+        }
+
         // Range bucket charts
         if (id === "aging") {
             const options = uniq(source.map((r: any) => asString(r?.faixa))).sort((a, b) => a.localeCompare(b, "pt-BR"));
@@ -299,7 +304,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
         if (!selection?.kind) return;
         if (selection.kind !== drilldownConfig.kind) return;
 
-        const value = selection.kind === "geo_uf" ? selection.uf : selection.key;
+        const value = selection.kind === "geo_uf" ? selection.uf : selection.kind === "time_bucket" ? selection.value : selection.key;
         if (!value) return;
 
         setDrilldownInitialSelection(String(value));

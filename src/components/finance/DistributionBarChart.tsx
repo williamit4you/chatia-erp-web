@@ -4,6 +4,7 @@ import { Bar, BarChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Toolt
 import type { ChartSelection } from "@/services/finance-analytics.service";
 import { useDrilldownSelect } from "@/components/finance/drilldownContext";
 import { formatCurrency, formatNumber } from "@/lib/formatters/financeFormat";
+import ChartLoadingState from "@/components/finance/ChartLoadingState";
 
 type BarLayout = "vertical" | "horizontal";
 
@@ -42,7 +43,7 @@ export default function DistributionBarChart({
     const drilldownFromContext = useDrilldownSelect();
     const drillHandler = onDrilldownSelect ?? drilldownFromContext ?? null;
     if (isLoading) {
-        return <div className="h-[300px] w-full rounded-xl bg-neutral-50" />;
+        return <ChartLoadingState heightClass="h-[300px]" variant="bar" title="Grafico" />;
     }
 
     if (!data || data.length === 0) {

@@ -5,6 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { useDrilldownSelect } from "@/components/finance/drilldownContext";
 import { formatCurrency } from "@/lib/formatters/financeFormat";
 import { payableColors, semanticColors } from "@/lib/financeChartTokens";
+import ChartLoadingState from "@/components/finance/ChartLoadingState";
 
 interface AgingChartProps {
     data: Aging[];
@@ -16,7 +17,7 @@ export default function AgingChart({ data, isLoading, onDrilldownSelect }: Aging
     const drilldownFromContext = useDrilldownSelect();
     const drillHandler = onDrilldownSelect ?? drilldownFromContext ?? null;
     if (isLoading) {
-        return <div className="h-[300px] w-full bg-neutral-50 rounded-xl"></div>;
+        return <ChartLoadingState heightClass="h-[300px]" variant="bar" title="Aging" />;
     }
 
     const COLORS = [semanticColors.positive, semanticColors.warning, payableColors.outflow, semanticColors.negative, "#7f1d1d"];

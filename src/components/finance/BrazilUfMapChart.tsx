@@ -216,8 +216,14 @@ export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a", d
 
     return (
         <div className={`grid w-full items-center ${isDetailMode ? "h-[260px] grid-cols-[minmax(0,1fr)_72px] gap-3" : "h-[300px] grid-cols-[minmax(0,1fr)_92px] gap-4"}`}>
-            <div className="relative h-full min-w-0">
-                <svg viewBox={`0 0 ${mapWidth} ${mapHeight}`} className="h-full w-full" role="img" aria-label="Mapa do Brasil por UF">
+            <div className="relative flex h-full min-w-0 items-center justify-center overflow-hidden">
+                <svg
+                    viewBox={`0 0 ${mapWidth} ${mapHeight}`}
+                    className="block h-auto w-auto max-h-full max-w-full"
+                    preserveAspectRatio="xMidYMid meet"
+                    role="img"
+                    aria-label="Mapa do Brasil por UF"
+                >
                     <g>
                         {mapPaths.map((state) => {
                             const value = valuesByUf.get(state.uf) || 0;

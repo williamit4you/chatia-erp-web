@@ -4,6 +4,7 @@ import { CashProjection } from "@/services/finance-analytics.service";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { formatCurrency } from "@/lib/formatters/financeFormat";
 import { payableColors, semanticColors } from "@/lib/financeChartTokens";
+import ChartLoadingState from "@/components/finance/ChartLoadingState";
 
 interface CashProjectionChartProps {
     data: CashProjection[];
@@ -12,7 +13,7 @@ interface CashProjectionChartProps {
 
 export default function CashProjectionChart({ data, isLoading }: CashProjectionChartProps) {
     if (isLoading) {
-        return <div className="h-[300px] w-full bg-neutral-50 rounded-xl"></div>;
+        return <ChartLoadingState heightClass="h-[300px]" variant="line" title="Previsao" />;
     }
 
     const formatDate = (dateStr: string) => {

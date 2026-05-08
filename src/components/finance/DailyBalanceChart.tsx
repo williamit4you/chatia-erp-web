@@ -11,6 +11,7 @@ import {
     ReferenceLine
 } from "recharts";
 import { MonthlyEvolution } from "@/services/finance-analytics.service";
+import ChartLoadingState from "@/components/finance/ChartLoadingState";
 
 interface DailyBalanceChartProps {
     data: MonthlyEvolution[];
@@ -21,7 +22,7 @@ interface DailyBalanceChartProps {
 
 export default function DailyBalanceChart({ data, isLoading, title, color = "#6366f1" }: DailyBalanceChartProps) {
     if (isLoading) {
-        return <div className="w-full h-[300px] bg-neutral-50 rounded-xl" />;
+        return <ChartLoadingState heightClass="h-[300px]" variant="line" title={title || "Saldo"} />;
     }
 
     if (!data || data.length === 0) {

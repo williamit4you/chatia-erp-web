@@ -4,6 +4,7 @@ import { MonthlyFlow } from "@/services/finance-analytics.service";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { formatCurrency } from "@/lib/formatters/financeFormat";
 import { payableColors, semanticColors } from "@/lib/financeChartTokens";
+import ChartLoadingState from "@/components/finance/ChartLoadingState";
 
 interface MonthlyFlowChartProps {
     data: MonthlyFlow[];
@@ -12,12 +13,7 @@ interface MonthlyFlowChartProps {
 
 export default function MonthlyFlowChart({ data, isLoading }: MonthlyFlowChartProps) {
     if (isLoading) {
-        return (
-            <div className="bg-white rounded-xl border border-neutral-200 shadow-sm p-5 min-h-[400px]">
-                <div className="h-6 w-1/4 bg-neutral-200 rounded mb-8"></div>
-                <div className="h-[300px] w-full bg-neutral-100 rounded"></div>
-            </div>
-        );
+        return <ChartLoadingState heightClass="min-h-[400px]" variant="line" title="Fluxo mensal" />;
     }
 
     const formatAxis = (value: number) => formatCurrency(value, { compact: true, maximumFractionDigits: 1 });

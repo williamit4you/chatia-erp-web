@@ -6,6 +6,7 @@ import { useDrilldownSelect } from "@/components/finance/drilldownContext";
 import { formatCurrency } from "@/lib/formatters/financeFormat";
 import { payableColors, semanticColors } from "@/lib/financeChartTokens";
 import { useEffect, useState } from "react";
+import ChartLoadingState from "@/components/finance/ChartLoadingState";
 
 interface DistributionPieChartProps {
     data: Distribution[];
@@ -41,7 +42,7 @@ export default function DistributionPieChart({
     }, []);
 
     if (isLoading) {
-        return <div className={`${isDetailMode ? "h-full min-h-[420px]" : "h-[300px]"} w-full rounded-xl bg-neutral-50`} />;
+        return <ChartLoadingState heightClass={isDetailMode ? "h-full min-h-[420px]" : "h-[300px]"} variant="pie" title="Distribuicao" />;
     }
 
     const COLORS =

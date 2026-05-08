@@ -2,6 +2,7 @@
 
 import { MonthlyEvolution } from "@/services/finance-analytics.service";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import ChartLoadingState from "@/components/finance/ChartLoadingState";
 
 interface MonthlyEvolutionChartProps {
     data: MonthlyEvolution[];
@@ -14,7 +15,7 @@ interface MonthlyEvolutionChartProps {
 
 export default function MonthlyEvolutionChart({ data, isLoading, title, color, fillColor }: MonthlyEvolutionChartProps) {
     if (isLoading) {
-        return <div className="h-[300px] w-full bg-neutral-50 rounded-xl"></div>;
+        return <ChartLoadingState heightClass="h-[300px]" variant="line" title={title || "Evolucao"} />;
     }
 
     const formatCurrency = (value: number) => {

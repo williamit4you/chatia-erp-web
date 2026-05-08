@@ -74,7 +74,7 @@ export default function DistributionPieChart({
     const outerRadius = isDetailMode ? (visibleData.length > 5 ? 128 : 138) : visibleData.length > 5 ? 78 : 86;
     // Shift slightly left on desktop, but keep enough margin to avoid clipping.
     const chartCx = isXL ? (isDetailMode ? "44%" : "46%") : "50%";
-    const chartCy = isDetailMode ? "44%" : "50%";
+    const chartCy = "50%";
 
     const formatMoney = (value: number, compact: boolean) => formatCurrency(value, { compact, maximumFractionDigits: compact ? 1 : 2 });
 
@@ -82,42 +82,44 @@ export default function DistributionPieChart({
         <div className={`flex ${isDetailMode ? "h-full min-h-[420px]" : "h-[300px]"} w-full flex-col gap-3`}>
             {title && <h3 className="text-sm font-black text-neutral-900">{title}</h3>}
             <div className={`grid min-h-0 flex-1 grid-cols-1 gap-3 ${isDetailMode ? "xl:grid-cols-[minmax(340px,1.35fr)_minmax(220px,0.9fr)]" : "xl:grid-cols-[minmax(220px,1fr)_minmax(180px,260px)]"}`}>
-                <div className={`relative ${isDetailMode ? "min-h-[320px] xl:pl-4" : "min-h-[210px] xl:pl-2"}`}>
-                    <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                            <Pie
-                                data={visibleData}
-                                cx={chartCx}
-                                cy={chartCy}
-                                innerRadius={innerRadius}
-                                outerRadius={outerRadius}
-                                paddingAngle={visibleData.length > 5 ? 3 : 5}
-                                dataKey="valor"
-                                nameKey="label"
-                                onClick={(entry: any) => {
-                                    if (!drillHandler) return;
-                                    const label = entry?.label;
-                                    if (!label || label === "Outros") return;
-                                    drillHandler({ kind: "category", key: String(label), label: String(label) });
-                                }}
-                            >
-                                {visibleData.map((entry, index) => (
-                                    <Cell
-                                        key={`cell-${entry.label}-${index}`}
-                                        fill={COLORS[index % COLORS.length]}
-                                        className={drillHandler && entry.label !== "Outros" ? "cursor-pointer" : undefined}
-                                    />
-                                ))}
-                            </Pie>
-                            <Tooltip
-                                contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
-                                formatter={(value: any) => formatMoney(Number(value), false)}
-                            />
-                        </PieChart>
-                    </ResponsiveContainer>
-                    <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-                        <span className={`${isDetailMode ? "text-xs" : "text-[10px]"} font-black text-neutral-500`}>Total</span>
-                        <span className={`${isDetailMode ? "text-xl leading-tight" : "text-xs"} font-black text-neutral-900`}>{formatMoney(total, true)}</span>
+                <div className={`${isDetailMode ? "flex min-h-[320px] items-center justify-center xl:pl-4" : "relative min-h-[210px] xl:pl-2"}`}>
+                    <div className={`relative ${isDetailMode ? "h-[360px] w-full max-w-[520px]" : "h-full w-full"}`}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie
+                                    data={visibleData}
+                                    cx={chartCx}
+                                    cy={chartCy}
+                                    innerRadius={innerRadius}
+                                    outerRadius={outerRadius}
+                                    paddingAngle={visibleData.length > 5 ? 3 : 5}
+                                    dataKey="valor"
+                                    nameKey="label"
+                                    onClick={(entry: any) => {
+                                        if (!drillHandler) return;
+                                        const label = entry?.label;
+                                        if (!label || label === "Outros") return;
+                                        drillHandler({ kind: "category", key: String(label), label: String(label) });
+                                    }}
+                                >
+                                    {visibleData.map((entry, index) => (
+                                        <Cell
+                                            key={`cell-${entry.label}-${index}`}
+                                            fill={COLORS[index % COLORS.length]}
+                                            className={drillHandler && entry.label !== "Outros" ? "cursor-pointer" : undefined}
+                                        />
+                                    ))}
+                                </Pie>
+                                <Tooltip
+                                    contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
+                                    formatter={(value: any) => formatMoney(Number(value), false)}
+                                />
+                            </PieChart>
+                        </ResponsiveContainer>
+                        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+                            <span className={`${isDetailMode ? "text-xs" : "text-[10px]"} font-black text-neutral-500`}>Total</span>
+                            <span className={`${isDetailMode ? "text-xl leading-tight" : "text-xs"} font-black text-neutral-900`}>{formatMoney(total, true)}</span>
+                        </div>
                     </div>
                 </div>
                 <div className={`flex min-w-0 flex-row flex-wrap content-center gap-2 overflow-hidden xl:flex-col xl:flex-nowrap xl:justify-center xl:overflow-visible ${isDetailMode ? "xl:gap-3" : ""}`}>

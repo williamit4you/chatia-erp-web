@@ -2,17 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
-import financeAnalyticsService, {
-    AdvancedDashboard,
-    AiAnalysisData,
-    ChartMetricsItem,
-    FinanceSummary,
-    MonthlyFlow,
-} from "@/services/finance-analytics.service";
+import financeAnalyticsService, { AdvancedDashboard, ChartMetricsItem, FinanceSummary, MonthlyFlow } from "@/services/finance-analytics.service";
 
 import AdvancedKpiCards from "@/components/finance/AdvancedKpiCards";
 import AgingChart from "@/components/finance/AgingChart";
-import AiAnalysisPanel from "@/components/finance/AiAnalysisPanel";
 import BrazilUfMapChart from "@/components/finance/BrazilUfMapChart";
 import CashProjectionChart from "@/components/finance/CashProjectionChart";
 import ChartAnalysisView from "@/components/finance/ChartAnalysisView";
@@ -69,7 +62,6 @@ const DEFAULT_WIDGETS: WidgetConfig[] = [
     { id: "flow", name: "Fluxo Mensal Consolidado" },
     { id: "projection", name: "Previsão 30 Dias" },
     { id: "aging", name: "Aging (Atraso)" },
-    { id: "ai", name: "Análise Inteligente" },
     { id: "performance", name: "Performance Pagto" },
     { id: "dist_pag_fornecedor", name: "Pagar: Por Fornecedor" },
     { id: "geo_pagar", name: "Pagar: Por UF" },
@@ -136,7 +128,7 @@ const DASHBOARD_GROUPS: DashboardGroup[] = [
         description: "Resumo financeiro, KPIs básicos, fluxo consolidado e projeções principais.",
         theme: "general",
         variant: "wide",
-        widgetIds: ["summary", "kpis", "flow", "projection", "saldo_acumulado", "ai"],
+        widgetIds: ["summary", "kpis", "flow", "projection", "saldo_acumulado"],
     },
     {
         number: 2,
@@ -219,7 +211,6 @@ export default function FinanceAnalyticsDashboard() {
 
     const [summary, setSummary] = useState<FinanceSummary | null>(null);
     const [monthlyFlow, setMonthlyFlow] = useState<MonthlyFlow[]>([]);
-    const [aiAnalysis, setAiAnalysis] = useState<AiAnalysisData | null>(null);
     const [advanced, setAdvanced] = useState<AdvancedDashboard | null>(null);
 
     const [isLoading, setIsLoading] = useState(true);
@@ -231,7 +222,6 @@ export default function FinanceAnalyticsDashboard() {
     const [analysisIsLoading, setAnalysisIsLoading] = useState(false);
     const [analysisSummary, setAnalysisSummary] = useState<FinanceSummary | null>(null);
     const [analysisMonthlyFlow, setAnalysisMonthlyFlow] = useState<MonthlyFlow[] | null>(null);
-    const [analysisAiAnalysis, setAnalysisAiAnalysis] = useState<AiAnalysisData | null>(null);
     const [analysisAdvanced, setAnalysisAdvanced] = useState<AdvancedDashboard | null>(null);
     const [chartDetailsModalState, setChartDetailsModalState] = useState<{
         title: string;
@@ -262,16 +252,14 @@ export default function FinanceAnalyticsDashboard() {
         setIsLoading(true);
         setError(null);
         try {
-            const [summaryData, flowData, aiData, advancedData, metricsRes] = await Promise.all([
+            const [summaryData, flowData, advancedData, metricsRes] = await Promise.all([
                 financeAnalyticsService.getSummary(start, end),
                 financeAnalyticsService.getMonthlyFlow(start, end),
-                financeAnalyticsService.getAiAnalysisData(start, end),
                 financeAnalyticsService.getAdvancedAnalytics(start, end),
                 financeAnalyticsService.getChartMetrics({ chartIds: widgets.map((w) => w.id), startDate: start, endDate: end }),
             ]);
             setSummary(summaryData);
             setMonthlyFlow(flowData);
-            setAiAnalysis(aiData);
             setAdvanced(advancedData);
             const nextMap: Record<string, ChartMetricsItem> = {};
             for (const item of metricsRes.items || []) nextMap[item.chartId] = item;
@@ -297,7 +285,6 @@ export default function FinanceAnalyticsDashboard() {
     const analysisAdvancedCacheRef = useRef<Map<string, CacheEntry<AdvancedDashboard>>>(new Map());
     const analysisSummaryCacheRef = useRef<Map<string, CacheEntry<FinanceSummary>>>(new Map());
     const analysisFlowCacheRef = useRef<Map<string, CacheEntry<MonthlyFlow[]>>>(new Map());
-    const analysisAiCacheRef = useRef<Map<string, CacheEntry<AiAnalysisData>>>(new Map());
 
     const makeCacheKey = (chartId: string, start?: string, end?: string) => `${chartId}|${start || ""}|${end || ""}`;
 
@@ -335,7 +322,6 @@ export default function FinanceAnalyticsDashboard() {
                 if (!cached) cacheSet(analysisSummaryCacheRef.current, key, s, ANALYSIS_CACHE_MAX_SMALL);
                 setAnalysisSummary(s);
                 setAnalysisMonthlyFlow(null);
-                setAnalysisAiAnalysis(null);
                 setAnalysisAdvanced(null);
                 return;
             }
@@ -346,18 +332,6 @@ export default function FinanceAnalyticsDashboard() {
                 if (!cached) cacheSet(analysisFlowCacheRef.current, key, f, ANALYSIS_CACHE_MAX_SMALL);
                 setAnalysisMonthlyFlow(f);
                 setAnalysisSummary(null);
-                setAnalysisAiAnalysis(null);
-                setAnalysisAdvanced(null);
-                return;
-            }
-
-            if (["ai"].includes(chartId)) {
-                const cached = cacheGet(analysisAiCacheRef.current, key);
-                const ai = cached ?? (await financeAnalyticsService.getAiAnalysisData(start, end));
-                if (!cached) cacheSet(analysisAiCacheRef.current, key, ai, ANALYSIS_CACHE_MAX_SMALL);
-                setAnalysisAiAnalysis(ai);
-                setAnalysisSummary(null);
-                setAnalysisMonthlyFlow(null);
                 setAnalysisAdvanced(null);
                 return;
             }
@@ -369,7 +343,6 @@ export default function FinanceAnalyticsDashboard() {
             setAnalysisAdvanced(adv);
             setAnalysisSummary(null);
             setAnalysisMonthlyFlow(null);
-            setAnalysisAiAnalysis(null);
         } catch (err) {
             console.error("Erro ao carregar dados do grÃ¡fico:", err);
         } finally {
@@ -482,7 +455,6 @@ export default function FinanceAnalyticsDashboard() {
         if (!advanced) {
             if (id === "summary") return summary;
             if (id === "flow") return monthlyFlow;
-            if (id === "ai") return aiAnalysis;
             return null;
         }
 
@@ -498,8 +470,6 @@ export default function FinanceAnalyticsDashboard() {
                 return advanced.previsaoCaixa || [];
             case "aging":
                 return advanced.aging || [];
-            case "ai":
-                return aiAnalysis;
             case "performance":
                 return (
                     advanced.performanceRecebimento?.map((item) => ({ label: item.categoria, valor: item.valor, percentual: 0 })) || []
@@ -574,7 +544,6 @@ export default function FinanceAnalyticsDashboard() {
         // If we have per-analysis state, use it; otherwise fall back to dashboard state.
         if (analysisSummary && id === "summary") return analysisSummary;
         if (analysisMonthlyFlow && id === "flow") return analysisMonthlyFlow;
-        if (analysisAiAnalysis && id === "ai") return analysisAiAnalysis;
 
         const adv = analysisAdvanced || advanced;
         if (!adv) return getWidgetData(id);
@@ -651,7 +620,6 @@ export default function FinanceAnalyticsDashboard() {
             flow: "Comparativo mensal entre valores recebidos, pagos e previsoes de entradas.",
             projection: "Projecao detalhada de saldo e fluxo financeiro para os proximos 30 dias.",
             aging: "Análise de documentos vencidos distribuídos por faixas de atraso.",
-            ai: "Insights gerados automaticamente pela IA baseados em tendencias dos dados.",
             performance: "Mede a pontualidade dos recebimentos historicos.",
             dist_pag_fornecedor: "Identifica quais fornecedores concentram a maior parte das despesas em aberto.",
             geo_pagar: "Distribuicao geografica das obrigacoes financeiras por estado.",
@@ -689,7 +657,7 @@ export default function FinanceAnalyticsDashboard() {
     };
 
     const widgetFrameClass = (id: string) => {
-        if (["summary", "kpis", "ai"].includes(id)) return "xl:col-span-2";
+        if (["summary", "kpis"].includes(id)) return "xl:col-span-2";
         if (id === "efficiency_kpis") return "";
         if (["flow", "projection", "saldo_acumulado"].includes(id)) return "min-h-[410px]";
         return "min-h-[390px]";
@@ -751,8 +719,6 @@ export default function FinanceAnalyticsDashboard() {
                 return <CashProjectionChart data={advanced?.previsaoCaixa || []} isLoading={isLoading} />;
             case "aging":
                 return <AgingChart data={advanced?.aging || []} isLoading={isLoading} />;
-            case "ai":
-                return <AiAnalysisPanel data={aiAnalysis} isLoading={isLoading} />;
             case "performance":
                 return (
                     <DistributionPieChart
@@ -879,7 +845,6 @@ export default function FinanceAnalyticsDashboard() {
                         setAnalysisEndDate(endDate);
                         setAnalysisSummary(null);
                         setAnalysisMonthlyFlow(null);
-                        setAnalysisAiAnalysis(null);
                         setAnalysisAdvanced(null);
                         fetchAnalysisData(selectedId, startDate, endDate);
                     }}
@@ -920,7 +885,6 @@ export default function FinanceAnalyticsDashboard() {
         const adv = analysisAdvanced;
         const effectiveSummary = analysisSummary ?? summary;
         const effectiveFlow = analysisMonthlyFlow ?? monthlyFlow;
-        const effectiveAi = analysisAiAnalysis ?? aiAnalysis;
 
         switch (id) {
             case "kpis":
@@ -933,8 +897,6 @@ export default function FinanceAnalyticsDashboard() {
                 return <CashProjectionChart data={adv?.previsaoCaixa || []} isLoading={analysisIsLoading} />;
             case "aging":
                 return <AgingChart data={adv?.aging || []} isLoading={analysisIsLoading} />;
-            case "ai":
-                return <AiAnalysisPanel data={effectiveAi} isLoading={analysisIsLoading} />;
             case "performance":
                 return (
                     <DistributionPieChart
@@ -1252,7 +1214,6 @@ export default function FinanceAnalyticsDashboard() {
                         setAnalysisEndDate(null);
                         setAnalysisSummary(null);
                         setAnalysisMonthlyFlow(null);
-                        setAnalysisAiAnalysis(null);
                         setAnalysisAdvanced(null);
                     }}
                     initialStartDate={analysisStartDate || startDate}

@@ -956,7 +956,7 @@ export default function FinanceAnalyticsDashboard() {
                     />
                 );
             case "geo_pagar":
-                return <BrazilUfMapChart data={adv?.geograficoPagar || []} isLoading={analysisIsLoading} color={payableTheme.primary} />;
+                return <BrazilUfMapChart data={adv?.geograficoPagar || []} isLoading={analysisIsLoading} color={payableTheme.primary} displayMode="detail" />;
             case "dist_tipo_pag":
                 return <DistributionPieChart title="" data={adv?.distribuicaoTipoPagamento || []} isLoading={analysisIsLoading} colors={payableTheme.chartPalette} displayMode="detail" />;
             case "dist_cond_pag":
@@ -980,7 +980,7 @@ export default function FinanceAnalyticsDashboard() {
                     />
                 );
             case "geo_receber":
-                return <BrazilUfMapChart data={adv?.geograficoReceber || []} isLoading={analysisIsLoading} color={receivableTheme.primary} />;
+                return <BrazilUfMapChart data={adv?.geograficoReceber || []} isLoading={analysisIsLoading} color={receivableTheme.primary} displayMode="detail" />;
             case "faixa_rec":
                 return <DistributionBarChart data={adv?.distribuicaoFaixaValorReceber || []} isLoading={analysisIsLoading} color={receivableTheme.primary} maxItems={6} />;
             case "evolucao_rec":

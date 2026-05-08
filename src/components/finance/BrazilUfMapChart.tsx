@@ -10,6 +10,7 @@ interface BrazilUfMapChartProps {
     data: Geographic[];
     isLoading: boolean;
     color?: string;
+    displayMode?: "default" | "detail";
     onDrilldownSelect?: (selection: ChartSelection) => void;
 }
 
@@ -34,8 +35,10 @@ type GeoGeometry =
           coordinates: number[][][][];
       };
 
-const MAP_WIDTH = 330;
-const MAP_HEIGHT = 300;
+const DEFAULT_MAP_WIDTH = 330;
+const DEFAULT_MAP_HEIGHT = 300;
+const DETAIL_MAP_WIDTH = 300;
+const DETAIL_MAP_HEIGHT = 240;
 
 const IBGE_CODE_TO_UF: Record<string, string> = {
     "11": "RO",
@@ -152,18 +155,21 @@ const normalizeGeoDataForD3 = (geoData: GeoFeatureCollection): GeoFeatureCollect
     })),
 });
 
-export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a", onDrilldownSelect }: BrazilUfMapChartProps) {
+export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a", displayMode = "default", onDrilldownSelect }: BrazilUfMapChartProps) {
     const drilldownFromContext = useDrilldownSelect();
     const drillHandler = onDrilldownSelect ?? drilldownFromContext ?? null;
     const [hoveredUf, setHoveredUf] = useState<string | null>(null);
     const geoData = useMemo(() => normalizeGeoDataForD3(brUfsGeoJson as GeoFeatureCollection), []);
+    const isDetailMode = displayMode === "detail";
+    const mapWidth = isDetailMode ? DETAIL_MAP_WIDTH : DEFAULT_MAP_WIDTH;
+    const mapHeight = isDetailMode ? DETAIL_MAP_HEIGHT : DEFAULT_MAP_HEIGHT;
 
     const valuesByUf = useMemo(() => {
         return new Map(data.map((item) => [normalizeUf(item.local), item.valor]));
     }, [data]);
 
     const mapPaths = useMemo(() => {
-        const projection = geoMercator().fitSize([MAP_WIDTH, MAP_HEIGHT], geoData);
+        const projection = geoMercator().fitSize([mapWidth, mapHeight], geoData);
         const path = geoPath(projection);
 
         return geoData.features.map((feature) => {
@@ -176,10 +182,10 @@ export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a", o
                 centroid,
             };
         });
-    }, [geoData]);
+    }, [geoData, mapHeight, mapWidth]);
 
     if (isLoading) {
-        return <div className="h-[300px] w-full rounded-xl bg-neutral-50" />;
+        return <div className={`${isDetailMode ? "h-[260px]" : "h-[300px]"} w-full rounded-xl bg-neutral-50`} />;
     }
 
     const values = Array.from(valuesByUf.values());
@@ -199,9 +205,9 @@ export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a", o
     const hoveredValue = hoveredUf ? valuesByUf.get(hoveredUf) || 0 : null;
 
     return (
-        <div className="grid h-[300px] w-full grid-cols-[minmax(0,1fr)_92px] items-center gap-4">
+        <div className={`grid w-full items-center ${isDetailMode ? "h-[260px] grid-cols-[minmax(0,1fr)_72px] gap-3" : "h-[300px] grid-cols-[minmax(0,1fr)_92px] gap-4"}`}>
             <div className="relative h-full min-w-0">
-                <svg viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`} className="h-full w-full" role="img" aria-label="Mapa do Brasil por UF">
+                <svg viewBox={`0 0 ${mapWidth} ${mapHeight}`} className="h-full w-full" role="img" aria-label="Mapa do Brasil por UF">
                     <g>
                         {mapPaths.map((state) => {
                             const value = valuesByUf.get(state.uf) || 0;
@@ -232,16 +238,16 @@ export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a", o
                 </svg>
 
                 {hoveredUf && (
-                    <div className="pointer-events-none absolute left-3 top-3 rounded-lg border border-neutral-200 bg-white/95 px-3 py-2 text-xs font-bold text-neutral-700 shadow-sm">
+                    <div className={`pointer-events-none absolute left-3 top-3 rounded-lg border border-neutral-200 bg-white/95 font-bold text-neutral-700 shadow-sm ${isDetailMode ? "px-2.5 py-1.5 text-[11px]" : "px-3 py-2 text-xs"}`}>
                         <div className="text-neutral-900">{hoveredUf}</div>
                         <div>{formatCurrency(hoveredValue || 0)}</div>
                     </div>
                 )}
             </div>
 
-            <div className="flex flex-col items-center gap-2 text-[10px] font-bold text-neutral-500">
+            <div className={`flex flex-col items-center font-bold text-neutral-500 ${isDetailMode ? "gap-1.5 text-[9px]" : "gap-2 text-[10px]"}`}>
                 <span>Maior valor</span>
-                <div className="h-24 w-5 rounded" style={{ background: `linear-gradient(to bottom, ${color}, ${colorWithIntensity(color, 0.08)})` }} />
+                <div className={`${isDetailMode ? "h-20 w-4" : "h-24 w-5"} rounded`} style={{ background: `linear-gradient(to bottom, ${color}, ${colorWithIntensity(color, 0.08)})` }} />
                 <span>Menor valor</span>
             </div>
         </div>

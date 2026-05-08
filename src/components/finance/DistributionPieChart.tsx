@@ -74,6 +74,7 @@ export default function DistributionPieChart({
     const outerRadius = isDetailMode ? (visibleData.length > 5 ? 128 : 138) : visibleData.length > 5 ? 78 : 86;
     // Shift slightly left on desktop, but keep enough margin to avoid clipping.
     const chartCx = isXL ? (isDetailMode ? "44%" : "46%") : "50%";
+    const chartCy = isDetailMode ? "44%" : "50%";
 
     const formatMoney = (value: number, compact: boolean) => formatCurrency(value, { compact, maximumFractionDigits: compact ? 1 : 2 });
 
@@ -87,7 +88,7 @@ export default function DistributionPieChart({
                             <Pie
                                 data={visibleData}
                                 cx={chartCx}
-                                cy="50%"
+                                cy={chartCy}
                                 innerRadius={innerRadius}
                                 outerRadius={outerRadius}
                                 paddingAngle={visibleData.length > 5 ? 3 : 5}

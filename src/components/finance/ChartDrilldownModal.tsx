@@ -104,6 +104,21 @@ export default function ChartDrilldownModal({
 
     const total = result?.meta?.total ?? 0;
     const totalPages = useMemo(() => (total ? Math.max(1, Math.ceil(total / pageSize)) : 1), [total, pageSize]);
+    const visibleTotals = useMemo(() => {
+        if (!result?.columns?.length || !result?.rows?.length) return {};
+
+        return result.columns.reduce<Record<string, number>>((acc, col) => {
+            if (col.kind !== "currency" && col.kind !== "number") return acc;
+
+            const sum = result.rows.reduce((rowAcc, row) => {
+                const value = Number(row[col.key]);
+                return Number.isFinite(value) ? rowAcc + value : rowAcc;
+            }, 0);
+
+            acc[col.key] = sum;
+            return acc;
+        }, {});
+    }, [result]);
 
     const buildSelection = (value: string): ChartSelection | null => {
         if (!value) return null;
@@ -274,6 +289,21 @@ export default function ChartDrilldownModal({
                                         ))
                                     )}
                                 </tbody>
+                                {!isLoading && (result?.rows?.length || 0) > 0 && (
+                                    <tfoot className="border-t-2 border-neutral-200 bg-neutral-50/80">
+                                        <tr>
+                                            {result!.columns.map((col, index) => (
+                                                <td key={col.key} className="px-4 py-3 font-black text-neutral-900 whitespace-nowrap">
+                                                    {index === 0
+                                                        ? "Total"
+                                                        : col.kind === "currency" || col.kind === "number"
+                                                          ? formatCell(visibleTotals[col.key] ?? 0, col.kind)
+                                                          : "-"}
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    </tfoot>
+                                )}
                             </table>
                         </div>
                     </div>

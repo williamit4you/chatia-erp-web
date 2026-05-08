@@ -307,7 +307,17 @@ export const financeAnalyticsService = {
         startDate?: string;
         endDate?: string;
         sessionId?: string;
-    }): Promise<{ reply: string; sessionId: string; sqlQueries?: string; contextUsageScore?: number }> => {
+    }): Promise<{
+        reply: string;
+        sessionId: string;
+        sqlQueries?: string;
+        contextUsageScore?: number;
+        exportId?: string;
+        exportTotalLinhas?: number;
+        exportValorTotal?: number;
+        metricsTotalLinhas?: number;
+        metricsValorTotal?: number;
+    }> => {
         const response = await apiClient.post('/api/chat/analyze-chart', params);
         return response.data;
     },

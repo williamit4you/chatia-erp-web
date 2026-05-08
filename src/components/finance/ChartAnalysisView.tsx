@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { getDisplayContextUsage } from "@/lib/contextUtils";
 import MarkdownLite from "@/components/chat/MarkdownLite";
 import MiaAvatar from "@/components/chat/MiaAvatar";
+import ExportButtons from "@/components/chat/ExportButtons";
 import ChartDetailsModal from "@/components/finance/ChartDetailsModal";
 import ChartDrilldownModal from "@/components/finance/ChartDrilldownModal";
 import { DrilldownProvider } from "@/components/finance/drilldownContext";
@@ -27,6 +28,11 @@ interface ChatMessage {
     role: "user" | "assistant";
     content: string;
     sqlQueries?: string;
+    exportId?: string;
+    exportTotal?: number;
+    exportValor?: number;
+    metricsTotal?: number;
+    metricsValor?: number;
 }
 
 interface ChatSessionInfo {
@@ -532,7 +538,12 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                 id: (Date.now() + 1).toString(),
                 role: "assistant",
                 content: response.reply,
-                sqlQueries: response.sqlQueries || undefined
+                sqlQueries: response.sqlQueries || undefined,
+                exportId: response.exportId || undefined,
+                exportTotal: response.exportTotalLinhas || undefined,
+                exportValor: response.exportValorTotal || undefined,
+                metricsTotal: response.metricsTotalLinhas || undefined,
+                metricsValor: response.metricsValorTotal || undefined,
             };
             setMessages(prev => [...prev, aiMsg]);
             
@@ -966,6 +977,9 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                                             )}
                                             {isAdmin && msg.role === 'assistant' && msg.sqlQueries && (
                                                 <SqlViewer sqlQueries={msg.sqlQueries} />
+                                            )}
+                                            {msg.role === "assistant" && msg.exportId && (
+                                                <ExportButtons exportId={msg.exportId} exportTotal={msg.exportTotal} compact />
                                             )}
                                         </div>
                                     </div>

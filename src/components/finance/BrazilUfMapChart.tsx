@@ -5,6 +5,7 @@ import { geoMercator, geoPath } from "d3-geo";
 import { ChartSelection, Geographic } from "@/services/finance-analytics.service";
 import brUfsGeoJson from "@/data/br-ufs.json";
 import { useDrilldownSelect } from "@/components/finance/drilldownContext";
+import MapLoadingState from "@/components/finance/MapLoadingState";
 
 interface BrazilUfMapChartProps {
     data: Geographic[];
@@ -185,7 +186,16 @@ export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a", d
     }, [geoData, mapHeight, mapWidth]);
 
     if (isLoading) {
-        return <div className={`${isDetailMode ? "h-[260px]" : "h-[300px]"} w-full rounded-xl bg-neutral-50`} />;
+        return (
+            <MapLoadingState
+                svgPaths={mapPaths.map((state) => state.d).filter(Boolean)}
+                viewBoxWidth={mapWidth}
+                viewBoxHeight={mapHeight}
+                accentColor={color}
+                displayMode={displayMode}
+                label="Carregando mapa"
+            />
+        );
     }
 
     const values = Array.from(valuesByUf.values());

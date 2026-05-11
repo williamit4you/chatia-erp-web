@@ -11,6 +11,18 @@ export default function FinanceSummaryCards({ data, isLoading }: FinanceSummaryC
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
     };
 
+    const formatCurrencyForWrap = (value: number) => {
+        return formatCurrency(value).replace(/,/g, ",\u200B");
+    };
+
+    const getValueTextClass = (formattedValue: string) => {
+        const length = formattedValue.replace(/\s/g, "").length;
+
+        if (length >= 16) return "text-sm sm:text-base lg:text-lg";
+        if (length >= 13) return "text-base sm:text-lg lg:text-xl";
+        return "text-base sm:text-lg lg:text-xl";
+    };
+
     if (isLoading || !data) {
         return (
             <div className="p-4">
@@ -69,7 +81,10 @@ export default function FinanceSummaryCards({ data, isLoading }: FinanceSummaryC
     return (
         <div className="p-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6 2xl:grid-cols-5">
-                {cards.map((card, idx) => (
+                {cards.map((card, idx) => {
+                    const formattedValue = formatCurrency(card.value);
+
+                    return (
                     <div
                         key={idx}
                         className={`flex items-start justify-between gap-3 rounded-xl border border-neutral-100 bg-white p-4 shadow-sm
@@ -82,17 +97,18 @@ export default function FinanceSummaryCards({ data, isLoading }: FinanceSummaryC
                                 {card.title}
                             </p>
                             <h3
-                                className={`text-base font-bold leading-tight whitespace-normal break-all sm:text-lg lg:text-xl ${card.color}`}
-                                title={formatCurrency(card.value)}
+                                className={`${getValueTextClass(formattedValue)} font-bold leading-tight whitespace-normal [overflow-wrap:anywhere] ${card.color}`}
+                                title={formattedValue}
                             >
-                                {formatCurrency(card.value)}
+                                {formatCurrencyForWrap(card.value)}
                             </h3>
                         </div>
                         <div className={`mt-1 shrink-0 rounded-full p-2 lg:p-3 ${card.bgColor} ${card.color}`}>
                             <card.icon className="h-5 w-5 2xl:h-6 2xl:w-6" />
                         </div>
                     </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );

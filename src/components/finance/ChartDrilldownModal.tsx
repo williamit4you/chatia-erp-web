@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { X, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, Search, ChevronLeft, ChevronRight, Info } from "lucide-react";
 import financeAnalyticsService, { ChartSelection, ChartDrilldownResponse } from "@/services/finance-analytics.service";
 import { toast } from "sonner";
 
@@ -103,6 +103,7 @@ export default function ChartDrilldownModal({
     }, [isOpen, selected]);
 
     const total = result?.meta?.total ?? 0;
+    const pageRowCount = result?.meta?.pageRowCount ?? result?.rows?.length ?? 0;
     const totalPages = useMemo(() => (total ? Math.max(1, Math.ceil(total / pageSize)) : 1), [total, pageSize]);
     const visibleTotals = useMemo(() => {
         if (!result?.columns?.length || !result?.rows?.length) return {};
@@ -119,6 +120,7 @@ export default function ChartDrilldownModal({
             return acc;
         }, {});
     }, [result]);
+    const filteredTotals = result?.totals ?? {};
 
     const buildSelection = (value: string): ChartSelection | null => {
         if (!value) return null;
@@ -225,9 +227,16 @@ export default function ChartDrilldownModal({
 
                     <div className="rounded-3xl border border-neutral-200 bg-white overflow-hidden">
                         <div className="flex items-center justify-between gap-3 border-b border-neutral-100 px-4 py-3">
-                            <div className="text-xs font-black uppercase tracking-widest text-neutral-600">
-                                Resultados
-                                {typeof result?.meta?.total === "number" ? <span className="ml-2 text-neutral-400">({result.meta.total})</span> : null}
+                            <div className="min-w-0">
+                                <div className="text-xs font-black uppercase tracking-widest text-neutral-600">
+                                    Resultados
+                                    {typeof result?.meta?.total === "number" ? <span className="ml-2 text-neutral-400">({result.meta.total})</span> : null}
+                                </div>
+                                {result && (
+                                    <div className="mt-1 text-xs text-neutral-500">
+                                        Exibindo {pageRowCount} de {total} documento(s) filtrado(s).
+                                    </div>
+                                )}
                             </div>
                             <div className="flex items-center gap-2">
                                 <button
@@ -254,9 +263,40 @@ export default function ChartDrilldownModal({
                             </div>
                         </div>
 
-                        <div className="overflow-x-auto">
+                        {result && (
+                            <div className="grid gap-3 border-b border-neutral-100 bg-neutral-50/70 px-4 py-3 sm:grid-cols-2 xl:grid-cols-4">
+                                <div className="rounded-2xl border border-neutral-200 bg-white px-3 py-2">
+                                    <div className="text-[11px] font-black uppercase tracking-wider text-neutral-500">Documentos filtrados</div>
+                                    <div className="mt-1 text-lg font-black text-neutral-900">{total}</div>
+                                </div>
+                                {result.columns
+                                    .filter((col) => col.kind === "currency" || col.kind === "number")
+                                    .slice(0, 3)
+                                    .map((col) => (
+                                        <div key={col.key} className="rounded-2xl border border-neutral-200 bg-white px-3 py-2">
+                                            <div className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-neutral-500">
+                                                <span>{col.label}</span>
+                                                <span
+                                                    className="group relative inline-flex cursor-help items-center text-neutral-400"
+                                                    title={`Este total corresponde a todas as linhas filtradas do drill-down, e não apenas às linhas exibidas na página atual.`}
+                                                >
+                                                    <Info className="h-3.5 w-3.5" />
+                                                </span>
+                                            </div>
+                                            <div className="mt-1 text-lg font-black text-neutral-900">
+                                                {formatCell(filteredTotals[col.key] ?? 0, col.kind)}
+                                            </div>
+                                            <div className="mt-1 text-[11px] text-neutral-500">
+                                                Página atual: {formatCell(visibleTotals[col.key] ?? 0, col.kind)}
+                                            </div>
+                                        </div>
+                                    ))}
+                            </div>
+                        )}
+
+                        <div className="max-h-[52vh] overflow-auto">
                             <table className="min-w-full text-left text-sm">
-                                <thead className="bg-neutral-50 text-neutral-700">
+                                <thead className="sticky top-0 z-10 bg-neutral-50 text-neutral-700">
                                     <tr>
                                         {(result?.columns || []).map((col) => (
                                             <th key={col.key} className="px-4 py-3 text-xs font-black uppercase tracking-widest">
@@ -291,12 +331,12 @@ export default function ChartDrilldownModal({
                                     )}
                                 </tbody>
                                 {!isLoading && (result?.rows?.length || 0) > 0 && (
-                                    <tfoot className="border-t-2 border-neutral-200 bg-neutral-50/80">
+                                    <tfoot className="sticky bottom-0 border-t-2 border-neutral-200 bg-neutral-50/95 backdrop-blur">
                                         <tr>
                                             {result!.columns.map((col, index) => (
                                                 <td key={col.key} className="px-4 py-3 font-black text-neutral-900 whitespace-nowrap">
                                                     {index === 0
-                                                        ? "Total"
+                                                        ? "Total da página"
                                                         : col.kind === "currency" || col.kind === "number"
                                                           ? formatCell(visibleTotals[col.key] ?? 0, col.kind)
                                                           : "-"}

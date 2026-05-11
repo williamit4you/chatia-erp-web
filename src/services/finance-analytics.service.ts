@@ -161,7 +161,8 @@ export interface DrilldownColumn {
 export interface ChartDrilldownResponse {
     columns: DrilldownColumn[];
     rows: Record<string, any>[];
-    meta: { page: number; pageSize: number; total?: number };
+    meta: { page: number; pageSize: number; total?: number; pageRowCount?: number };
+    totals?: Record<string, number>;
 }
 
 export interface AdvancedDashboard {

@@ -758,7 +758,15 @@ export default function FinanceAnalyticsDashboard() {
             case "curva_pag":
                 return <DistributionBarChart data={toBarData(advanced?.curvaVencimentoPagar)} isLoading={isLoading} color={payableTheme.primary} maxItems={8} drilldownKind="time_bucket" timeBucket="month" />;
             case "top_pag":
-                return <DistributionPieChart title="" data={advanced?.distribuicaoPagarFornecedor || []} isLoading={isLoading} colors={payableTheme.chartPalette} maxItems={6} />;
+                return (
+                    <DistributionPieChart
+                        title=""
+                        data={(advanced?.topContasPagar || []).map((item) => ({ label: item.documento, valor: item.valor, percentual: 0 }))}
+                        isLoading={isLoading}
+                        colors={payableTheme.chartPalette}
+                        maxItems={6}
+                    />
+                );
             case "dist_rec_cliente":
                 return (
                     <DistributionBarChart
@@ -780,7 +788,15 @@ export default function FinanceAnalyticsDashboard() {
             case "curva_rec":
                 return <DistributionBarChart data={toBarData(advanced?.curvaVencimentoReceber)} isLoading={isLoading} color={receivableTheme.primary} maxItems={8} drilldownKind="time_bucket" timeBucket="month" />;
             case "top_rec":
-                return <DistributionPieChart title="" data={advanced?.distribuicaoReceberCliente || []} isLoading={isLoading} colors={receivableTheme.chartPalette} maxItems={6} />;
+                return (
+                    <DistributionPieChart
+                        title=""
+                        data={(advanced?.topContasReceber || []).map((item) => ({ label: item.documento, valor: item.valor, percentual: 0 }))}
+                        isLoading={isLoading}
+                        colors={receivableTheme.chartPalette}
+                        maxItems={6}
+                    />
+                );
             case "efficiency_kpis":
                 return <EfficiencyKpiCards data={advanced?.saudeFinanceira || null} isLoading={isLoading} />;
             case "vol_dia_mes":
@@ -935,7 +951,16 @@ export default function FinanceAnalyticsDashboard() {
             case "curva_pag":
                 return <DistributionBarChart data={toBarData(adv?.curvaVencimentoPagar)} isLoading={analysisIsLoading} color={payableTheme.primary} maxItems={8} drilldownKind="time_bucket" timeBucket="month" />;
             case "top_pag":
-                return <DistributionPieChart title="" data={adv?.distribuicaoPagarFornecedor || []} isLoading={analysisIsLoading} colors={payableTheme.chartPalette} maxItems={6} displayMode="detail" />;
+                return (
+                    <DistributionPieChart
+                        title=""
+                        data={(adv?.topContasPagar || []).map((item) => ({ label: item.documento, valor: item.valor, percentual: 0 }))}
+                        isLoading={analysisIsLoading}
+                        colors={payableTheme.chartPalette}
+                        maxItems={6}
+                        displayMode="detail"
+                    />
+                );
             case "dist_rec_cliente":
                 return (
                     <DistributionBarChart
@@ -955,7 +980,16 @@ export default function FinanceAnalyticsDashboard() {
             case "curva_rec":
                 return <DistributionBarChart data={toBarData(adv?.curvaVencimentoReceber)} isLoading={analysisIsLoading} color={receivableTheme.primary} maxItems={8} drilldownKind="time_bucket" timeBucket="month" />;
             case "top_rec":
-                return <DistributionPieChart title="" data={adv?.distribuicaoReceberCliente || []} isLoading={analysisIsLoading} colors={receivableTheme.chartPalette} maxItems={6} displayMode="detail" />;
+                return (
+                    <DistributionPieChart
+                        title=""
+                        data={(adv?.topContasReceber || []).map((item) => ({ label: item.documento, valor: item.valor, percentual: 0 }))}
+                        isLoading={analysisIsLoading}
+                        colors={receivableTheme.chartPalette}
+                        maxItems={6}
+                        displayMode="detail"
+                    />
+                );
             case "efficiency_kpis":
                 return <EfficiencyKpiCards data={adv?.saudeFinanceira || null} isLoading={analysisIsLoading} />;
             case "vol_dia_mes":

@@ -47,6 +47,16 @@ const formatCell = (value: any, kind?: string) => {
 
 const isNumericKind = (kind?: string) => kind === "currency" || kind === "number";
 
+const formatDisplayDate = (value: string) => {
+    if (!value) return "-";
+    const parts = value.split("-");
+    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return value;
+    return parsed.toLocaleDateString("pt-BR");
+};
+
 export default function ChartDrilldownModal({
     isOpen,
     chartId,
@@ -208,7 +218,7 @@ export default function ChartDrilldownModal({
                         <p className="text-[11px] font-black uppercase tracking-[0.18em] text-neutral-500">Drill-down</p>
                         <h2 className="mt-2 text-xl font-black tracking-tight text-neutral-900">{title}</h2>
                         <p className="mt-1 text-sm text-neutral-500">
-                            Selecione um recorte e visualize os itens detalhados do periodo de {startDate} a {endDate}.
+                            Selecione um recorte e visualize os itens detalhados do periodo de {formatDisplayDate(startDate)} a {formatDisplayDate(endDate)}.
                         </p>
                     </div>
                     <button

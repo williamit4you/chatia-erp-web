@@ -169,6 +169,14 @@ export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a", d
         return new Map(data.map((item) => [normalizeUf(item.local), item.valor]));
     }, [data]);
 
+    const rankedValues = useMemo(
+        () =>
+            data
+                .map((item) => ({ uf: normalizeUf(item.local), valor: item.valor }))
+                .sort((a, b) => b.valor - a.valor || a.uf.localeCompare(b.uf, "pt-BR")),
+        [data]
+    );
+
     const mapPaths = useMemo(() => {
         const projection = geoMercator().fitSize([mapWidth, mapHeight], geoData);
         const path = geoPath(projection);
@@ -215,7 +223,7 @@ export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a", d
     const hoveredValue = hoveredUf ? valuesByUf.get(hoveredUf) || 0 : null;
 
     return (
-        <div className={`grid w-full items-center ${isDetailMode ? "h-[320px] grid-cols-[minmax(0,1fr)_72px] gap-3" : "h-[300px] grid-cols-[minmax(0,1fr)_92px] gap-4"}`}>
+        <div className={`grid w-full items-stretch ${isDetailMode ? "h-[320px] grid-cols-[minmax(0,1fr)_156px_148px] gap-3" : "h-[300px] grid-cols-[minmax(0,1fr)_168px_96px] gap-4"}`}>
             <div className="relative flex h-full min-w-0 items-center justify-center overflow-hidden">
                 <svg
                     viewBox={`0 0 ${mapWidth} ${mapHeight}`}
@@ -259,6 +267,47 @@ export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a", d
                         <div>{formatCurrency(hoveredValue || 0)}</div>
                     </div>
                 )}
+            </div>
+
+            <div className={`min-h-0 overflow-hidden rounded-2xl border border-neutral-200 bg-white/90 ${isDetailMode ? "p-2.5" : "p-3"}`}>
+                <div className="mb-2 flex items-center justify-between gap-2">
+                    <span className={`font-black uppercase tracking-widest text-neutral-500 ${isDetailMode ? "text-[9px]" : "text-[10px]"}`}>Valores por UF</span>
+                    <span className={`font-bold text-neutral-400 ${isDetailMode ? "text-[9px]" : "text-[10px]"}`}>{rankedValues.length}</span>
+                </div>
+
+                <div className="h-full overflow-y-auto pr-1">
+                    <div className="space-y-1.5">
+                        {rankedValues.length === 0 ? (
+                            <div className={`rounded-xl bg-neutral-50 text-neutral-400 ${isDetailMode ? "px-2 py-2 text-[10px]" : "px-2.5 py-2 text-[11px]"}`}>
+                                Sem valores no periodo
+                            </div>
+                        ) : (
+                            rankedValues.map((item) => {
+                                const isHovered = hoveredUf === item.uf;
+                                return (
+                                    <button
+                                        key={item.uf}
+                                        type="button"
+                                        onMouseEnter={() => setHoveredUf(item.uf)}
+                                        onMouseLeave={() => setHoveredUf(null)}
+                                        onClick={() => {
+                                            if (!drillHandler) return;
+                                            drillHandler({ kind: "geo_uf", uf: item.uf, label: item.uf });
+                                        }}
+                                        className={`flex w-full items-center justify-between rounded-xl border px-2.5 py-2 text-left transition ${
+                                            isHovered
+                                                ? "border-neutral-300 bg-neutral-50"
+                                                : "border-transparent bg-neutral-50/70 hover:border-neutral-200 hover:bg-neutral-50"
+                                        } ${drillHandler ? "cursor-pointer" : "cursor-default"}`}
+                                    >
+                                        <span className={`font-black text-neutral-700 ${isDetailMode ? "text-[10px]" : "text-[11px]"}`}>{item.uf}</span>
+                                        <span className={`font-bold tabular-nums text-neutral-600 ${isDetailMode ? "text-[10px]" : "text-[11px]"}`}>{formatCurrency(item.valor)}</span>
+                                    </button>
+                                );
+                            })
+                        )}
+                    </div>
+                </div>
             </div>
 
             <div className={`flex flex-col items-center font-bold text-neutral-500 ${isDetailMode ? "gap-1.5 text-[9px]" : "gap-2 text-[10px]"}`}>

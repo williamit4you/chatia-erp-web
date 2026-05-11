@@ -201,8 +201,8 @@ export default function ChartDrilldownModal({
     const aggregateColumns = (result?.columns || []).filter((col) => col.kind === "currency" || col.kind === "number");
 
     return (
-        <div className="fixed inset-0 z-[130] flex items-center justify-center bg-neutral-950/55 p-4 backdrop-blur-sm">
-            <div className="flex max-h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-[28px] border border-neutral-200 bg-white shadow-[0_40px_120px_-40px_rgba(15,23,42,0.45)]">
+        <div className="fixed inset-0 z-[130] flex items-start justify-center overflow-y-auto bg-neutral-950/55 p-4 backdrop-blur-sm">
+            <div className="my-4 flex max-h-[calc(100vh-2rem)] w-full max-w-6xl flex-col overflow-hidden rounded-[28px] border border-neutral-200 bg-white shadow-[0_40px_120px_-40px_rgba(15,23,42,0.45)]">
                 <div className="flex items-start justify-between gap-4 border-b border-neutral-100 px-6 py-5 sm:px-8">
                     <div>
                         <p className="text-[11px] font-black uppercase tracking-[0.18em] text-neutral-500">Drill-down</p>
@@ -221,7 +221,7 @@ export default function ChartDrilldownModal({
                     </button>
                 </div>
 
-                <div className="flex flex-col gap-4 overflow-y-auto px-6 py-6 sm:px-8">
+                <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden px-6 py-6 sm:px-8">
                     {isManualMode && !result && (
                         <div className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700">
                             Dica: feche este modal e clique em uma fatia, barra ou faixa do grafico para abrir o drill-down ja selecionado.
@@ -262,7 +262,7 @@ export default function ChartDrilldownModal({
                         </button>
                     </div>
 
-                    <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-white">
+                    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-neutral-200 bg-white">
                         <div className="flex flex-col gap-3 border-b border-neutral-100 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
                             <div className="min-w-0">
                                 <div className="text-xs font-black uppercase tracking-widest text-neutral-600">
@@ -321,7 +321,7 @@ export default function ChartDrilldownModal({
                         </div>
 
                         {result && (
-                            <div className="grid gap-3 border-b border-neutral-100 bg-neutral-50/70 px-4 py-3 sm:grid-cols-2 xl:grid-cols-4">
+                            <div className="shrink-0 grid gap-3 border-b border-neutral-100 bg-neutral-50/70 px-4 py-3 sm:grid-cols-2 xl:grid-cols-4">
                                 <div className="rounded-2xl border border-neutral-200 bg-white px-3 py-2">
                                     <div className="text-[11px] font-black uppercase tracking-wider text-neutral-500">Documentos filtrados</div>
                                     <div className="mt-1 text-lg font-black text-neutral-900">{total}</div>
@@ -345,7 +345,7 @@ export default function ChartDrilldownModal({
                             </div>
                         )}
 
-                        <div className="max-h-[52vh] overflow-auto">
+                        <div className="min-h-0 flex-1 overflow-auto">
                             <table className="min-w-full text-left text-sm">
                                 <thead className="sticky top-0 z-10 bg-neutral-50 text-neutral-700">
                                     <tr>

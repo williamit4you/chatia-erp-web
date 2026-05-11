@@ -270,8 +270,11 @@ export default function ChartAnalysisView({ id, title, description: propDescript
         const uniq = (arr: string[]) => Array.from(new Set(arr.filter(Boolean)));
 
         // Category-based charts
-        if (["dist_pag_fornecedor", "dist_rec_cliente", "dist_tipo_pag", "dist_cond_pag", "top_pag", "top_rec", "vol_cpf_cnpj"].includes(id)) {
-            const options = uniq(source.map((r: any) => asString(r?.label))).sort((a, b) => a.localeCompare(b, "pt-BR"));
+        if (["dist_pag_fornecedor", "dist_rec_cliente", "dist_tipo_pag", "dist_cond_pag", "top_pag", "top_rec", "vol_cpf_cnpj", "vol_dia_mes"].includes(id)) {
+            const options = uniq(source.map((r: any) => asString(r?.label))).sort((a, b) => {
+                if (id === "vol_dia_mes") return Number(a) - Number(b);
+                return a.localeCompare(b, "pt-BR");
+            });
             return { kind: "category" as const, options: options.map((o) => ({ label: o, value: o })) };
         }
 

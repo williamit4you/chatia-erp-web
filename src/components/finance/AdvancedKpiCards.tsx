@@ -89,12 +89,12 @@ export default function AdvancedKpiCards({ data, isLoading }: AdvancedKpiCardsPr
                             <kpi.icon className="h-6 w-6" />
                         </div>
                         <div>
-                            <p className="text-xs font-medium text-neutral-500">{kpi.label}</p>
+                            <p className="text-xs font-medium text-neutral-600">{kpi.label}</p>
                             <div className="flex items-baseline gap-1">
                                 <span className="text-xl font-bold text-neutral-900">{kpi.value}</span>
-                                <span className="text-xs font-medium text-neutral-400">{kpi.suffix}</span>
+                                <span className="text-xs font-medium text-neutral-500">{kpi.suffix}</span>
                             </div>
-                            <p className="mt-0.5 text-[10px] text-neutral-400">{kpi.sub}</p>
+                            <p className="mt-1 text-[11px] font-semibold leading-4 text-neutral-600">{kpi.sub}</p>
                         </div>
                     </div>
                 ))}

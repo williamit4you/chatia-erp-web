@@ -72,20 +72,23 @@ export default function FinanceSummaryCards({ data, isLoading }: FinanceSummaryC
                 {cards.map((card, idx) => (
                     <div
                         key={idx}
-                        className={`flex items-center justify-between gap-2 overflow-hidden rounded-xl border border-neutral-100 bg-white p-4 shadow-sm
+                        className={`flex items-start justify-between gap-3 rounded-xl border border-neutral-100 bg-white p-4 shadow-sm
                             ${idx < 2 ? "lg:col-span-3 2xl:col-span-1" : "lg:col-span-2 2xl:col-span-1"}
                             sm:col-span-1
                         `}
                     >
-                        <div className="w-full overflow-hidden">
-                            <p className="mb-1 truncate text-xs font-medium text-neutral-500 sm:text-sm" title={card.title}>
+                        <div className="min-w-0 flex-1">
+                            <p className="mb-1 text-xs font-medium leading-5 text-neutral-500 sm:text-sm" title={card.title}>
                                 {card.title}
                             </p>
-                            <h3 className={`truncate text-base font-bold sm:text-lg lg:text-xl ${card.color}`} title={formatCurrency(card.value)}>
+                            <h3
+                                className={`text-base font-bold leading-tight whitespace-normal break-all sm:text-lg lg:text-xl ${card.color}`}
+                                title={formatCurrency(card.value)}
+                            >
                                 {formatCurrency(card.value)}
                             </h3>
                         </div>
-                        <div className={`shrink-0 rounded-full p-2 lg:p-3 ${card.bgColor} ${card.color}`}>
+                        <div className={`mt-1 shrink-0 rounded-full p-2 lg:p-3 ${card.bgColor} ${card.color}`}>
                             <card.icon className="h-5 w-5 2xl:h-6 2xl:w-6" />
                         </div>
                     </div>

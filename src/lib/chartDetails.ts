@@ -360,13 +360,13 @@ const DETAILS: Record<string, ChartDetail> = {
         ],
     },
     vol_cpf_cnpj: {
-        objective: "Mostra o volume financeiro por documento identificador.",
+        objective: "Mostra o volume financeiro por razão social.",
         calculation: [
-            "Agrupa os movimentos pelo CPF ou CNPJ relacionado.",
+            "Agrupa os movimentos pela razão social relacionada.",
             "Soma os valores para identificar concentrações relevantes.",
         ],
         dataSources: [
-            "Movimentações consolidadas por documento fiscal.",
+            "Movimentações consolidadas por cliente ou fornecedor.",
         ],
         interpretation: [
             "Ajuda a detectar concentração em poucos grupos econômicos.",

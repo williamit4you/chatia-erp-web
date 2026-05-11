@@ -79,12 +79,12 @@ export default function EfficiencyKpiCards({ data, isLoading }: EfficiencyKpiCar
                             <div className={`rounded-lg p-1.5 ${kpi.bg} ${kpi.color}`}>
                                 <kpi.icon className="h-4 w-4" />
                             </div>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">{kpi.label}</p>
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">{kpi.label}</p>
                         </div>
                         <div className="flex items-baseline gap-1">
-                            <span className="text-sm font-black text-neutral-900">{kpi.value}</span>
+                            <span className="text-base font-black text-neutral-900">{kpi.value}</span>
                         </div>
-                        <p className="mt-0.5 text-[9px] font-medium text-neutral-400">{kpi.sub}</p>
+                        <p className="mt-1 text-[11px] font-semibold leading-4 text-neutral-600">{kpi.sub}</p>
                     </div>
                 ))}
             </div>

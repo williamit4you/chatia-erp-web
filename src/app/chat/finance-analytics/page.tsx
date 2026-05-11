@@ -82,7 +82,7 @@ const DEFAULT_WIDGETS: WidgetConfig[] = [
     { id: "vol_dia_semana", name: "Gestão: Vol. por Dia da Semana" },
     { id: "liq_empresa", name: "Gestão: Líq. por Empresa" },
     { id: "fluxo_diario_proj", name: "Gestão: Fluxo Diário Proj." },
-    { id: "vol_cpf_cnpj", name: "Gestão: Vol. por CPF/CNPJ" },
+    { id: "vol_cpf_cnpj", name: "Gestão: Vol. por Razão Social" },
     { id: "saldo_acumulado", name: "Gestão: Saldo Acumulado" },
     { id: "dist_faixa_prazo", name: "Gestão: Faixas de Prazo" },
     { id: "pm_rec_cli", name: "F3: PM Rec. por Cliente" },
@@ -513,14 +513,7 @@ export default function FinanceAnalyticsDashboard() {
             case "vol_cpf_cnpj":
                 return advanced.volumePorCpfCnpj || [];
             case "saldo_acumulado":
-                return (
-                    advanced.evolucaoSaldo?.map((item: any) => ({
-                        ano: 2024,
-                        mes: 1,
-                        valor: item.saldoAcumulado,
-                        mesAno: item.data.toString().split("T")[0],
-                    })) || []
-                );
+                return getSaldoAcumuladoData();
             case "dist_faixa_prazo":
                 return advanced.distribuicaoFaixaPrazoVencimento || [];
             case "pm_rec_cli":
@@ -594,6 +587,8 @@ export default function FinanceAnalyticsDashboard() {
                 return adv.fluxoCaixaDiarioProjetado || [];
             case "vol_cpf_cnpj":
                 return adv.volumePorCpfCnpj || [];
+            case "saldo_acumulado":
+                return mapSaldoAcumuladoData(adv.evolucaoSaldo as any);
             case "dist_faixa_prazo":
                 return adv.distribuicaoFaixaPrazoVencimento || [];
             case "pm_rec_cli":
@@ -639,7 +634,7 @@ export default function FinanceAnalyticsDashboard() {
             vol_dia_mes: "Volume total de movimentacao diaria para identificar picos de carga mensal.",
             liq_empresa: "Indice de liquidez segregado por unidade de negocio ou filial.",
             fluxo_diario_proj: "Projecao de saldo acumulado dia a dia nos proximos 30 dias.",
-            vol_cpf_cnpj: "Volume transacionado por identificador de documento.",
+            vol_cpf_cnpj: "Volume transacionado por razão social.",
             dist_faixa_prazo: "Agrupamento de documentos pelo tempo restante ate o vencimento.",
             pm_rec_cli: "Prazo medio que cada cliente leva para efetuar o pagamento.",
             pm_pag_for: "Prazo medio de pagamento para fornecedores especificos.",
@@ -691,6 +686,16 @@ export default function FinanceAnalyticsDashboard() {
             valor: 0,
         }));
     };
+
+    const mapSaldoAcumuladoData = (items?: Array<{ data: string; saldoAcumulado: number }>) =>
+        items?.map((item) => ({
+            ano: new Date(item.data).getFullYear(),
+            mes: new Date(item.data).getMonth() + 1,
+            valor: item.saldoAcumulado,
+            mesAno: item.data.toString().split("T")[0],
+        })) || [];
+
+    const getSaldoAcumuladoData = () => mapSaldoAcumuladoData(advanced?.evolucaoSaldo);
 
     type WidgetEntityFilters = {
         entityValue?: string | null;
@@ -806,7 +811,7 @@ export default function FinanceAnalyticsDashboard() {
                     />
                 );
             case "saldo_acumulado":
-                return <DailyBalanceChart data={advanced?.evolucaoSaldo?.map((item: any) => ({ ano: 2024, mes: 1, valor: item.saldoAcumulado, mesAno: item.data.toString().split("T")[0] })) || []} isLoading={isLoading} color="#10b981" />;
+                return <DailyBalanceChart data={getSaldoAcumuladoData()} isLoading={isLoading} color="#10b981" />;
             case "dist_faixa_prazo":
                 return <DistributionBarChart data={advanced?.distribuicaoFaixaPrazoVencimento || []} isLoading={isLoading} color={cashflowTheme.primary} maxItems={6} />;
             case "pm_rec_cli":
@@ -980,6 +985,8 @@ export default function FinanceAnalyticsDashboard() {
                         maxItems={8}
                     />
                 );
+            case "saldo_acumulado":
+                return <DailyBalanceChart data={mapSaldoAcumuladoData(adv?.evolucaoSaldo as any)} isLoading={analysisIsLoading} color="#10b981" />;
             case "dist_faixa_prazo":
                 return <DistributionBarChart data={adv?.distribuicaoFaixaPrazoVencimento || []} isLoading={analysisIsLoading} color={cashflowTheme.primary} maxItems={6} />;
             case "pm_rec_cli":

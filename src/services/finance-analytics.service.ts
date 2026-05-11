@@ -301,6 +301,43 @@ export const financeAnalyticsService = {
         return response.data;
     },
 
+    exportChartDrilldown: async (params: {
+        chartId: string;
+        startDate?: string;
+        endDate?: string;
+        entityValue?: string | null;
+        selection: ChartSelection;
+        format: "xlsx" | "pdf";
+    }): Promise<{ blob: Blob; fileName: string }> => {
+        const selectionDto =
+            params.selection.kind === "geo_uf"
+                ? { kind: params.selection.kind, uf: params.selection.uf, label: params.selection.label || null }
+                : params.selection.kind === "time_bucket"
+                  ? { kind: params.selection.kind, bucket: params.selection.bucket, value: params.selection.value, label: params.selection.label || null }
+                : { kind: params.selection.kind, key: params.selection.key, label: params.selection.label || null };
+
+        const response = await apiClient.post(
+            "/api/finance-analytics/charts/drilldown/export",
+            {
+                chartId: params.chartId,
+                startDate: params.startDate ? new Date(params.startDate).toISOString() : null,
+                endDate: params.endDate ? new Date(params.endDate).toISOString() : null,
+                entityValue: params.entityValue || null,
+                selection: selectionDto,
+                format: params.format,
+            },
+            { responseType: "blob" }
+        );
+
+        const disposition = response.headers["content-disposition"] ?? "";
+        const match = disposition.match(/filename[^;=\n]*=(['"]?)([^'"\n;]+)\1/);
+
+        return {
+            blob: response.data as Blob,
+            fileName: match ? match[2] : `drilldown.${params.format}`,
+        };
+    },
+
     analyzeChart: async (params: { 
         message: string; 
         history: { role: string; content: string }[]; 

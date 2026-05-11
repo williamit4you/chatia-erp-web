@@ -271,7 +271,12 @@ export default function ChartAnalysisView({ id, title, description: propDescript
 
         // Category-based charts
         if (["dist_pag_fornecedor", "dist_rec_cliente", "dist_tipo_pag", "dist_cond_pag", "top_pag", "top_rec", "vol_cpf_cnpj", "vol_dia_mes"].includes(id)) {
-            const options = uniq(source.map((r: any) => asString(r?.label))).sort((a, b) => {
+            const options = uniq(
+                source.map((r: any) => {
+                    if (id === "top_pag" || id === "top_rec") return asString(r?.documento);
+                    return asString(r?.label);
+                })
+            ).sort((a, b) => {
                 if (id === "vol_dia_mes") return Number(a) - Number(b);
                 return a.localeCompare(b, "pt-BR");
             });
@@ -750,7 +755,6 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                 <ChartDrilldownModal
                     isOpen={isDrilldownOpen}
                     chartId={id}
-                    apiChartId={id === "top_pag" ? "dist_pag_fornecedor" : id === "top_rec" ? "dist_rec_cliente" : undefined}
                     title={title}
                     startDate={startDate}
                     endDate={endDate}

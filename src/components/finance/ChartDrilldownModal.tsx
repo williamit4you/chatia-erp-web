@@ -79,6 +79,7 @@ export default function ChartDrilldownModal({
     const [isExportingExcel, setIsExportingExcel] = useState(false);
     const [isExportingPdf, setIsExportingPdf] = useState(false);
     const lastAutoLoadedSelectionRef = useRef<string | null>(null);
+    const latestLoadRequestRef = useRef(0);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -148,6 +149,7 @@ export default function ChartDrilldownModal({
         }
 
         const next = nextPage ?? page;
+        const requestId = ++latestLoadRequestRef.current;
         setIsLoading(true);
         try {
             const res = await financeAnalyticsService.getChartDrilldown({
@@ -159,13 +161,17 @@ export default function ChartDrilldownModal({
                 page: next,
                 pageSize,
             });
+            if (requestId !== latestLoadRequestRef.current) return;
             setResult(res);
             setPage(next);
         } catch (error) {
+            if (requestId !== latestLoadRequestRef.current) return;
             console.error("Erro no drill-down:", error);
             toast.error("Nao foi possivel carregar o detalhamento agora.");
         } finally {
-            setIsLoading(false);
+            if (requestId === latestLoadRequestRef.current) {
+                setIsLoading(false);
+            }
         }
     };
 

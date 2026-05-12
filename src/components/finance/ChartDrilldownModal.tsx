@@ -80,6 +80,7 @@ export default function ChartDrilldownModal({
     const [isExportingPdf, setIsExportingPdf] = useState(false);
     const lastAutoLoadedSelectionRef = useRef<string | null>(null);
     const latestLoadRequestRef = useRef(0);
+    const latestSelectedRef = useRef("");
 
     useEffect(() => {
         if (!isOpen) return;
@@ -87,7 +88,13 @@ export default function ChartDrilldownModal({
         setPage(1);
         setResult(null);
         lastAutoLoadedSelectionRef.current = null;
+        latestSelectedRef.current = initialSelectionValue || "";
+        latestLoadRequestRef.current += 1;
     }, [isOpen, chartId, initialSelectionValue]);
+
+    useEffect(() => {
+        latestSelectedRef.current = selected;
+    }, [selected]);
 
     useEffect(() => {
         if (!isOpen || !autoLoadOnOpen || !initialSelectionValue) return;
@@ -142,7 +149,8 @@ export default function ChartDrilldownModal({
     const canSearch = Boolean(selected);
 
     const load = async (nextPage?: number, selectionValue?: string) => {
-        const selection = buildSelection(selectionValue ?? selected);
+        const effectiveSelection = selectionValue ?? selected;
+        const selection = buildSelection(effectiveSelection);
         if (!selection) {
             toast.error("Selecione um recorte para detalhar.");
             return;
@@ -162,10 +170,12 @@ export default function ChartDrilldownModal({
                 pageSize,
             });
             if (requestId !== latestLoadRequestRef.current) return;
+            if (effectiveSelection !== latestSelectedRef.current) return;
             setResult(res);
             setPage(next);
         } catch (error) {
             if (requestId !== latestLoadRequestRef.current) return;
+            if (effectiveSelection !== latestSelectedRef.current) return;
             console.error("Erro no drill-down:", error);
             toast.error("Nao foi possivel carregar o detalhamento agora.");
         } finally {
@@ -256,7 +266,15 @@ export default function ChartDrilldownModal({
                             <label className="text-[11px] font-black uppercase tracking-wider text-neutral-500">Recorte</label>
                             <select
                                 value={selected}
-                                onChange={(e) => setSelected(e.target.value)}
+                                onChange={(e) => {
+                                    const nextValue = e.target.value;
+                                    latestLoadRequestRef.current += 1;
+                                    lastAutoLoadedSelectionRef.current = null;
+                                    setSelected(nextValue);
+                                    setPage(1);
+                                    setResult(null);
+                                    setIsLoading(Boolean(nextValue));
+                                }}
                                 className="h-11 w-full rounded-2xl border border-neutral-200 bg-white px-4 text-sm font-bold text-neutral-800 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
                             >
                                 <option value="">Selecione...</option>

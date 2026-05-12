@@ -62,7 +62,7 @@ export default function AgingChart({ data, isLoading, onDrilldownSelect }: Aging
             </div>
             <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData}>
+                    <BarChart data={chartData} margin={{ top: 8, right: 8, left: 12, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                         <XAxis
                             dataKey="faixa"
@@ -73,6 +73,7 @@ export default function AgingChart({ data, isLoading, onDrilldownSelect }: Aging
                         <YAxis
                             axisLine={false}
                             tickLine={false}
+                            width={84}
                             tick={{ fill: '#737373', fontSize: 12 }}
                             tickFormatter={(value) =>
                                 viewMode === "percent"

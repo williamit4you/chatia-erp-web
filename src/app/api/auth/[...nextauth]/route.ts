@@ -58,6 +58,8 @@ export const authOptions: NextAuthOptions = {
                              hasReceivableDashboardAccess: user.hasReceivableDashboardAccess,
                              hasBankingChatAccess: user.hasBankingChatAccess,
                              hasBankingDashboardAccess: user.hasBankingDashboardAccess,
+                             hasBudgetChatAccess: user.hasBudgetChatAccess,
+                             hasBudgetDashboardAccess: user.hasBudgetDashboardAccess,
                              showChartDetails: user.showChartDetails,
                              accessToken: user.token,
                          };
@@ -84,6 +86,8 @@ export const authOptions: NextAuthOptions = {
                  (session.user as any).hasReceivableDashboardAccess = token.hasReceivableDashboardAccess;
                  (session.user as any).hasBankingChatAccess = token.hasBankingChatAccess;
                  (session.user as any).hasBankingDashboardAccess = token.hasBankingDashboardAccess;
+                 (session.user as any).hasBudgetChatAccess = token.hasBudgetChatAccess;
+                 (session.user as any).hasBudgetDashboardAccess = token.hasBudgetDashboardAccess;
                  (session.user as any).showChartDetails = token.showChartDetails;
                  (session.user as any).currentSessionId = token.currentSessionId;
                  (session.user as any).accessToken = token.accessToken;
@@ -103,6 +107,8 @@ export const authOptions: NextAuthOptions = {
                  token.hasReceivableDashboardAccess = (user as any).hasReceivableDashboardAccess;
                  token.hasBankingChatAccess = (user as any).hasBankingChatAccess;
                  token.hasBankingDashboardAccess = (user as any).hasBankingDashboardAccess;
+                 token.hasBudgetChatAccess = (user as any).hasBudgetChatAccess;
+                 token.hasBudgetDashboardAccess = (user as any).hasBudgetDashboardAccess;
                  token.showChartDetails = (user as any).showChartDetails;
                  token.currentSessionId = (user as any).currentSessionId;
                  token.accessToken = (user as any).accessToken;

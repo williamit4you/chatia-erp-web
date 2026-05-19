@@ -13,6 +13,8 @@ const permissionLabels = {
     hasReceivableDashboardAccess: "Receber - Dashboard",
     hasBankingChatAccess: "Bancos - Chat",
     hasBankingDashboardAccess: "Bancos - Dashboard",
+    hasBudgetChatAccess: "Orcamento - Chat",
+    hasBudgetDashboardAccess: "Orcamento - Dashboard",
 };
 
 export default function UserEditClient({ tenant, user }: { tenant: any; user: any }) {
@@ -30,6 +32,8 @@ export default function UserEditClient({ tenant, user }: { tenant: any; user: an
         hasReceivableDashboardAccess: Boolean(user.hasReceivableDashboardAccess),
         hasBankingChatAccess: Boolean(user.hasBankingChatAccess),
         hasBankingDashboardAccess: Boolean(user.hasBankingDashboardAccess),
+        hasBudgetChatAccess: Boolean(user.hasBudgetChatAccess),
+        hasBudgetDashboardAccess: Boolean(user.hasBudgetDashboardAccess),
     });
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);

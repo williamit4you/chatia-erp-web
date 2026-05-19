@@ -24,7 +24,9 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
         hasReceivableChatAccess: false,
         hasReceivableDashboardAccess: false,
         hasBankingChatAccess: false,
-        hasBankingDashboardAccess: false
+        hasBankingDashboardAccess: false,
+        hasBudgetChatAccess: false,
+        hasBudgetDashboardAccess: false
     });
 
     const [showEditUserModal, setShowEditUserModal] = useState(false);
@@ -74,7 +76,9 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                 hasReceivableChatAccess: false,
                 hasReceivableDashboardAccess: false,
                 hasBankingChatAccess: false,
-                hasBankingDashboardAccess: false
+                hasBankingDashboardAccess: false,
+                hasBudgetChatAccess: false,
+                hasBudgetDashboardAccess: false
             });
             toast.success('Usuário criado com sucesso!');
         } catch (error: any) {
@@ -109,6 +113,8 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                 hasReceivableDashboardAccess: editingUser.hasReceivableDashboardAccess,
                 hasBankingChatAccess: editingUser.hasBankingChatAccess,
                 hasBankingDashboardAccess: editingUser.hasBankingDashboardAccess,
+                hasBudgetChatAccess: editingUser.hasBudgetChatAccess,
+                hasBudgetDashboardAccess: editingUser.hasBudgetDashboardAccess,
                 isInactive: editingUser.isInactive
             });
             const res = await apiClient.get('/api/admin/users');
@@ -834,7 +840,8 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                                 {[
                                     { label: 'Pagar', chat: 'hasPayableChatAccess', dash: 'hasPayableDashboardAccess' },
                                     { label: 'Receber', chat: 'hasReceivableChatAccess', dash: 'hasReceivableDashboardAccess' },
-                                    { label: 'Bancário', chat: 'hasBankingChatAccess', dash: 'hasBankingDashboardAccess' }
+                                    { label: 'Bancário', chat: 'hasBankingChatAccess', dash: 'hasBankingDashboardAccess' },
+                                    { label: 'Orçamento', chat: 'hasBudgetChatAccess', dash: 'hasBudgetDashboardAccess' }
                                 ].map((row) => (
                                     <div key={row.label} className="px-4 py-3 flex justify-between items-center border-b border-neutral-100 last:border-0">
                                         <span className="text-sm font-medium text-neutral-700">{row.label}</span>
@@ -943,7 +950,8 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                                 {[
                                     { label: 'Pagar', chat: 'hasPayableChatAccess', dash: 'hasPayableDashboardAccess' },
                                     { label: 'Receber', chat: 'hasReceivableChatAccess', dash: 'hasReceivableDashboardAccess' },
-                                    { label: 'Bancário', chat: 'hasBankingChatAccess', dash: 'hasBankingDashboardAccess' }
+                                    { label: 'Bancário', chat: 'hasBankingChatAccess', dash: 'hasBankingDashboardAccess' },
+                                    { label: 'Orçamento', chat: 'hasBudgetChatAccess', dash: 'hasBudgetDashboardAccess' }
                                 ].map((row) => {
                                     const isAdmin = (editingUser.role === 'TENANT_ADMIN' || editingUser.role === 'SUPER_ADMIN' || editingUser.role === 'ADMIN');
                                     return (

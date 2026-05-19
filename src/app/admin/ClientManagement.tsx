@@ -386,7 +386,8 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                                     <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider">Perguntas</th>
                                     <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider border-x border-neutral-200" colSpan={2}>Pagar</th>
                                     <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider border-r border-neutral-200" colSpan={2}>Receber</th>
-                                    <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider" colSpan={2}>Bancário</th>
+                                    <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider border-r border-neutral-200" colSpan={2}>Bancário</th>
+                                    <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider" colSpan={2}>Orçamento</th>
                                     <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider">Status</th>
                                     <th className="py-3 px-6 font-medium text-xs uppercase tracking-wider">Ações</th>
                                 </tr>
@@ -395,6 +396,8 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                                     <th></th>
                                     <th></th>
                                     <th className="border-l border-neutral-200 py-1">Chat</th>
+                                    <th className="border-r border-neutral-200 py-1">Dash</th>
+                                    <th className="py-1">Chat</th>
                                     <th className="border-r border-neutral-200 py-1">Dash</th>
                                     <th className="py-1">Chat</th>
                                     <th className="border-r border-neutral-200 py-1">Dash</th>
@@ -438,6 +441,10 @@ export default function ClientManagement({ initialUsers, initialSettings, curren
                                             {/* Bancário */}
                                             {renderAccessCell(user.hasBankingChatAccess, true)}
                                             {renderAccessCell(user.hasBankingDashboardAccess)}
+
+                                            {/* Orçamento */}
+                                            {renderAccessCell(user.hasBudgetChatAccess, true)}
+                                            {renderAccessCell(user.hasBudgetDashboardAccess)}
 
                                             <td className="py-4 px-6 text-center">
                                                 <div className="flex flex-col items-center gap-1">

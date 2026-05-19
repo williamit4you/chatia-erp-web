@@ -1,0 +1,56 @@
+"use client";
+
+import Link from "next/link";
+import { ArrowUpRight, Info } from "lucide-react";
+import SalesBudgetChartRenderer from "@/components/sales/SalesBudgetChartRenderer";
+import type { SalesBudgetChartDataset } from "@/services/sales-budget-analytics.service";
+
+type SalesBudgetChartCardProps = {
+  chart: SalesBudgetChartDataset | null;
+  chartId: string;
+  fallbackTitle: string;
+  isLoading?: boolean;
+};
+
+export default function SalesBudgetChartCard({
+  chart,
+  chartId,
+  fallbackTitle,
+  isLoading = false,
+}: SalesBudgetChartCardProps) {
+  const title = chart?.title ?? fallbackTitle;
+  const warnings = chart?.meta?.warnings ?? [];
+
+  return (
+    <article className="rounded-[26px] border border-neutral-200 bg-white p-5 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h3 className="text-base font-black tracking-tight text-neutral-900">
+            {title}
+          </h3>
+          <p className="mt-2 text-xs font-mono text-neutral-500">{chartId}</p>
+        </div>
+        <Link
+          href={`/chat/sales-budget-analytics/${chartId}`}
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-neutral-200 text-neutral-600 transition hover:bg-neutral-50 hover:text-neutral-900"
+          title="Abrir grafico"
+        >
+          <ArrowUpRight className="h-4 w-4" />
+        </Link>
+      </div>
+
+      {warnings.length > 0 && (
+        <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
+          <div className="flex items-start gap-2">
+            <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <span>{warnings[0]}</span>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-4">
+        <SalesBudgetChartRenderer chart={chart} isLoading={isLoading} compact />
+      </div>
+    </article>
+  );
+}

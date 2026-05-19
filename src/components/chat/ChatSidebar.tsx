@@ -35,6 +35,7 @@ type SidebarSession = {
 };
 
 type SidebarUserAccess = {
+  name?: string;
   role?: string;
   hasPayableDashboardAccess?: boolean;
   hasReceivableDashboardAccess?: boolean;

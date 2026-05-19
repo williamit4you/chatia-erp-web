@@ -1,14 +1,20 @@
 "use client";
 
-import { useDeferredValue, useMemo, useState, startTransition } from "react";
+import { startTransition, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import SidebarToggle from "@/components/chat/SidebarToggle";
 import ChatCompanyDropdown from "@/components/chat/ChatCompanyDropdown";
+import SalesBudgetChartCard from "@/components/sales/SalesBudgetChartCard";
 import {
   salesBudgetCatalog,
-  salesBudgetTotals,
   type SalesBudgetChartAvailability,
 } from "@/lib/sales-budget-catalog";
+import { formatCurrency, formatNumber, formatPercent } from "@/lib/formatters/financeFormat";
+import salesBudgetAnalyticsService, {
+  type SalesBudgetCategory,
+  type SalesBudgetChartDataset,
+  type SalesBudgetKpiItem,
+} from "@/services/sales-budget-analytics.service";
 import {
   AlertCircle,
   BarChart3,
@@ -32,14 +38,45 @@ const availabilityClassName: Record<SalesBudgetChartAvailability, string> = {
   needs_new_view: "border-rose-200 bg-rose-50 text-rose-700",
 };
 
+const LIVE_KPI_IDS = [
+  "kpi_total_budget_amount",
+  "kpi_budget_count",
+  "kpi_avg_ticket",
+  "kpi_conversion_rate",
+  "kpi_open_amount",
+  "kpi_approved_amount",
+  "kpi_lost_amount",
+  "kpi_best_seller",
+] as const;
+
 type DashboardAccessUser = {
   role?: string;
   hasBudgetDashboardAccess?: boolean;
 };
 
+const formatKpiValue = (item: SalesBudgetKpiItem) => {
+  if (item.format === "text") return item.textValue ?? "Sem dados";
+  const value = Number(item.value ?? 0);
+  if (item.format === "currency") {
+    return formatCurrency(value, { compact: true, maximumFractionDigits: 1 });
+  }
+  if (item.format === "percentage") {
+    return formatPercent(value, { maximumFractionDigits: 1 });
+  }
+  return formatNumber(value, { compact: true, maximumFractionDigits: 0 });
+};
+
 export default function SalesBudgetAnalyticsPage() {
   const { data: session, status } = useSession();
   const user = (session?.user ?? null) as DashboardAccessUser | null;
+  const [catalog, setCatalog] = useState<SalesBudgetCategory[]>(salesBudgetCatalog);
+  const [catalogError, setCatalogError] = useState<string | null>(null);
+  const [kpis, setKpis] = useState<SalesBudgetKpiItem[]>([]);
+  const [isLoadingKpis, setIsLoadingKpis] = useState(false);
+  const [kpiError, setKpiError] = useState<string | null>(null);
+  const [chartsById, setChartsById] = useState<Record<string, SalesBudgetChartDataset>>({});
+  const [isLoadingCharts, setIsLoadingCharts] = useState(false);
+  const [chartsError, setChartsError] = useState<string | null>(null);
 
   const [startDate, setStartDate] = useState(() => {
     const d = new Date();
@@ -57,11 +94,114 @@ export default function SalesBudgetAnalyticsPage() {
     user?.role === "SUPER_ADMIN" ||
     user?.hasBudgetDashboardAccess;
 
+  useEffect(() => {
+    if (!canSeeSalesBudget) return;
+
+    let isMounted = true;
+
+    salesBudgetAnalyticsService
+      .getCatalog()
+      .then((response) => {
+        if (!isMounted || !response?.categories?.length) return;
+        setCatalog(response.categories);
+        setCatalogError(null);
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setCatalogError("Usando catalogo local enquanto o backend analitico termina de subir.");
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [canSeeSalesBudget]);
+
+  useEffect(() => {
+    if (!canSeeSalesBudget) return;
+    let isMounted = true;
+    setIsLoadingKpis(true);
+
+    salesBudgetAnalyticsService
+      .getKpis({
+        filters: { startDate, endDate },
+        kpiIds: [...LIVE_KPI_IDS],
+      })
+      .then((response) => {
+        if (!isMounted) return;
+        setKpis(response.items);
+        setKpiError(null);
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setKpiError("Nao foi possivel carregar os KPIs agora.");
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingKpis(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [canSeeSalesBudget, startDate, endDate]);
+
   const activeCategory =
-    salesBudgetCatalog.find((category) => category.id === activeCategoryId) ??
-    salesBudgetCatalog[0];
+    catalog.find((category) => category.id === activeCategoryId) ?? catalog[0];
+
+  useEffect(() => {
+    if (!canSeeSalesBudget || !activeCategory) return;
+    const chartIds = activeCategory.highlights.map((chart) => chart.id);
+    if (chartIds.length === 0) return;
+
+    let isMounted = true;
+    setIsLoadingCharts(true);
+
+    salesBudgetAnalyticsService
+      .getChartsBatch({
+        chartIds,
+        filters: { startDate, endDate },
+      })
+      .then((response) => {
+        if (!isMounted) return;
+        setChartsById((current) => {
+          const next = { ...current };
+          for (const item of response.items) {
+            next[item.chartId] = item;
+          }
+          return next;
+        });
+        setChartsError(null);
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setChartsError("Nao foi possivel carregar o lote inicial de graficos desta categoria.");
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingCharts(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeCategory, canSeeSalesBudget, startDate, endDate]);
+
+  const totals = useMemo(() => {
+    return catalog.reduce(
+      (acc, category) => {
+        acc.plannedCharts += category.plannedCount;
+        acc.availableNowCharts += category.availableNowCount;
+        acc.needsNewViewCharts += category.needsNewViewCount;
+        return acc;
+      },
+      {
+        plannedCharts: 0,
+        availableNowCharts: 0,
+        needsNewViewCharts: 0,
+      }
+    );
+  }, [catalog]);
 
   const filteredHighlights = useMemo(() => {
+    if (!activeCategory) return [];
     return activeCategory.highlights.filter((chart) => {
       if (!deferredSearch) return true;
       return (
@@ -70,6 +210,13 @@ export default function SalesBudgetAnalyticsPage() {
       );
     });
   }, [activeCategory, deferredSearch]);
+
+  const kpiMap = useMemo(() => {
+    return kpis.reduce<Record<string, SalesBudgetKpiItem>>((acc, item) => {
+      acc[item.kpiId] = item;
+      return acc;
+    }, {});
+  }, [kpis]);
 
   if (status === "loading") {
     return (
@@ -110,7 +257,7 @@ export default function SalesBudgetAnalyticsPage() {
             </h1>
             <p className="mt-3 text-sm leading-6 text-neutral-600">
               Este painel usa a permissao de dashboard de Orcamento. O acesso
-              precisa estar habilitado para carregar os catalogos, filtros,
+              precisa estar habilitado para carregar catalogos, filtros,
               graficos e exportacoes desta area.
             </p>
           </div>
@@ -134,15 +281,15 @@ export default function SalesBudgetAnalyticsPage() {
             <div className="max-w-3xl">
               <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-sky-700">
                 <Sparkles className="h-3.5 w-3.5" />
-                Catalogo inicial pronto para execucao
+                Catalogo e lotes iniciais ativos
               </div>
               <h1 className="text-3xl font-black tracking-tight text-neutral-900 sm:text-4xl">
                 Vendas &gt; Orcamento
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-600 sm:text-base">
-                Abertura por categorias, filtro de datas global e catalogo de
-                graficos preparado para entrar em lotes, sem disparar centenas
-                de consultas no primeiro carregamento.
+                Filtro global por data, KPIs ao abrir a tela e graficos carregados
+                por categoria em lotes pequenos, evitando disparar centenas de
+                consultas no primeiro acesso.
               </p>
             </div>
 
@@ -178,7 +325,7 @@ export default function SalesBudgetAnalyticsPage() {
               <LayoutGrid className="h-4 w-4 text-neutral-400" />
             </div>
             <p className="mt-4 text-3xl font-black tracking-tight text-neutral-900">
-              {salesBudgetCatalog.length}
+              {catalog.length}
             </p>
             <p className="mt-2 text-sm text-neutral-500">
               Estruturadas para carga sob demanda.
@@ -193,10 +340,10 @@ export default function SalesBudgetAnalyticsPage() {
               <BarChart3 className="h-4 w-4 text-neutral-400" />
             </div>
             <p className="mt-4 text-3xl font-black tracking-tight text-neutral-900">
-              {salesBudgetTotals.plannedCharts}
+              {totals.plannedCharts}
             </p>
             <p className="mt-2 text-sm text-neutral-500">
-              IDs e categorias definidos para backend e frontend.
+              IDs e categorias prontos para backend e frontend.
             </p>
           </div>
 
@@ -208,7 +355,7 @@ export default function SalesBudgetAnalyticsPage() {
               <TrendingUp className="h-4 w-4 text-emerald-600" />
             </div>
             <p className="mt-4 text-3xl font-black tracking-tight text-neutral-900">
-              {salesBudgetTotals.availableNowCharts}
+              {totals.availableNowCharts}
             </p>
             <p className="mt-2 text-sm text-neutral-500">
               Dependem apenas das views atuais de orcamento e itens.
@@ -223,11 +370,62 @@ export default function SalesBudgetAnalyticsPage() {
               <AlertCircle className="h-4 w-4 text-rose-600" />
             </div>
             <p className="mt-4 text-3xl font-black tracking-tight text-neutral-900">
-              {salesBudgetTotals.needsNewViewCharts}
+              {totals.needsNewViewCharts}
             </p>
             <p className="mt-2 text-sm text-neutral-500">
               Bloqueados ate existir faturamento, metas, estoque ou custo.
             </p>
+          </div>
+        </section>
+
+        <section className="mt-6 rounded-[30px] border border-neutral-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-black tracking-tight text-neutral-900">
+                KPIs essenciais
+              </h2>
+              <p className="mt-1 text-sm text-neutral-500">
+                Leitura inicial do periodo selecionado, no mesmo fluxo em que a
+                categoria depois abre seus graficos.
+              </p>
+            </div>
+          </div>
+
+          {(catalogError || kpiError) && (
+            <div className="mt-4 grid gap-3">
+              {catalogError ? (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+                  {catalogError}
+                </div>
+              ) : null}
+              {kpiError ? (
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
+                  {kpiError}
+                </div>
+              ) : null}
+            </div>
+          )}
+
+          <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {LIVE_KPI_IDS.map((kpiId) => {
+              const item = kpiMap[kpiId];
+              return (
+                <div
+                  key={kpiId}
+                  className="rounded-[24px] border border-neutral-200 bg-neutral-50 p-5"
+                >
+                  <div className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
+                    {item?.label ?? "Carregando"}
+                  </div>
+                  <div className="mt-3 text-3xl font-black tracking-tight text-neutral-900">
+                    {isLoadingKpis && !item ? "..." : item ? formatKpiValue(item) : "-"}
+                  </div>
+                  <div className="mt-2 min-h-5 text-xs font-medium text-neutral-500">
+                    {item?.warning ?? "\u00a0"}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </section>
 
@@ -238,8 +436,8 @@ export default function SalesBudgetAnalyticsPage() {
                 Categorias e seletor otimizado
               </h2>
               <p className="mt-1 text-sm text-neutral-500">
-                O carregamento final desta tela sera por categoria ativa,
-                graficos visiveis e abertura individual.
+                Cada troca de categoria carrega apenas o lote principal de
+                graficos daquela sessao.
               </p>
             </div>
 
@@ -255,8 +453,8 @@ export default function SalesBudgetAnalyticsPage() {
           </div>
 
           <div className="mt-5 flex gap-2 overflow-x-auto pb-2">
-            {salesBudgetCatalog.map((category) => {
-              const isActive = category.id === activeCategory.id;
+            {catalog.map((category) => {
+              const isActive = category.id === activeCategory?.id;
               return (
                 <button
                   key={category.id}
@@ -287,16 +485,22 @@ export default function SalesBudgetAnalyticsPage() {
             })}
           </div>
 
-          <div className="mt-6 grid gap-6 xl:grid-cols-[1.15fr_2fr]">
+          {chartsError && (
+            <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
+              {chartsError}
+            </div>
+          )}
+
+          <div className="mt-6 grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
             <div className="rounded-[26px] border border-neutral-200 bg-neutral-50 p-5">
               <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
                 Categoria ativa
               </p>
               <h3 className="mt-3 text-2xl font-black tracking-tight text-neutral-900">
-                {activeCategory.name}
+                {activeCategory?.name}
               </h3>
               <p className="mt-2 text-sm leading-6 text-neutral-600">
-                {activeCategory.description}
+                {activeCategory?.description}
               </p>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
@@ -305,7 +509,7 @@ export default function SalesBudgetAnalyticsPage() {
                     Planejados
                   </p>
                   <p className="mt-2 text-2xl font-black text-neutral-900">
-                    {activeCategory.plannedCount}
+                    {activeCategory?.plannedCount ?? 0}
                   </p>
                 </div>
                 <div className="rounded-2xl border border-emerald-200 bg-white p-4">
@@ -313,7 +517,7 @@ export default function SalesBudgetAnalyticsPage() {
                     Disponiveis
                   </p>
                   <p className="mt-2 text-2xl font-black text-neutral-900">
-                    {activeCategory.availableNowCount}
+                    {activeCategory?.availableNowCount ?? 0}
                   </p>
                 </div>
                 <div className="rounded-2xl border border-rose-200 bg-white p-4">
@@ -321,51 +525,35 @@ export default function SalesBudgetAnalyticsPage() {
                     Novas views
                   </p>
                   <p className="mt-2 text-2xl font-black text-neutral-900">
-                    {activeCategory.needsNewViewCount}
+                    {activeCategory?.needsNewViewCount ?? 0}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-[26px] border border-neutral-200 bg-white p-5">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
-                    Destaques da categoria
-                  </p>
-                  <p className="mt-1 text-sm text-neutral-500">
-                    Recorte inicial para construir selects, drill-down e IA por grafico.
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-5 grid gap-4 lg:grid-cols-2">
+            <div className="min-w-0">
+              <div className="grid gap-4 xl:grid-cols-2">
                 {filteredHighlights.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500 lg:col-span-2">
+                  <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500 xl:col-span-2">
                     Nenhum grafico desta categoria corresponde ao filtro digitado.
                   </div>
                 ) : (
                   filteredHighlights.map((chart) => (
-                    <article
-                      key={chart.id}
-                      className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <h4 className="text-sm font-black tracking-tight text-neutral-900">
-                            {chart.title}
-                          </h4>
-                          <p className="mt-2 text-xs font-mono text-neutral-500">
-                            {chart.id}
-                          </p>
-                        </div>
+                    <div key={chart.id} className="flex flex-col gap-2">
+                      <div className="flex items-center justify-between px-1">
                         <span
                           className={`rounded-full border px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.14em] ${availabilityClassName[chart.availability]}`}
                         >
                           {availabilityLabel[chart.availability]}
                         </span>
                       </div>
-                    </article>
+                      <SalesBudgetChartCard
+                        chart={chartsById[chart.id] ?? null}
+                        chartId={chart.id}
+                        fallbackTitle={chart.title}
+                        isLoading={isLoadingCharts && !chartsById[chart.id]}
+                      />
+                    </div>
                   ))
                 )}
               </div>

@@ -600,7 +600,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                     <button 
                         onClick={onClose}
                         className="p-2 hover:bg-neutral-100 rounded-lg text-neutral-500 transition-colors"
-                        title="Voltar ao Dashboard"
+                        title="Voltar ao Financeiro"
                     >
                         <ArrowLeft className="w-5 h-5" />
                     </button>

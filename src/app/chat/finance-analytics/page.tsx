@@ -881,7 +881,7 @@ export default function FinanceAnalyticsDashboard() {
                                           {
                                               id: selectedId,
                                               title: info.title,
-                                              groupTitle: group?.title || "Dashboard Financeiro",
+                                              groupTitle: group?.title || "Financeiro",
                                               description: info.description,
                                               detail: getChartDetail(selectedId, info.title, info.description),
                                           },
@@ -1104,7 +1104,7 @@ export default function FinanceAnalyticsDashboard() {
                     <div>
                         <div className="mb-1 flex items-center gap-2">
                             <h1 className="text-2xl font-black tracking-tight text-neutral-900">
-                                Dashboard Financeiro
+                                Financeiro
                             </h1>
                             <span className="rounded bg-blue-600 px-1.5 py-0.5 text-[10px] font-black text-white shadow-[0_2px_10px_-3px_rgba(37,99,235,0.5)]">
                                 GRUPOS

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import {
+  BarChart3,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
@@ -23,9 +24,27 @@ import { useRouter } from "next/navigation";
 import { useSidebar } from "./SidebarContext";
 
 interface ChatSidebarProps {
-  sessions: any[];
-  user: any;
+  sessions: SidebarSession[];
+  user: SidebarUserAccess | null;
 }
+
+type SidebarSession = {
+  id: string;
+  createdAt?: string;
+  title?: string | null;
+};
+
+type SidebarUserAccess = {
+  role?: string;
+  hasPayableDashboardAccess?: boolean;
+  hasReceivableDashboardAccess?: boolean;
+  hasBankingDashboardAccess?: boolean;
+  hasBudgetDashboardAccess?: boolean;
+};
+
+type SidebarSessionUser = {
+  accessToken?: string;
+};
 
 function formatSessionDate(createdAt?: string) {
   if (!createdAt) return "Recente";
@@ -59,7 +78,7 @@ export default function ChatSidebar({ sessions, user }: ChatSidebarProps) {
   }, [sessions]);
 
   const recentSessions = useMemo(() => {
-    const sorted = [...(localSessions || [])].sort((a: any, b: any) => {
+    const sorted = [...(localSessions || [])].sort((a, b) => {
       const aTime = a?.createdAt ? Date.parse(a.createdAt) : 0;
       const bTime = b?.createdAt ? Date.parse(b.createdAt) : 0;
       return bTime - aTime;
@@ -69,6 +88,7 @@ export default function ChatSidebar({ sessions, user }: ChatSidebarProps) {
 
   const handleDelete = async () => {
     if (!sessionToDelete || !sessionData?.user) return;
+    const authUser = sessionData.user as SidebarSessionUser;
 
     setIsDeleting(true);
     try {
@@ -79,7 +99,7 @@ export default function ChatSidebar({ sessions, user }: ChatSidebarProps) {
         {
           method: "DELETE",
           headers: {
-            Authorization: `Bearer ${(sessionData.user as any).accessToken}`,
+            Authorization: `Bearer ${authUser.accessToken ?? ""}`,
           },
         }
       );
@@ -102,12 +122,17 @@ export default function ChatSidebar({ sessions, user }: ChatSidebarProps) {
     }
   };
 
-  const canSeeDashboards =
+  const canSeeFinanceDashboard =
     user?.role === "TENANT_ADMIN" ||
     user?.role === "SUPER_ADMIN" ||
     user?.hasPayableDashboardAccess ||
     user?.hasReceivableDashboardAccess ||
     user?.hasBankingDashboardAccess;
+
+  const canSeeSalesDashboard =
+    user?.role === "TENANT_ADMIN" ||
+    user?.role === "SUPER_ADMIN" ||
+    user?.hasBudgetDashboardAccess;
 
   const handleScrollToRecent = () => {
     closeSidebar();
@@ -233,14 +258,26 @@ export default function ChatSidebar({ sessions, user }: ChatSidebarProps) {
           </Link>
 
           <Link
-            href={canSeeDashboards ? "/chat/finance-analytics" : "/chat"}
+            href={canSeeFinanceDashboard ? "/chat/finance-analytics" : "/chat"}
             onClick={closeSidebar}
-            className={`${navItemClass} ${canSeeDashboards ? "" : "opacity-60"}`}
-            title="Dashboards"
+            className={`${navItemClass} ${canSeeFinanceDashboard ? "" : "opacity-60"}`}
+            title="Financeiro"
           >
             <LayoutDashboard className="h-5 w-5 text-violet-300" />
             {!showCompact && (
-              <span className="text-sm font-semibold">Dashboards</span>
+              <span className="text-sm font-semibold">Financeiro</span>
+            )}
+          </Link>
+
+          <Link
+            href={canSeeSalesDashboard ? "/chat/sales-budget-analytics" : "/chat"}
+            onClick={closeSidebar}
+            className={`${navItemClass} ${canSeeSalesDashboard ? "" : "opacity-60"}`}
+            title="Vendas"
+          >
+            <BarChart3 className="h-5 w-5 text-violet-300" />
+            {!showCompact && (
+              <span className="text-sm font-semibold">Vendas</span>
             )}
           </Link>
 

@@ -12,6 +12,7 @@ import {
   Sparkles,
   ArrowRight,
 } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import SidebarToggle from "@/components/chat/SidebarToggle";
@@ -30,9 +31,31 @@ type ModuleCard = {
   Icon: LucideIcon;
 };
 
+type DashboardAccessUser = {
+  role?: string;
+  hasPayableDashboardAccess?: boolean;
+  hasReceivableDashboardAccess?: boolean;
+  hasBankingDashboardAccess?: boolean;
+  hasBudgetDashboardAccess?: boolean;
+};
+
 export default function ChatHome() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [text, setText] = useState("");
+  const user = (session?.user ?? null) as DashboardAccessUser | null;
+
+  const canSeeFinanceDashboard =
+    user?.role === "TENANT_ADMIN" ||
+    user?.role === "SUPER_ADMIN" ||
+    user?.hasPayableDashboardAccess ||
+    user?.hasReceivableDashboardAccess ||
+    user?.hasBankingDashboardAccess;
+
+  const canSeeSalesDashboard =
+    user?.role === "TENANT_ADMIN" ||
+    user?.role === "SUPER_ADMIN" ||
+    user?.hasBudgetDashboardAccess;
 
   const modules = useMemo<ModuleCard[]>(
     () => [
@@ -40,7 +63,7 @@ export default function ChatHome() {
         key: "financeiro",
         title: "Financeiro",
         description: "Caixa, contas a pagar/receber, fluxo de caixa e inadimplência.",
-        enabled: true,
+        enabled: Boolean(canSeeFinanceDashboard),
         accent: "text-emerald-700",
         border: "border-emerald-200/60",
         bg: "from-emerald-50 to-white",
@@ -61,8 +84,8 @@ export default function ChatHome() {
       {
         key: "vendas",
         title: "Vendas",
-        description: "Vendas, faturamento, clientes, oportunidades e performance.",
-        enabled: false,
+        description: "OrÃ§amentos, funil comercial, clientes, produtos e performance.",
+        enabled: Boolean(canSeeSalesDashboard),
         accent: "text-violet-700",
         border: "border-violet-200/60",
         bg: "from-violet-50 to-white",
@@ -103,7 +126,7 @@ export default function ChatHome() {
         Icon: ClipboardList,
       },
     ],
-    []
+    [canSeeFinanceDashboard, canSeeSalesDashboard]
   );
 
   const quickSuggestions = useMemo<
@@ -163,6 +186,10 @@ export default function ChatHome() {
     if (!module.enabled) return;
     if (module.key === "financeiro") {
       router.push("/chat/finance-analytics");
+      return;
+    }
+    if (module.key === "vendas") {
+      router.push("/chat/sales-budget-analytics");
       return;
     }
     goToChat(`Quero ajuda com ${module.title}.`);

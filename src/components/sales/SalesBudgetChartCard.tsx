@@ -28,7 +28,6 @@ export default function SalesBudgetChartCard({
           <h3 className="text-base font-black tracking-tight text-neutral-900">
             {title}
           </h3>
-          <p className="mt-2 text-xs font-mono text-neutral-500">{chartId}</p>
         </div>
         <Link
           href={`/chat/sales-budget-analytics/${chartId}`}

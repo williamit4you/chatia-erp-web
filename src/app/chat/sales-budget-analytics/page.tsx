@@ -5,38 +5,15 @@ import { useSession } from "next-auth/react";
 import SidebarToggle from "@/components/chat/SidebarToggle";
 import ChatCompanyDropdown from "@/components/chat/ChatCompanyDropdown";
 import SalesBudgetChartCard from "@/components/sales/SalesBudgetChartCard";
-import {
-  salesBudgetCatalog,
-  type SalesBudgetChartAvailability,
-} from "@/lib/sales-budget-catalog";
+import { salesBudgetCatalog } from "@/lib/sales-budget-catalog";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/formatters/financeFormat";
 import salesBudgetAnalyticsService, {
   type SalesBudgetCategory,
   type SalesBudgetChartDataset,
+  type SalesBudgetChartPoint,
   type SalesBudgetKpiItem,
 } from "@/services/sales-budget-analytics.service";
-import {
-  AlertCircle,
-  BarChart3,
-  Calendar,
-  LayoutGrid,
-  Lock,
-  Search,
-  Sparkles,
-  TrendingUp,
-} from "lucide-react";
-
-const availabilityLabel: Record<SalesBudgetChartAvailability, string> = {
-  available_now: "Disponivel agora",
-  needs_mapping: "Depende de mapeamento",
-  needs_new_view: "Precisa de nova view",
-};
-
-const availabilityClassName: Record<SalesBudgetChartAvailability, string> = {
-  available_now: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  needs_mapping: "border-amber-200 bg-amber-50 text-amber-700",
-  needs_new_view: "border-rose-200 bg-rose-50 text-rose-700",
-};
+import { Calendar, Lock, Search } from "lucide-react";
 
 const LIVE_KPI_IDS = [
   "kpi_total_budget_amount",
@@ -46,12 +23,44 @@ const LIVE_KPI_IDS = [
   "kpi_open_amount",
   "kpi_approved_amount",
   "kpi_lost_amount",
-  "kpi_best_seller",
 ] as const;
+
+type DashboardScope = "budget" | "order" | "invoice";
+
+type ScopeOption = {
+  key: DashboardScope;
+  label: string;
+  emptyTitle?: string;
+  emptyDescription?: string;
+};
+
+const DASHBOARD_SCOPES: ScopeOption[] = [
+  { key: "budget", label: "Orcamento" },
+  {
+    key: "order",
+    label: "Pedido",
+    emptyTitle: "Pedidos",
+    emptyDescription: "Os graficos de pedidos vao aparecer aqui em uma proxima etapa.",
+  },
+  {
+    key: "invoice",
+    label: "Nota Fiscal",
+    emptyTitle: "Notas fiscais",
+    emptyDescription: "Os graficos de notas fiscais vao aparecer aqui em uma proxima etapa.",
+  },
+];
 
 type DashboardAccessUser = {
   role?: string;
   hasBudgetDashboardAccess?: boolean;
+};
+
+type VisibleChart = {
+  id: string;
+  title: string;
+  availability: string;
+  categoryId: string;
+  categoryName: string;
 };
 
 const formatKpiValue = (item: SalesBudgetKpiItem) => {
@@ -74,6 +83,8 @@ export default function SalesBudgetAnalyticsPage() {
   const [kpis, setKpis] = useState<SalesBudgetKpiItem[]>([]);
   const [isLoadingKpis, setIsLoadingKpis] = useState(false);
   const [kpiError, setKpiError] = useState<string | null>(null);
+  const [topSellers, setTopSellers] = useState<SalesBudgetChartPoint[]>([]);
+  const [topSellersError, setTopSellersError] = useState<string | null>(null);
   const [chartsById, setChartsById] = useState<Record<string, SalesBudgetChartDataset>>({});
   const [isLoadingCharts, setIsLoadingCharts] = useState(false);
   const [chartsError, setChartsError] = useState<string | null>(null);
@@ -84,6 +95,7 @@ export default function SalesBudgetAnalyticsPage() {
     return d.toISOString().split("T")[0];
   });
   const [endDate, setEndDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [activeScope, setActiveScope] = useState<DashboardScope>("budget");
   const [activeCategoryId, setActiveCategoryId] = useState("overview");
   const [search, setSearch] = useState("");
 
@@ -108,7 +120,7 @@ export default function SalesBudgetAnalyticsPage() {
       })
       .catch(() => {
         if (!isMounted) return;
-        setCatalogError("Usando catalogo local enquanto o backend analitico termina de subir.");
+        setCatalogError("Alguns dados de apoio nao foram carregados, mas os graficos principais continuam disponiveis.");
       });
 
     return () => {
@@ -119,48 +131,97 @@ export default function SalesBudgetAnalyticsPage() {
   useEffect(() => {
     if (!canSeeSalesBudget) return;
     let isMounted = true;
-    setIsLoadingKpis(true);
-
-    salesBudgetAnalyticsService
-      .getKpis({
-        filters: { startDate, endDate },
-        kpiIds: [...LIVE_KPI_IDS],
-      })
-      .then((response) => {
+    const loadKpis = async () => {
+      setIsLoadingKpis(true);
+      try {
+        const [kpiResponse, topSellersResponse] = await Promise.all([
+          salesBudgetAnalyticsService.getKpis({
+            filters: { startDate, endDate },
+            kpiIds: [...LIVE_KPI_IDS],
+          }),
+          salesBudgetAnalyticsService.getChartsBatch({
+            chartIds: ["seller_total_amount"],
+            filters: { startDate, endDate },
+          }),
+        ]);
         if (!isMounted) return;
-        setKpis(response.items);
+        setKpis(kpiResponse.items);
         setKpiError(null);
-      })
-      .catch(() => {
+        setTopSellers(topSellersResponse.items[0]?.data?.slice(0, 5) ?? []);
+        setTopSellersError(null);
+      } catch {
         if (!isMounted) return;
         setKpiError("Nao foi possivel carregar os KPIs agora.");
-      })
-      .finally(() => {
+        setTopSellers([]);
+        setTopSellersError("Nao foi possivel carregar o ranking de vendedores agora.");
+      } finally {
         if (isMounted) setIsLoadingKpis(false);
-      });
+      }
+    };
+
+    void loadKpis();
 
     return () => {
       isMounted = false;
     };
   }, [canSeeSalesBudget, startDate, endDate]);
 
+  const visibleCatalog = useMemo(() => {
+    if (activeScope !== "budget") return [];
+    return catalog;
+  }, [activeScope, catalog]);
+
+  const activeScopeOption =
+    DASHBOARD_SCOPES.find((scope) => scope.key === activeScope) ?? DASHBOARD_SCOPES[0];
+
   const activeCategory =
-    catalog.find((category) => category.id === activeCategoryId) ?? catalog[0];
+    visibleCatalog.find((category) => category.id === activeCategoryId) ??
+    visibleCatalog[0] ??
+    null;
+
+  const activeCategoryCharts = useMemo<VisibleChart[]>(() => {
+    if (!visibleCatalog.length) return [];
+
+    if (activeCategoryId === "overview") {
+      const allAvailableCharts = visibleCatalog.flatMap((category) =>
+        category.highlights
+          .filter((chart) => chart.availability === "available_now")
+          .map((chart) => ({
+            id: chart.id,
+            title: chart.title,
+            availability: chart.availability,
+            categoryId: category.id,
+            categoryName: category.name,
+          }))
+      );
+
+      return allAvailableCharts.filter(
+        (chart, index, items) => items.findIndex((item) => item.id === chart.id) === index
+      );
+    }
+
+    return (activeCategory?.highlights ?? []).map((chart) => ({
+      id: chart.id,
+      title: chart.title,
+      availability: chart.availability,
+      categoryId: activeCategory?.id ?? "",
+      categoryName: activeCategory?.name ?? "",
+    }));
+  }, [activeCategory, activeCategoryId, visibleCatalog]);
 
   useEffect(() => {
-    if (!canSeeSalesBudget || !activeCategory) return;
-    const chartIds = activeCategory.highlights.map((chart) => chart.id);
+    if (!canSeeSalesBudget || activeCategoryCharts.length === 0) return;
+    const chartIds = activeCategoryCharts.map((chart) => chart.id);
     if (chartIds.length === 0) return;
 
     let isMounted = true;
-    setIsLoadingCharts(true);
-
-    salesBudgetAnalyticsService
-      .getChartsBatch({
-        chartIds,
-        filters: { startDate, endDate },
-      })
-      .then((response) => {
+    const loadCharts = async () => {
+      setIsLoadingCharts(true);
+      try {
+        const response = await salesBudgetAnalyticsService.getChartsBatch({
+          chartIds,
+          filters: { startDate, endDate },
+        });
         if (!isMounted) return;
         setChartsById((current) => {
           const next = { ...current };
@@ -170,46 +231,28 @@ export default function SalesBudgetAnalyticsPage() {
           return next;
         });
         setChartsError(null);
-      })
-      .catch(() => {
+      } catch {
         if (!isMounted) return;
-        setChartsError("Nao foi possivel carregar o lote inicial de graficos desta categoria.");
-      })
-      .finally(() => {
+        setChartsError("Nao foi possivel carregar os graficos desta categoria agora.");
+      } finally {
         if (isMounted) setIsLoadingCharts(false);
-      });
+      }
+    };
+
+    void loadCharts();
 
     return () => {
       isMounted = false;
     };
-  }, [activeCategory, canSeeSalesBudget, startDate, endDate]);
-
-  const totals = useMemo(() => {
-    return catalog.reduce(
-      (acc, category) => {
-        acc.plannedCharts += category.plannedCount;
-        acc.availableNowCharts += category.availableNowCount;
-        acc.needsNewViewCharts += category.needsNewViewCount;
-        return acc;
-      },
-      {
-        plannedCharts: 0,
-        availableNowCharts: 0,
-        needsNewViewCharts: 0,
-      }
-    );
-  }, [catalog]);
+  }, [activeCategoryCharts, canSeeSalesBudget, startDate, endDate]);
 
   const filteredHighlights = useMemo(() => {
-    if (!activeCategory) return [];
-    return activeCategory.highlights.filter((chart) => {
+    if (activeCategoryCharts.length === 0) return [];
+    return activeCategoryCharts.filter((chart) => {
       if (!deferredSearch) return true;
-      return (
-        chart.title.toLowerCase().includes(deferredSearch) ||
-        chart.id.toLowerCase().includes(deferredSearch)
-      );
+      return chart.title.toLowerCase().includes(deferredSearch);
     });
-  }, [activeCategory, deferredSearch]);
+  }, [activeCategoryCharts, deferredSearch]);
 
   const kpiMap = useMemo(() => {
     return kpis.reduce<Record<string, SalesBudgetKpiItem>>((acc, item) => {
@@ -217,6 +260,14 @@ export default function SalesBudgetAnalyticsPage() {
       return acc;
     }, {});
   }, [kpis]);
+
+  const topSellerRows = useMemo(() => {
+    return topSellers.map((seller, index) => ({
+      rank: index + 1,
+      name: seller.label || "Sem vendedor",
+      amount: Number(seller.amount ?? seller.value ?? 0),
+    }));
+  }, [topSellers]);
 
   if (status === "loading") {
     return (
@@ -256,9 +307,7 @@ export default function SalesBudgetAnalyticsPage() {
               Vendas &gt; Orcamento
             </h1>
             <p className="mt-3 text-sm leading-6 text-neutral-600">
-              Este painel usa a permissao de dashboard de Orcamento. O acesso
-              precisa estar habilitado para carregar catalogos, filtros,
-              graficos e exportacoes desta area.
+              O acesso a esta area precisa estar habilitado para a sua conta.
             </p>
           </div>
         </div>
@@ -279,17 +328,11 @@ export default function SalesBudgetAnalyticsPage() {
         <section className="rounded-[30px] border border-neutral-200 bg-white p-6 shadow-sm sm:p-8">
           <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
             <div className="max-w-3xl">
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-sky-700">
-                <Sparkles className="h-3.5 w-3.5" />
-                Catalogo e lotes iniciais ativos
-              </div>
               <h1 className="text-3xl font-black tracking-tight text-neutral-900 sm:text-4xl">
                 Vendas &gt; Orcamento
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-600 sm:text-base">
-                Filtro global por data, KPIs ao abrir a tela e graficos carregados
-                por categoria em lotes pequenos, evitando disparar centenas de
-                consultas no primeiro acesso.
+                Acompanhe os principais indicadores e explore os graficos do periodo selecionado.
               </p>
             </div>
 
@@ -314,79 +357,118 @@ export default function SalesBudgetAnalyticsPage() {
               </div>
             </div>
           </div>
-        </section>
 
-        <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-[26px] border border-neutral-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
-                Categorias
-              </p>
-              <LayoutGrid className="h-4 w-4 text-neutral-400" />
-            </div>
-            <p className="mt-4 text-3xl font-black tracking-tight text-neutral-900">
-              {catalog.length}
-            </p>
-            <p className="mt-2 text-sm text-neutral-500">
-              Estruturadas para carga sob demanda.
-            </p>
-          </div>
-
-          <div className="rounded-[26px] border border-neutral-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
-                Graficos mapeados
-              </p>
-              <BarChart3 className="h-4 w-4 text-neutral-400" />
-            </div>
-            <p className="mt-4 text-3xl font-black tracking-tight text-neutral-900">
-              {totals.plannedCharts}
-            </p>
-            <p className="mt-2 text-sm text-neutral-500">
-              IDs e categorias prontos para backend e frontend.
-            </p>
-          </div>
-
-          <div className="rounded-[26px] border border-emerald-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
-                Disponiveis agora
-              </p>
-              <TrendingUp className="h-4 w-4 text-emerald-600" />
-            </div>
-            <p className="mt-4 text-3xl font-black tracking-tight text-neutral-900">
-              {totals.availableNowCharts}
-            </p>
-            <p className="mt-2 text-sm text-neutral-500">
-              Dependem apenas das views atuais de orcamento e itens.
-            </p>
-          </div>
-
-          <div className="rounded-[26px] border border-rose-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-rose-700">
-                Novas views
-              </p>
-              <AlertCircle className="h-4 w-4 text-rose-600" />
-            </div>
-            <p className="mt-4 text-3xl font-black tracking-tight text-neutral-900">
-              {totals.needsNewViewCharts}
-            </p>
-            <p className="mt-2 text-sm text-neutral-500">
-              Bloqueados ate existir faturamento, metas, estoque ou custo.
-            </p>
+          <div className="mt-6 flex flex-wrap items-center gap-2 rounded-[28px] border border-neutral-200 bg-neutral-50 p-2 shadow-sm">
+            {DASHBOARD_SCOPES.map((scope) => {
+              const isActive = activeScope === scope.key;
+              return (
+                <button
+                  key={scope.key}
+                  type="button"
+                  onClick={() =>
+                    startTransition(() => {
+                      setActiveScope(scope.key);
+                    })
+                  }
+                  className={`rounded-[20px] px-5 py-3 text-sm font-black transition-colors ${
+                    isActive
+                      ? "bg-neutral-900 text-white"
+                      : "bg-white text-neutral-700 hover:bg-neutral-100"
+                  }`}
+                >
+                  {scope.label}
+                </button>
+              );
+            })}
           </div>
         </section>
 
-        <section className="mt-6 rounded-[30px] border border-neutral-200 bg-white p-6 shadow-sm">
+        {activeScope === "budget" && (
+          <section className="mt-6 rounded-[30px] border border-neutral-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h2 className="text-xl font-black tracking-tight text-neutral-900">
+                Graficos por categoria
+              </h2>
+              <p className="mt-1 text-sm text-neutral-500">
+                Escolha uma categoria para explorar os graficos do periodo.
+              </p>
+            </div>
+
+            <div className="flex w-full max-w-md items-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-2">
+              <Search className="h-4 w-4 text-neutral-400" />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Buscar grafico"
+                className="w-full bg-transparent text-sm text-neutral-700 outline-none placeholder:text-neutral-400"
+              />
+            </div>
+          </div>
+
+          <div className="mt-5 flex gap-2 overflow-x-auto pb-2">
+            {visibleCatalog.map((category) => {
+              const isActive = category.id === activeCategory?.id;
+
+              return (
+                <button
+                  key={category.id}
+                  type="button"
+                  onClick={() =>
+                    startTransition(() => {
+                      setActiveCategoryId(category.id);
+                    })
+                  }
+                  className={`min-w-fit rounded-2xl border px-4 py-3 text-left transition-colors ${
+                    isActive
+                      ? "border-neutral-900 bg-neutral-900 text-white"
+                      : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50"
+                  }`}
+                >
+                  <div className="text-sm font-black tracking-tight">{category.name}</div>
+                </button>
+              );
+            })}
+          </div>
+
+          {chartsError && (
+            <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
+              {chartsError}
+            </div>
+          )}
+
+          <div className="mt-6">
+            <div className="grid gap-4 xl:grid-cols-2">
+              {filteredHighlights.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500 xl:col-span-2">
+                  Nenhum grafico desta categoria corresponde ao filtro digitado.
+                </div>
+              ) : (
+                filteredHighlights.map((chart) => (
+                  <div key={chart.id}>
+                    <SalesBudgetChartCard
+                      chart={chartsById[chart.id] ?? null}
+                      chartId={chart.id}
+                      fallbackTitle={chart.title}
+                      isLoading={isLoadingCharts && !chartsById[chart.id]}
+                    />
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+          </section>
+        )}
+
+        {activeScope === "budget" ? (
+          <section className="mt-6 rounded-[30px] border border-neutral-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between gap-4">
             <div>
               <h2 className="text-xl font-black tracking-tight text-neutral-900">
-                KPIs essenciais
+                Resumo do periodo
               </h2>
               <p className="mt-1 text-sm text-neutral-500">
-                Leitura inicial do periodo selecionado, no mesmo fluxo em que a
-                categoria depois abre seus graficos.
+                Visao rapida dos principais indicadores para o intervalo selecionado.
               </p>
             </div>
           </div>
@@ -426,140 +508,60 @@ export default function SalesBudgetAnalyticsPage() {
                 </div>
               );
             })}
-          </div>
-        </section>
 
-        <section className="mt-6 rounded-[30px] border border-neutral-200 bg-white p-6 shadow-sm">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <h2 className="text-xl font-black tracking-tight text-neutral-900">
-                Categorias e seletor otimizado
-              </h2>
-              <p className="mt-1 text-sm text-neutral-500">
-                Cada troca de categoria carrega apenas o lote principal de
-                graficos daquela sessao.
-              </p>
-            </div>
-
-            <div className="flex w-full max-w-md items-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-2">
-              <Search className="h-4 w-4 text-neutral-400" />
-              <input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Buscar grafico por nome ou id"
-                className="w-full bg-transparent text-sm text-neutral-700 outline-none placeholder:text-neutral-400"
-              />
-            </div>
-          </div>
-
-          <div className="mt-5 flex gap-2 overflow-x-auto pb-2">
-            {catalog.map((category) => {
-              const isActive = category.id === activeCategory?.id;
-              return (
-                <button
-                  key={category.id}
-                  type="button"
-                  onClick={() =>
-                    startTransition(() => {
-                      setActiveCategoryId(category.id);
-                    })
-                  }
-                  className={`min-w-fit rounded-2xl border px-4 py-3 text-left transition-colors ${
-                    isActive
-                      ? "border-neutral-900 bg-neutral-900 text-white"
-                      : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50"
-                  }`}
-                >
-                  <div className="text-sm font-black tracking-tight">
-                    {category.name}
-                  </div>
-                  <div
-                    className={`text-xs ${
-                      isActive ? "text-neutral-300" : "text-neutral-500"
-                    }`}
-                  >
-                    {category.plannedCount} itens planejados
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {chartsError && (
-            <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
-              {chartsError}
-            </div>
-          )}
-
-          <div className="mt-6 grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
-            <div className="rounded-[26px] border border-neutral-200 bg-neutral-50 p-5">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
-                Categoria ativa
-              </p>
-              <h3 className="mt-3 text-2xl font-black tracking-tight text-neutral-900">
-                {activeCategory?.name}
-              </h3>
-              <p className="mt-2 text-sm leading-6 text-neutral-600">
-                {activeCategory?.description}
-              </p>
-
-              <div className="mt-5 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-                <div className="rounded-2xl border border-neutral-200 bg-white p-4">
-                  <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
-                    Planejados
-                  </p>
-                  <p className="mt-2 text-2xl font-black text-neutral-900">
-                    {activeCategory?.plannedCount ?? 0}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-emerald-200 bg-white p-4">
-                  <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
-                    Disponiveis
-                  </p>
-                  <p className="mt-2 text-2xl font-black text-neutral-900">
-                    {activeCategory?.availableNowCount ?? 0}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-rose-200 bg-white p-4">
-                  <p className="text-xs font-black uppercase tracking-[0.18em] text-rose-700">
-                    Novas views
-                  </p>
-                  <p className="mt-2 text-2xl font-black text-neutral-900">
-                    {activeCategory?.needsNewViewCount ?? 0}
-                  </p>
-                </div>
+            <div className="rounded-[24px] border border-neutral-200 bg-neutral-50 p-5">
+              <div className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
+                Top 5 vendedores
               </div>
-            </div>
 
-            <div className="min-w-0">
-              <div className="grid gap-4 xl:grid-cols-2">
-                {filteredHighlights.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500 xl:col-span-2">
-                    Nenhum grafico desta categoria corresponde ao filtro digitado.
-                  </div>
-                ) : (
-                  filteredHighlights.map((chart) => (
-                    <div key={chart.id} className="flex flex-col gap-2">
-                      <div className="flex items-center justify-between px-1">
-                        <span
-                          className={`rounded-full border px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.14em] ${availabilityClassName[chart.availability]}`}
-                        >
-                          {availabilityLabel[chart.availability]}
-                        </span>
+              {isLoadingKpis && topSellerRows.length === 0 ? (
+                <div className="mt-4 space-y-3">
+                  {[1, 2, 3, 4, 5].map((item) => (
+                    <div key={item} className="h-8 animate-pulse rounded-xl bg-white" />
+                  ))}
+                </div>
+              ) : topSellerRows.length > 0 ? (
+                <div className="mt-4 space-y-3">
+                  {topSellerRows.map((seller) => (
+                    <div
+                      key={`${seller.rank}-${seller.name}`}
+                      className="flex items-center justify-between gap-3 rounded-2xl bg-white px-3 py-2.5"
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-black text-white">
+                          {seller.rank}
+                        </div>
+                        <div className="truncate text-sm font-bold text-neutral-800">
+                          {seller.name}
+                        </div>
                       </div>
-                      <SalesBudgetChartCard
-                        chart={chartsById[chart.id] ?? null}
-                        chartId={chart.id}
-                        fallbackTitle={chart.title}
-                        isLoading={isLoadingCharts && !chartsById[chart.id]}
-                      />
+                      <div className="shrink-0 text-sm font-black text-neutral-900">
+                        {formatCurrency(seller.amount, {
+                          compact: true,
+                          maximumFractionDigits: 1,
+                        })}
+                      </div>
                     </div>
-                  ))
-                )}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-4 rounded-2xl bg-white px-4 py-3 text-sm text-neutral-500">
+                  {topSellersError ?? "Sem dados para montar o ranking neste periodo."}
+                </div>
+              )}
             </div>
           </div>
-        </section>
+          </section>
+        ) : (
+          <section className="mt-6 rounded-[30px] border border-neutral-200 bg-white p-8 shadow-sm">
+            <h2 className="text-2xl font-black tracking-tight text-neutral-900">
+              {activeScopeOption.emptyTitle}
+            </h2>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-600 sm:text-base">
+              {activeScopeOption.emptyDescription}
+            </p>
+          </section>
+        )}
       </div>
     </div>
   );

@@ -55,25 +55,25 @@ export default function SalesBudgetAnalyticsDetailPage() {
   useEffect(() => {
     if (!canSeeSalesBudget || !chartId) return;
     let isMounted = true;
-    setIsLoading(true);
-
-    salesBudgetAnalyticsService
-      .getChartsBatch({
-        chartIds: [chartId],
-        filters: { startDate, endDate },
-      })
-      .then((response) => {
+    const loadChart = async () => {
+      setIsLoading(true);
+      try {
+        const response = await salesBudgetAnalyticsService.getChartsBatch({
+          chartIds: [chartId],
+          filters: { startDate, endDate },
+        });
         if (!isMounted) return;
         setChart(response.items[0] ?? null);
         setError(null);
-      })
-      .catch(() => {
+      } catch {
         if (!isMounted) return;
         setError("Nao foi possivel carregar este grafico agora.");
-      })
-      .finally(() => {
+      } finally {
         if (isMounted) setIsLoading(false);
-      });
+      }
+    };
+
+    void loadChart();
 
     return () => {
       isMounted = false;
@@ -137,7 +137,6 @@ export default function SalesBudgetAnalyticsDetailPage() {
               <h1 className="mt-3 text-3xl font-black tracking-tight text-neutral-900">
                 {chart?.title ?? chartMeta?.title ?? chartId}
               </h1>
-              <p className="mt-2 text-sm font-mono text-neutral-500">{chartId}</p>
               {chart?.meta?.warnings?.[0] ? (
                 <p className="mt-4 max-w-3xl text-sm leading-6 text-amber-700">
                   {chart.meta.warnings[0]}

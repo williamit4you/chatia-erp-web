@@ -199,6 +199,16 @@ export default function SalesBudgetChartRenderer({
     );
   }
 
+  if (chart.visualization === "error") {
+    const errorMessage = chart.meta?.warnings?.[0] ?? "Nao foi possivel gerar este grafico.";
+    return (
+      <div className="flex h-[260px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-rose-200 bg-rose-50/50 px-6 text-center">
+        <div className="text-sm font-bold text-rose-700">Erro ao carregar</div>
+        <div className="max-w-xs text-xs leading-5 text-rose-600">{errorMessage}</div>
+      </div>
+    );
+  }
+
   if (chart.visualization === "kpi") {
     const value = getPrimaryValue(chart);
     return (

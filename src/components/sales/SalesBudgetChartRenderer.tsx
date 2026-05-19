@@ -145,7 +145,9 @@ function LineView({
             }
           />
           <Tooltip
-            formatter={(value: number) => formatValueByVisualization(chart, Number(value))}
+            formatter={(value) =>
+              formatValueByVisualization(chart, Number(value ?? 0))
+            }
             contentStyle={{
               borderRadius: "12px",
               border: "none",

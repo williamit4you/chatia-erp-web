@@ -14,6 +14,7 @@ import salesBudgetAnalyticsService, {
   type SalesBudgetKpiItem,
 } from "@/services/sales-budget-analytics.service";
 import { Calendar, Lock, Search } from "lucide-react";
+import { useSessionStorageDate } from "@/hooks/useSessionStorageDate";
 
 const LIVE_KPI_IDS = [
   "kpi_total_budget_amount",
@@ -89,12 +90,12 @@ export default function SalesBudgetAnalyticsPage() {
   const [isLoadingCharts, setIsLoadingCharts] = useState(false);
   const [chartsError, setChartsError] = useState<string | null>(null);
 
-  const [startDate, setStartDate] = useState(() => {
+  const [startDate, setStartDate] = useSessionStorageDate("salesBudgetStartDate", () => {
     const d = new Date();
     d.setMonth(d.getMonth() - 6);
     return d.toISOString().split("T")[0];
   });
-  const [endDate, setEndDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [endDate, setEndDate] = useSessionStorageDate("salesBudgetEndDate", () => new Date().toISOString().split("T")[0]);
   const [activeScope, setActiveScope] = useState<DashboardScope>("budget");
   const [activeCategoryId, setActiveCategoryId] = useState("overview");
   const [search, setSearch] = useState("");

@@ -11,6 +11,7 @@ import salesBudgetAnalyticsService, {
   type SalesBudgetChartDataset,
 } from "@/services/sales-budget-analytics.service";
 import { ArrowLeft, FileSpreadsheet, FileText, Lock, MessageSquareText } from "lucide-react";
+import { useSessionStorageDate } from "@/hooks/useSessionStorageDate";
 
 type DashboardAccessUser = {
   role?: string;
@@ -32,12 +33,12 @@ export default function SalesBudgetAnalyticsDetailPage() {
   const user = (session?.user ?? null) as DashboardAccessUser | null;
   const chartId = String(params?.chartId ?? "");
 
-  const [startDate, setStartDate] = useState(() => {
+  const [startDate, setStartDate] = useSessionStorageDate("salesBudgetStartDate", () => {
     const d = new Date();
     d.setMonth(d.getMonth() - 6);
     return d.toISOString().split("T")[0];
   });
-  const [endDate, setEndDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [endDate, setEndDate] = useSessionStorageDate("salesBudgetEndDate", () => new Date().toISOString().split("T")[0]);
   const [chart, setChart] = useState<SalesBudgetChartDataset | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -8,6 +8,7 @@ import RankingTable from "./charts/RankingTable";
 import TableView from "./charts/TableView";
 import StackedBarChart from "./charts/StackedBarChart";
 import ComparisonCards from "./charts/ComparisonCards";
+import ComparisonKpiGrid from "./charts/ComparisonKpiGrid";
 import ComboChart from "./charts/ComboChart";
 import MultiLineChart from "./charts/MultiLineChart";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/formatters/financeFormat";
@@ -58,28 +59,42 @@ const formatValueByVisualization = (
   return formatNumber(value, { compact: true, maximumFractionDigits: 0 });
 };
 
-function HeatmapView({ chart }: { chart: SalesBudgetChartDataset }) {
+function HeatmapView({
+  chart,
+  compact,
+}: {
+  chart: SalesBudgetChartDataset;
+  compact: boolean;
+}) {
   const maxValue = Math.max(...chart.data.map((item) => item.value ?? 0), 0);
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-7">
+    <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(120px,1fr))]">
       {chart.data.map((item) => {
         const value = item.value ?? 0;
         const intensity = maxValue > 0 ? value / maxValue : 0;
+        const alpha = 0.08 + intensity * 0.32;
+        const borderAlpha = 0.14 + intensity * 0.26;
         return (
           <div
             key={`${chart.chartId}-${item.label}`}
-            className="rounded-2xl border border-neutral-200 p-3"
+            className={`relative overflow-hidden rounded-2xl border bg-white p-3 shadow-sm ${
+              compact ? "min-h-[76px]" : "min-h-[84px]"
+            }`}
             style={{
-              backgroundColor: `rgba(99, 102, 241, ${0.08 + intensity * 0.32})`,
+              borderColor: `rgba(99, 102, 241, ${borderAlpha})`,
+              backgroundImage: `linear-gradient(135deg, rgba(99, 102, 241, ${alpha}) 0%, rgba(99, 102, 241, ${
+                alpha * 0.55
+              }) 100%)`,
             }}
           >
-            <div className="text-xs font-black uppercase tracking-[0.16em] text-neutral-600">
-              {item.label}
+            <div className="text-[11px] font-black uppercase tracking-[0.16em] text-neutral-700 truncate">
+              {item.label ?? "—"}
             </div>
-            <div className="mt-2 text-lg font-black tracking-tight text-neutral-900">
+            <div className="mt-2 text-base font-black tracking-tight text-neutral-900 tabular-nums truncate">
               {formatValueByVisualization(chart, value)}
             </div>
+            <div className="pointer-events-none absolute -right-6 -top-6 h-16 w-16 rounded-full bg-white/40" />
           </div>
         );
       })}
@@ -87,9 +102,16 @@ function HeatmapView({ chart }: { chart: SalesBudgetChartDataset }) {
   );
 }
 
-function KpiGridView({ chart }: { chart: SalesBudgetChartDataset }) {
+function KpiGridView({ chart, compact }: { chart: SalesBudgetChartDataset; compact: boolean }) {
+  const gridClass =
+    chart.data.length === 6
+      ? "grid gap-3 sm:grid-cols-3"
+      : compact
+        ? "grid gap-3 sm:grid-cols-2"
+        : "grid gap-3 sm:grid-cols-2 xl:grid-cols-4";
+
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div className={gridClass}>
       {chart.data.map((item) => {
         const value =
           item.value ?? item.amount ?? item.count ?? item.percentage ?? 0;
@@ -105,12 +127,12 @@ function KpiGridView({ chart }: { chart: SalesBudgetChartDataset }) {
         return (
           <div
             key={`${chart.chartId}-${item.label}`}
-            className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4"
+            className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm"
           >
-            <div className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
-              {item.label}
+            <div className="text-[11px] font-black uppercase tracking-[0.14em] text-neutral-500 line-clamp-2">
+              {item.label ?? "—"}
             </div>
-            <div className="mt-2 text-2xl font-black tracking-tight text-neutral-900">
+            <div className="mt-2 text-2xl font-black tracking-tight text-neutral-900 tabular-nums">
               {formatted}
             </div>
           </div>
@@ -252,7 +274,14 @@ export default function SalesBudgetChartRenderer({
   }
 
   if (chart.visualization === "kpi_grid") {
-    return <KpiGridView chart={chart} />;
+    if (
+      chart.chartId === "overview_current_vs_previous_month" ||
+      chart.chartId === "overview_current_year_vs_previous_year"
+    ) {
+      return <ComparisonKpiGrid chart={chart} compact={compact} />;
+    }
+
+    return <KpiGridView chart={chart} compact={compact} />;
   }
 
   if (chart.visualization === "pie") {
@@ -275,7 +304,7 @@ export default function SalesBudgetChartRenderer({
   }
 
   if (chart.visualization === "heatmap") {
-    return <HeatmapView chart={chart} />;
+    return <HeatmapView chart={chart} compact={compact} />;
   }
 
   if (chart.visualization === "pareto") {

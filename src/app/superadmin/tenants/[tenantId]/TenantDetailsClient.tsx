@@ -28,8 +28,8 @@ const permissionLabels = {
     hasReceivableDashboardAccess: "Receber - Dashboard",
     hasBankingChatAccess: "Bancos - Chat",
     hasBankingDashboardAccess: "Bancos - Dashboard",
-    hasBudgetChatAccess: "Orcamento - Chat",
-    hasBudgetDashboardAccess: "Orcamento - Dashboard",
+    hasBudgetChatAccess: "Orçamento - Chat",
+    hasBudgetDashboardAccess: "Orçamento - Dashboard",
 };
 
 export default function TenantDetailsClient({ tenant }: { tenant: any }) {

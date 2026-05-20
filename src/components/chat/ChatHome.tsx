@@ -84,7 +84,7 @@ export default function ChatHome() {
       {
         key: "vendas",
         title: "Vendas",
-        description: "OrÃ§amentos, funil comercial, clientes, produtos e performance.",
+        description: "Orçamentos, funil comercial, clientes, produtos e performance.",
         enabled: Boolean(canSeeSalesDashboard),
         accent: "text-violet-700",
         border: "border-violet-200/60",

@@ -184,6 +184,19 @@ export default function SalesBudgetAnalyticsPage() {
     visibleCatalog[0] ??
     null;
 
+  const overviewChartsCount = useMemo(() => {
+    if (!visibleCatalog.length) return 0;
+    const seen = new Set<string>();
+    for (const category of visibleCatalog) {
+      for (const chart of category.highlights ?? []) {
+        if (chart.availability !== "available_now") continue;
+        if (seen.has(chart.id)) continue;
+        seen.add(chart.id);
+      }
+    }
+    return seen.size;
+  }, [visibleCatalog]);
+
   const activeCategoryCharts = useMemo<VisibleChart[]>(() => {
     if (!visibleCatalog.length) return [];
 
@@ -454,7 +467,7 @@ export default function SalesBudgetAnalyticsPage() {
                     />
                     <span className="truncate">{category.name}</span>
                     <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral-200 px-1.5 text-[10px] font-black text-neutral-600">
-                      {category.highlights.length}
+                      {category.id === "overview" ? overviewChartsCount : category.highlights.length}
                     </span>
                   </div>
                 </button>

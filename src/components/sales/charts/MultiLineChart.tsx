@@ -100,9 +100,9 @@ export default function MultiLineChart({ chart, compact = false }: MultiLineChar
               boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
               padding: "12px 16px",
             }}
-            formatter={(value: number, name: string) => [
-              formatSeriesValue(name, value),
-              SERIES_LABELS[name] ?? name,
+            formatter={(value: any, name: any) => [
+              formatSeriesValue(String(name), Number(value)),
+              SERIES_LABELS[String(name)] ?? name,
             ]}
             labelStyle={{ fontWeight: 700, color: "#262626" }}
           />

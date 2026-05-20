@@ -109,8 +109,8 @@ export default function ComboChart({ chart, compact = false }: ComboChartProps) 
               boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
               padding: "12px 16px",
             }}
-            formatter={(value: number, name: string) => [
-              formatByKey(name, value),
+            formatter={(value: any, name: any) => [
+              formatByKey(String(name), Number(value)),
               name === barKey ? barLabel : lineLabel,
             ]}
             labelStyle={{ fontWeight: 700, color: "#262626" }}

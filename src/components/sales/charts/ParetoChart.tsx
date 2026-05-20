@@ -137,11 +137,11 @@ export default function ParetoChart({ chart, compact = false }: ParetoChartProps
               boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
               padding: "12px 16px",
             }}
-            formatter={(value: number, name: string) => {
+            formatter={(value: any, name: any) => {
               if (name === "cumulativePct") {
-                return [formatPercent(value, { maximumFractionDigits: 1 }), "Acumulado"];
+                return [formatPercent(Number(value), { maximumFractionDigits: 1 }), "Acumulado"];
               }
-              return [formatValue(chart, value), "Valor"];
+              return [formatValue(chart, Number(value)), "Valor"];
             }}
             labelStyle={{ fontWeight: 700, color: "#262626" }}
           />

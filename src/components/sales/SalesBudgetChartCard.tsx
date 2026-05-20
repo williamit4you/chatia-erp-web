@@ -32,7 +32,7 @@ export default function SalesBudgetChartCard({
         <Link
           href={`/chat/sales-budget-analytics/${chartId}`}
           className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-neutral-200 text-neutral-600 transition hover:bg-neutral-50 hover:text-neutral-900"
-          title="Abrir grafico"
+          title="Abrir gráfico"
         >
           <ArrowUpRight className="h-4 w-4" />
         </Link>

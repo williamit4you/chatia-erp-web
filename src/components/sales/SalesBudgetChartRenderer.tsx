@@ -3,6 +3,13 @@
 import DistributionBarChart from "@/components/finance/DistributionBarChart";
 import DistributionPieChart from "@/components/finance/DistributionPieChart";
 import ChartLoadingState from "@/components/finance/ChartLoadingState";
+import ParetoChart from "./charts/ParetoChart";
+import RankingTable from "./charts/RankingTable";
+import TableView from "./charts/TableView";
+import StackedBarChart from "./charts/StackedBarChart";
+import ComparisonCards from "./charts/ComparisonCards";
+import ComboChart from "./charts/ComboChart";
+import MultiLineChart from "./charts/MultiLineChart";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/formatters/financeFormat";
 import type { SalesBudgetChartDataset } from "@/services/sales-budget-analytics.service";
 import {
@@ -178,7 +185,7 @@ export default function SalesBudgetChartRenderer({
       <ChartLoadingState
         heightClass={compact ? "h-[260px]" : "h-[360px]"}
         variant="bar"
-        title="Grafico"
+        title="Gráfico"
       />
     );
   }
@@ -194,13 +201,13 @@ export default function SalesBudgetChartRenderer({
   if (chart.visualization === "planned") {
     return (
       <div className="flex h-[260px] items-center justify-center rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 px-6 text-center text-sm font-medium leading-6 text-neutral-500">
-        Este grafico ainda depende de uma proxima etapa de implementacao ou de novas views.
+        Este gráfico ainda depende de uma próxima etapa de implementação ou de novas views.
       </div>
     );
   }
 
   if (chart.visualization === "error") {
-    const errorMessage = chart.meta?.warnings?.[0] ?? "Nao foi possivel gerar este grafico.";
+    const errorMessage = chart.meta?.warnings?.[0] ?? "Não foi possível gerar este gráfico.";
     return (
       <div className="flex h-[260px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-rose-200 bg-rose-50/50 px-6 text-center">
         <div className="text-sm font-bold text-rose-700">Erro ao carregar</div>
@@ -269,6 +276,34 @@ export default function SalesBudgetChartRenderer({
 
   if (chart.visualization === "heatmap") {
     return <HeatmapView chart={chart} />;
+  }
+
+  if (chart.visualization === "pareto") {
+    return <ParetoChart chart={chart} compact={compact} />;
+  }
+
+  if (chart.visualization === "ranking") {
+    return <RankingTable chart={chart} compact={compact} />;
+  }
+
+  if (chart.visualization === "table") {
+    return <TableView chart={chart} compact={compact} />;
+  }
+
+  if (chart.visualization === "stacked") {
+    return <StackedBarChart chart={chart} compact={compact} />;
+  }
+
+  if (chart.visualization === "comparison") {
+    return <ComparisonCards chart={chart} />;
+  }
+
+  if (chart.visualization === "combo") {
+    return <ComboChart chart={chart} compact={compact} />;
+  }
+
+  if (chart.visualization === "multiline") {
+    return <MultiLineChart chart={chart} compact={compact} />;
   }
 
   return (

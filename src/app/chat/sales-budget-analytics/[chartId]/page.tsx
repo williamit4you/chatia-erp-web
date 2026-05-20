@@ -67,7 +67,7 @@ export default function SalesBudgetAnalyticsDetailPage() {
         setError(null);
       } catch {
         if (!isMounted) return;
-        setError("Nao foi possivel carregar este grafico agora.");
+        setError("Não foi possível carregar este gráfico agora.");
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -99,10 +99,10 @@ export default function SalesBudgetAnalyticsDetailPage() {
               <Lock className="h-7 w-7" />
             </div>
             <h1 className="text-2xl font-black tracking-tight text-neutral-900">
-              Grafico de Vendas
+               Gráfico de Vendas
             </h1>
             <p className="mt-3 text-sm leading-6 text-neutral-600">
-              O acesso a esta analise depende da permissao de dashboard de Orcamento.
+               O acesso a esta análise depende da permissão de dashboard de Orçamento.
             </p>
           </div>
         </div>
@@ -166,14 +166,14 @@ export default function SalesBudgetAnalyticsDetailPage() {
               onClick={() =>
                 router.push(
                   `/chat/new?prompt=${encodeURIComponent(
-                    `Analise o grafico ${chart?.title ?? chartMeta?.title ?? chartId} de Vendas > Orcamento no periodo de ${startDate} a ${endDate}.`
+                    `Analise o gráfico ${chart?.title ?? chartMeta?.title ?? chartId} de Vendas > Orçamento no período de ${startDate} a ${endDate}.`
                   )}`
                 )
               }
               className="inline-flex items-center gap-2 rounded-2xl bg-neutral-900 px-4 py-3 text-sm font-black text-white transition hover:bg-black"
             >
               <MessageSquareText className="h-4 w-4" />
-              Perguntar sobre este grafico
+              Perguntar sobre este gráfico
             </button>
             <button
               type="button"

@@ -35,18 +35,18 @@ type ScopeOption = {
 };
 
 const DASHBOARD_SCOPES: ScopeOption[] = [
-  { key: "budget", label: "Orcamento" },
+  { key: "budget", label: "Orçamento" },
   {
     key: "order",
     label: "Pedido",
     emptyTitle: "Pedidos",
-    emptyDescription: "Os graficos de pedidos vao aparecer aqui em uma proxima etapa.",
+    emptyDescription: "Os gráficos de pedidos vão aparecer aqui em uma próxima etapa.",
   },
   {
     key: "invoice",
     label: "Nota Fiscal",
     emptyTitle: "Notas fiscais",
-    emptyDescription: "Os graficos de notas fiscais vao aparecer aqui em uma proxima etapa.",
+    emptyDescription: "Os gráficos de notas fiscais vão aparecer aqui em uma próxima etapa.",
   },
 ];
 
@@ -120,7 +120,7 @@ export default function SalesBudgetAnalyticsPage() {
       })
       .catch(() => {
         if (!isMounted) return;
-        setCatalogError("Alguns dados de apoio nao foram carregados, mas os graficos principais continuam disponiveis.");
+        setCatalogError("Alguns dados de apoio não foram carregados, mas os gráficos principais continuam disponíveis.");
       });
 
     return () => {
@@ -151,9 +151,9 @@ export default function SalesBudgetAnalyticsPage() {
         setTopSellersError(null);
       } catch {
         if (!isMounted) return;
-        setKpiError("Nao foi possivel carregar os KPIs agora.");
+        setKpiError("Não foi possível carregar os KPIs agora.");
         setTopSellers([]);
-        setTopSellersError("Nao foi possivel carregar o ranking de vendedores agora.");
+        setTopSellersError("Não foi possível carregar o ranking de vendedores agora.");
       } finally {
         if (isMounted) setIsLoadingKpis(false);
       }
@@ -233,7 +233,7 @@ export default function SalesBudgetAnalyticsPage() {
         setChartsError(null);
       } catch {
         if (!isMounted) return;
-        setChartsError("Nao foi possivel carregar os graficos desta categoria agora.");
+        setChartsError("Não foi possível carregar os gráficos desta categoria agora.");
       } finally {
         if (isMounted) setIsLoadingCharts(false);
       }
@@ -304,10 +304,10 @@ export default function SalesBudgetAnalyticsPage() {
               <Lock className="h-7 w-7" />
             </div>
             <h1 className="text-2xl font-black tracking-tight text-neutral-900">
-              Vendas &gt; Orcamento
+              Vendas &gt; Orçamento
             </h1>
             <p className="mt-3 text-sm leading-6 text-neutral-600">
-              O acesso a esta area precisa estar habilitado para a sua conta.
+               O acesso a esta área precisa estar habilitado para a sua conta.
             </p>
           </div>
         </div>
@@ -329,10 +329,10 @@ export default function SalesBudgetAnalyticsPage() {
           <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
             <div className="max-w-3xl">
               <h1 className="text-3xl font-black tracking-tight text-neutral-900 sm:text-4xl">
-                Vendas &gt; Orcamento
+                Vendas &gt; Orçamento
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-600 sm:text-base">
-                Acompanhe os principais indicadores e explore os graficos do periodo selecionado.
+                Acompanhe os principais indicadores e explore os gráficos do período selecionado.
               </p>
             </div>
 
@@ -388,10 +388,10 @@ export default function SalesBudgetAnalyticsPage() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h2 className="text-xl font-black tracking-tight text-neutral-900">
-                Graficos por categoria
+                Gráficos por categoria
               </h2>
               <p className="mt-1 text-sm text-neutral-500">
-                Escolha uma categoria para explorar os graficos do periodo.
+                Escolha uma categoria para explorar os gráficos do período.
               </p>
             </div>
 
@@ -400,7 +400,7 @@ export default function SalesBudgetAnalyticsPage() {
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Buscar grafico"
+                placeholder="Buscar gráfico"
                 className="w-full bg-transparent text-sm text-neutral-700 outline-none placeholder:text-neutral-400"
               />
             </div>
@@ -425,7 +425,7 @@ export default function SalesBudgetAnalyticsPage() {
                       : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50"
                   }`}
                 >
-                  <div className="text-sm font-black tracking-tight">{category.name}</div>
+                  <div className="text-sm font-black tracking-tight">{category.name} <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral-200 px-1.5 text-[10px] font-black text-neutral-600">{category.highlights.length}</span></div>
                 </button>
               );
             })}
@@ -441,7 +441,7 @@ export default function SalesBudgetAnalyticsPage() {
             <div className="grid gap-4 xl:grid-cols-2">
               {filteredHighlights.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500 xl:col-span-2">
-                  Nenhum grafico desta categoria corresponde ao filtro digitado.
+                  Nenhum gráfico desta categoria corresponde ao filtro digitado.
                 </div>
               ) : (
                 filteredHighlights.map((chart) => (
@@ -465,10 +465,10 @@ export default function SalesBudgetAnalyticsPage() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <h2 className="text-xl font-black tracking-tight text-neutral-900">
-                Resumo do periodo
+                Resumo do período
               </h2>
               <p className="mt-1 text-sm text-neutral-500">
-                Visao rapida dos principais indicadores para o intervalo selecionado.
+                Visão rápida dos principais indicadores para o intervalo selecionado.
               </p>
             </div>
           </div>
@@ -546,7 +546,7 @@ export default function SalesBudgetAnalyticsPage() {
                 </div>
               ) : (
                 <div className="mt-4 rounded-2xl bg-white px-4 py-3 text-sm text-neutral-500">
-                  {topSellersError ?? "Sem dados para montar o ranking neste periodo."}
+                  {topSellersError ?? "Sem dados para montar o ranking neste período."}
                 </div>
               )}
             </div>

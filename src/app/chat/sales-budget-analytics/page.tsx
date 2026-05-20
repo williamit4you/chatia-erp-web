@@ -9,6 +9,7 @@ import { salesBudgetCatalog } from "@/lib/sales-budget-catalog";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/formatters/financeFormat";
 import salesBudgetAnalyticsService, {
   type SalesBudgetCategory,
+  type SalesBudgetChartAvailability,
   type SalesBudgetChartDataset,
   type SalesBudgetChartPoint,
   type SalesBudgetKpiItem,
@@ -59,7 +60,7 @@ type DashboardAccessUser = {
 type VisibleChart = {
   id: string;
   title: string;
-  availability: string;
+  availability: SalesBudgetChartAvailability;
   categoryId: string;
   categoryName: string;
 };
@@ -201,14 +202,29 @@ export default function SalesBudgetAnalyticsPage() {
       );
     }
 
-    return (activeCategory?.highlights ?? []).map((chart) => ({
-      id: chart.id,
-      title: chart.title,
-      availability: chart.availability,
-      categoryId: activeCategory?.id ?? "",
-      categoryName: activeCategory?.name ?? "",
-    }));
+    return (activeCategory?.highlights ?? [])
+      .filter((chart) => chart.availability === "available_now")
+      .map((chart) => ({
+        id: chart.id,
+        title: chart.title,
+        availability: chart.availability,
+        categoryId: activeCategory?.id ?? "",
+        categoryName: activeCategory?.name ?? "",
+      }));
   }, [activeCategory, activeCategoryId, visibleCatalog]);
+
+  const upcomingCategoryCharts = useMemo<VisibleChart[]>(() => {
+    if (!activeCategory || activeCategoryId === "overview") return [];
+    return (activeCategory.highlights ?? [])
+      .filter((chart) => chart.availability !== "available_now")
+      .map((chart) => ({
+        id: chart.id,
+        title: chart.title,
+        availability: chart.availability,
+        categoryId: activeCategory.id,
+        categoryName: activeCategory.name,
+      }));
+  }, [activeCategory, activeCategoryId]);
 
   useEffect(() => {
     if (!canSeeSalesBudget || activeCategoryCharts.length === 0) return;
@@ -438,11 +454,32 @@ export default function SalesBudgetAnalyticsPage() {
             </div>
           )}
 
+          {upcomingCategoryCharts.length > 0 && activeCategoryId !== "overview" && !deferredSearch ? (
+            <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-600">
+              <div className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
+                Em breve ({upcomingCategoryCharts.length})
+              </div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {upcomingCategoryCharts.map((chart) => (
+                  <span
+                    key={chart.id}
+                    className="inline-flex items-center rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs font-bold text-neutral-700"
+                    title={chart.id}
+                  >
+                    {chart.title}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           <div className="mt-6">
             <div className="grid gap-4 xl:grid-cols-2">
               {filteredHighlights.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500 xl:col-span-2">
-                  Nenhum gráfico desta categoria corresponde ao filtro digitado.
+                  {upcomingCategoryCharts.length > 0 && !deferredSearch
+                    ? "Esta categoria ainda não possui gráficos disponíveis."
+                    : "Nenhum gráfico desta categoria corresponde ao filtro digitado."}
                 </div>
               ) : (
                 filteredHighlights.map((chart) => (

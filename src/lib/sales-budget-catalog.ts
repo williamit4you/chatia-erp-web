@@ -1,6 +1,6 @@
 export type SalesBudgetChartAvailability =
   | "available_now"
-  | "available_now"
+  | "needs_mapping"
   | "needs_new_view";
 
 export type SalesBudgetChartPreview = {

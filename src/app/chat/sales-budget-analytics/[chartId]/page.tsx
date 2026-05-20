@@ -10,11 +10,11 @@ import { salesBudgetCatalog } from "@/lib/sales-budget-catalog";
 import salesBudgetAnalyticsService, {
   type SalesBudgetChartDataset,
 } from "@/services/sales-budget-analytics.service";
-import { 
-    ArrowLeft, Lock, Calendar, Bot, User, Send, Loader2, Info, Sparkles, 
-    Database, ChevronDown, ChevronUp, RefreshCw, PlusCircle, History, 
-    Trash2, Download 
-} from "lucide-react";
+	import { 
+	    ArrowLeft, Lock, Calendar, Bot, User, Send, Loader2, Info, Sparkles, 
+	    Database, ChevronDown, ChevronUp, RefreshCw, PlusCircle, History, 
+	    Trash2, Download, MessageSquareText 
+	} from "lucide-react";
 import { useSessionStorageDate } from "@/hooks/useSessionStorageDate";
 import { toast } from "sonner";
 import { getDisplayContextUsage } from "@/lib/contextUtils";
@@ -133,24 +133,31 @@ export default function SalesBudgetAnalyticsDetailPage() {
     [chartId]
   );
   
-  const title = chart?.title ?? chartMeta?.title ?? chartId;
-  const description = "Análise de dados do orçamento de vendas.";
+	  const title = chart?.title ?? chartMeta?.title ?? chartId;
+	  const description = "Análise de dados do orçamento de vendas.";
 
-  const loadChart = async () => {
-    setIsLoading(true);
-    try {
-      const response = await salesBudgetAnalyticsService.getChartsBatch({
-        chartIds: [chartId],
-        filters: { startDate, endDate },
-      });
-      setChart(response.items[0] ?? null);
-      setError(null);
-    } catch {
-      setError("Não foi possível carregar este gráfico agora.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+	  const loadChart = async () => {
+	    if (chartMeta?.availability && chartMeta.availability !== "available_now") {
+	      setChart(null);
+	      setError("Este gráfico ainda não está disponível.");
+	      return;
+	    }
+
+	    setIsLoading(true);
+	    try {
+	      const response = await salesBudgetAnalyticsService.getChartsBatch({
+	        chartIds: [chartId],
+	        filters: { startDate, endDate },
+	      });
+	      const item = response.items?.[0] ?? null;
+	      setChart(item);
+	      setError(item ? null : "Não há dados para este gráfico no período selecionado.");
+	    } catch {
+	      setError("Não foi possível carregar este gráfico agora.");
+	    } finally {
+	      setIsLoading(false);
+	    }
+	  };
 
   useEffect(() => {
     if (!canSeeSalesBudget || !chartId) return;
@@ -650,7 +657,7 @@ O que você gostaria de entender especificamente sobre estes números?`
                             >
                                 {message.role === 'assistant' && (
                                     <div className="shrink-0 mt-0.5">
-                                        <MiaAvatar size="md" />
+                                        <MiaAvatar size={32} />
                                     </div>
                                 )}
                                 <div className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'} max-w-[85%]`}>
@@ -674,11 +681,11 @@ O que você gostaria de entender especificamente sobre estes números?`
                                     
                                     {message.role === 'assistant' && message.exportId && (
                                         <div className="mt-2 ml-1">
-                                            <ExportButtons 
-                                                exportId={message.exportId}
-                                                totalLines={message.exportTotal}
-                                                totalValue={message.exportValor}
-                                            />
+	                                            <ExportButtons 
+	                                                exportId={message.exportId}
+	                                                exportTotal={message.exportTotal}
+	                                                compact
+	                                            />
                                         </div>
                                     )}
                                 </div>
@@ -693,7 +700,7 @@ O que você gostaria de entender especificamente sobre estes números?`
                         {isTyping && (
                             <div className="flex gap-3 animate-in fade-in">
                                 <div className="shrink-0">
-                                    <MiaAvatar size="md" isProcessing />
+                                    <MiaAvatar size={32} />
                                 </div>
                                 <div className="bg-white border border-neutral-200 rounded-2xl rounded-tl-sm px-5 py-4 shadow-sm flex gap-1.5 items-center">
                                     <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -709,27 +716,28 @@ O que você gostaria de entender especificamente sobre estes números?`
                             onSubmit={handleSend}
                             className="relative flex items-end bg-neutral-50 rounded-2xl border border-neutral-200 focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/10 transition-all shadow-sm"
                         >
-                            <textarea
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                placeholder="Deseja saber mais sobre estes dados?"
-                                className="w-full bg-transparent border-none focus:ring-0 resize-none py-3.5 px-4 text-[13px] text-neutral-800 placeholder-neutral-400 min-h-[52px] max-h-32"
-                                rows={1}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && !e.shiftKey) {
-                                        e.preventDefault();
-                                        handleSend();
-                                    }
-                                }}
-                            />
+	                            <textarea
+	                                value={input}
+	                                onChange={(e) => setInput(e.target.value)}
+	                                placeholder="Deseja saber mais sobre estes dados?"
+	                                disabled={!chart || !!error || isTyping || isLoading}
+	                                className="w-full bg-transparent border-none focus:ring-0 resize-none py-3.5 px-4 text-[13px] text-neutral-800 placeholder-neutral-400 min-h-[52px] max-h-32"
+	                                rows={1}
+	                                onKeyDown={(e) => {
+	                                    if (e.key === 'Enter' && !e.shiftKey) {
+	                                        e.preventDefault();
+	                                        handleSend();
+	                                    }
+	                                }}
+	                            />
                             <div className="p-2 shrink-0">
-                                <button
-                                    type="submit"
-                                    disabled={!input.trim() || isTyping || isLoading}
-                                    className="p-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:hover:bg-indigo-600 transition-colors shadow-sm"
-                                >
-                                    <Send className="w-4 h-4" />
-                                </button>
+	                                <button
+	                                    type="submit"
+	                                    disabled={!chart || !!error || !input.trim() || isTyping || isLoading}
+	                                    className="p-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:hover:bg-indigo-600 transition-colors shadow-sm"
+	                                >
+	                                    <Send className="w-4 h-4" />
+	                                </button>
                             </div>
                         </form>
                         <p className="text-center text-[10px] text-neutral-400 mt-2 font-medium">

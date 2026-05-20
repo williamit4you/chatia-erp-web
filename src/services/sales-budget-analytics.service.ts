@@ -104,6 +104,40 @@ export const salesBudgetAnalyticsService = {
     });
     return response.data;
   },
+
+  analyzeChart: async (params: { 
+    message: string; 
+    history: { role: string; content: string }[]; 
+    chartId: string; 
+    chartTitle: string; 
+    chartDescription: string; 
+    chartData: any;
+    startDate?: string;
+    endDate?: string;
+    sessionId?: string;
+  }): Promise<{
+    reply: string;
+    sessionId: string;
+    sqlQueries?: string;
+    contextUsageScore?: number;
+    exportId?: string;
+    exportTotalLinhas?: number;
+    exportValorTotal?: number;
+    metricsTotalLinhas?: number;
+    metricsValorTotal?: number;
+  }> => {
+    const response = await apiClient.post('/api/chat/analyze-chart', params);
+    return response.data;
+  },
+
+  deleteSession: async (sessionId: string): Promise<void> => {
+    await apiClient.delete(`/api/chat/sessions/${sessionId}`);
+  },
+
+  getSessions: async (): Promise<any[]> => {
+    const response = await apiClient.get('/api/chat/sessions');
+    return response.data;
+  }
 };
 
 export default salesBudgetAnalyticsService;

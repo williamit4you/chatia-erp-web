@@ -1,4 +1,6 @@
-"use client";
+import os
+
+code = """\"use client\";
 
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -134,7 +136,7 @@ export default function SalesBudgetAnalyticsDetailPage() {
   );
   
   const title = chart?.title ?? chartMeta?.title ?? chartId;
-  const description = "Análise de dados do orçamento de vendas.";
+  const description = chartMeta?.description ?? "Análise de dados do orçamento de vendas.";
 
   const loadChart = async () => {
     setIsLoading(true);
@@ -165,11 +167,7 @@ export default function SalesBudgetAnalyticsDetailPage() {
             setMessages([{
                 id: "initial",
                 role: "assistant",
-                content: `Olá! Estou analisando os dados de **${title}**. 
-
-${description}
-
-O que você gostaria de entender especificamente sobre estes números?`
+                content: `Olá! Estou analisando os dados de **${title}**. \n\n${description}\n\nO que você gostaria de entender especificamente sobre estes números?`
             }]);
             return;
         }
@@ -292,11 +290,7 @@ O que você gostaria de entender especificamente sobre estes números?`
     setMessages([{
         id: "initial",
         role: "assistant",
-        content: `Olá! Estou analisando os dados de **${title}**. 
-
-${description}
-
-O que você gostaria de entender especificamente sobre estes números?`
+        content: `Olá! Estou analisando os dados de **${title}**. \n\n${description}\n\nO que você gostaria de entender especificamente sobre estes números?`
     }]);
     setHasAsked(false);
     setCurrentSessionId(null);
@@ -324,7 +318,7 @@ O que você gostaria de entender especificamente sobre estes números?`
         const response = await salesBudgetAnalyticsService.analyzeChart({
             message: messageToSend,
             history,
-            chartId: `sales-${chartId}`,
+            chartId: \`sales-\${chartId}\`,
             chartTitle: title,
             chartDescription: description,
             chartData: chart.data,
@@ -386,11 +380,11 @@ O que você gostaria de entender especificamente sobre estes números?`
     const safe = (value: string) =>
         value
             .normalize("NFD")
-            .replace(/[̀-ͯ]/g, "")
+            .replace(/[\u0300-\u036f]/g, "")
             .replace(/[^a-zA-Z0-9-_]+/g, "_")
             .toLowerCase();
 
-    const filename = `sales-${safe(chartId)}-${startDate}_${endDate}.csv`;
+    const filename = \`sales-\${safe(chartId)}-\${startDate}_\${endDate}.csv\`;
     const rows = chart.data.map(item => item as Record<string, unknown>);
     downloadCsv(rows, { filename, separator: ";" });
   };
@@ -459,11 +453,11 @@ O que você gostaria de entender especificamente sobre estes números?`
                                 if (viewMode === "history") setViewMode("chat");
                                 else { loadSessions(); setViewMode("history"); }
                             }}
-                            className={`flex items-center gap-1 text-[10px] font-black uppercase px-2 py-1 rounded-md transition-all border ${
+                            className={\`flex items-center gap-1 text-[10px] font-black uppercase px-2 py-1 rounded-md transition-all border \${
                                 viewMode === "history" 
                                 ? "bg-indigo-600 text-white border-indigo-700 shadow-md" 
                                 : "bg-neutral-50 text-neutral-600 border-neutral-200 hover:bg-neutral-200"
-                            }`}
+                            }\`}
                         >
                             <History className="w-3 h-3" />
                             {viewMode === "history" ? "Voltar ao Chat" : "Histórico"}
@@ -566,7 +560,7 @@ O que você gostaria de entender especificamente sobre estes números?`
         {/* Chat Area */}
         <div 
             className="shrink-0 flex flex-col bg-white border-t lg:border-t-0 shadow-[-10px_0_30px_rgba(0,0,0,0.02)] transition-[width]"
-            style={{ width: `${chatWidthPx}px` }}
+            style={{ width: \`\${chatWidthPx}px\` }}
         >
             <div className="h-14 border-b border-neutral-100 flex items-center justify-between px-5 shrink-0 bg-gradient-to-r from-indigo-50/30 to-transparent">
                 <h3 className="text-[11px] font-black uppercase tracking-widest text-indigo-900 flex items-center gap-2">
@@ -576,7 +570,7 @@ O que você gostaria de entender especificamente sobre estes números?`
                 <div className="flex items-center gap-3">
                     <div className="flex flex-col items-end" title="Memória de Contexto Utilizada">
                         <span className="text-[9px] font-black uppercase tracking-widest text-neutral-400">Contexto da IA</span>
-                        <span className={`text-xs font-black ${contextUsage > 80 ? 'text-red-500' : contextUsage > 50 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                        <span className={\`text-xs font-black \${contextUsage > 80 ? 'text-red-500' : contextUsage > 50 ? 'text-amber-500' : 'text-emerald-500'}\`}>
                             {contextUsage}%
                         </span>
                     </div>
@@ -600,7 +594,7 @@ O que você gostaria de entender especificamente sobre estes números?`
                     ) : (
                         <div className="space-y-2">
                             {sessionsList.map(session => (
-                                <div key={session.id} className={`flex items-start justify-between gap-3 p-3 rounded-xl border transition-all ${currentSessionId === session.id ? 'border-indigo-500 bg-indigo-50 shadow-sm' : 'border-neutral-200 bg-white hover:border-indigo-300'}`}>
+                                <div key={session.id} className={\`flex items-start justify-between gap-3 p-3 rounded-xl border transition-all \${currentSessionId === session.id ? 'border-indigo-500 bg-indigo-50 shadow-sm' : 'border-neutral-200 bg-white hover:border-indigo-300'}\`}>
                                     <button 
                                         onClick={() => loadMessages(session.id)}
                                         className="flex-1 text-left"
@@ -645,21 +639,21 @@ O que você gostaria de entender especificamente sobre estes números?`
                         {messages.map((message, i) => (
                             <div 
                                 key={message.id} 
-                                className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2`}
-                                style={{ animationDelay: `${Math.min(i * 50, 300)}ms` }}
+                                className={\`flex gap-3 \${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2\`}
+                                style={{ animationDelay: \`\${Math.min(i * 50, 300)}ms\` }}
                             >
                                 {message.role === 'assistant' && (
                                     <div className="shrink-0 mt-0.5">
                                         <MiaAvatar size="md" />
                                     </div>
                                 )}
-                                <div className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'} max-w-[85%]`}>
+                                <div className={\`flex flex-col \${message.role === 'user' ? 'items-end' : 'items-start'} max-w-[85%]\`}>
                                     <div 
-                                        className={`rounded-2xl px-4 py-3 ${
+                                        className={\`rounded-2xl px-4 py-3 \${
                                             message.role === 'user' 
                                                 ? 'bg-neutral-900 text-white rounded-tr-sm' 
                                                 : 'bg-white border border-neutral-200 text-neutral-800 rounded-tl-sm shadow-sm'
-                                        }`}
+                                        }\`}
                                     >
                                         {message.role === 'assistant' ? (
                                             <div className="prose prose-sm prose-neutral max-w-none">
@@ -743,3 +737,9 @@ O que você gostaria de entender especificamente sobre estes números?`
     </div>
   );
 }
+"""
+
+with open("c:/dev/chaterpia/web/src/app/chat/sales-budget-analytics/[chartId]/page.tsx", "w", encoding="utf-8") as f:
+    f.write(code)
+
+print("Page updated successfully!")

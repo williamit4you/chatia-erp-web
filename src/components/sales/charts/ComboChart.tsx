@@ -12,11 +12,13 @@ import {
   YAxis,
 } from "recharts";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/formatters/financeFormat";
+import { mixHexColors, normalizeHexColor } from "@/lib/colorUtils";
 import type { SalesBudgetChartDataset } from "@/services/sales-budget-analytics.service";
 
 type ComboChartProps = {
   chart: SalesBudgetChartDataset;
   compact?: boolean;
+  accentColor?: string;
 };
 
 /**
@@ -52,7 +54,7 @@ function formatByKey(key: string, value: number): string {
   return formatNumber(value, { compact: true, maximumFractionDigits: 0 });
 }
 
-export default function ComboChart({ chart, compact = false }: ComboChartProps) {
+export default function ComboChart({ chart, compact = false, accentColor }: ComboChartProps) {
   if (!chart.data.length) {
     return (
       <div className="flex h-[260px] items-center justify-center rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 text-sm font-medium text-neutral-500">
@@ -62,6 +64,8 @@ export default function ComboChart({ chart, compact = false }: ComboChartProps) 
   }
 
   const { barKey, lineKey, barLabel, lineLabel } = resolveKeys(chart);
+  const baseColor = normalizeHexColor(accentColor) ?? "#4f46e5";
+  const lineColor = mixHexColors(baseColor, "#000000", 0.22);
 
   const data = chart.data.map((d) => ({
     label: d.label,
@@ -129,7 +133,7 @@ export default function ComboChart({ chart, compact = false }: ComboChartProps) 
           <Bar
             yAxisId="bar"
             dataKey={barKey}
-            fill="#4f46e5"
+            fill={baseColor}
             fillOpacity={0.85}
             radius={[6, 6, 0, 0]}
             maxBarSize={48}
@@ -140,9 +144,9 @@ export default function ComboChart({ chart, compact = false }: ComboChartProps) 
               yAxisId="line"
               type="monotone"
               dataKey={lineKey}
-              stroke="#f59e0b"
+              stroke={lineColor}
               strokeWidth={2.5}
-              dot={{ r: 3, fill: "#f59e0b", strokeWidth: 0 }}
+              dot={{ r: 3, fill: lineColor, strokeWidth: 0 }}
               activeDot={{ r: 5, strokeWidth: 0 }}
             />
           )}

@@ -7,6 +7,7 @@ export type SalesBudgetChartPreview = {
   id: string;
   title: string;
   availability: SalesBudgetChartAvailability;
+  color?: string;
 };
 
 export type SalesBudgetCategoryPreview = {
@@ -16,10 +17,67 @@ export type SalesBudgetCategoryPreview = {
   plannedCount: number;
   availableNowCount: number;
   needsNewViewCount: number;
+  color?: string;
   highlights: SalesBudgetChartPreview[];
 };
 
-export const salesBudgetCatalog: SalesBudgetCategoryPreview[] = [
+export const salesBudgetCategoryColors: Record<string, string> = {
+  overview: "#4f46e5", // indigo-600
+  funnel: "#16a34a", // green-600
+  seller: "#2563eb", // blue-600
+  customer: "#8b5cf6", // violet-500
+  product: "#f97316", // orange-500
+  margin: "#ec4899", // pink-500
+  source: "#14b8a6", // teal-500
+  geo: "#06b6d4", // cyan-500
+  payment: "#f59e0b", // amber-500
+  freight: "#64748b", // slate-500
+  executive: "#0f172a", // slate-900
+  seller_insights: "#10b981", // emerald-500
+  future_data: "#a3a3a3", // neutral-400
+  kpis: "#4f46e5", // indigo-600
+  velocity: "#e11d48", // rose-600
+  risk: "#dc2626", // red-600
+  efficiency: "#eab308", // yellow-500
+  predictive: "#7c3aed", // violet-600
+};
+
+export function getSalesBudgetCategoryColor(categoryId: string): string {
+  return salesBudgetCategoryColors[categoryId] ?? "#4f46e5";
+}
+
+type SalesBudgetCatalogChartLike = {
+  id: string;
+  title: string;
+  availability: SalesBudgetChartAvailability;
+  color?: string;
+};
+
+type SalesBudgetCatalogCategoryLike = {
+  id: string;
+  highlights?: SalesBudgetCatalogChartLike[];
+  color?: string;
+};
+
+export function applySalesBudgetCatalogColors<T extends SalesBudgetCatalogCategoryLike>(
+  categories: T[]
+): T[] {
+  return categories.map((category) => {
+    const color = category.color ?? getSalesBudgetCategoryColor(category.id);
+    const highlights = (category.highlights ?? []).map((chart) => ({
+      ...chart,
+      color: chart.color ?? color,
+    }));
+
+    return {
+      ...category,
+      color,
+      highlights,
+    } as T;
+  });
+}
+
+const salesBudgetCatalogBase: SalesBudgetCategoryPreview[] = [
   {
     id: "overview",
     name: "Visão geral",
@@ -489,6 +547,9 @@ export const salesBudgetCatalog: SalesBudgetCategoryPreview[] = [
     ],
   },
 ];
+
+export const salesBudgetCatalog: SalesBudgetCategoryPreview[] =
+  applySalesBudgetCatalogColors(salesBudgetCatalogBase);
 
 export const salesBudgetTotals = salesBudgetCatalog.reduce(
   (acc, category) => {

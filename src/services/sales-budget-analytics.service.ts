@@ -9,6 +9,7 @@ export type SalesBudgetChartPreview = {
   id: string;
   title: string;
   availability: SalesBudgetChartAvailability;
+  color?: string;
 };
 
 export type SalesBudgetCategory = {
@@ -18,6 +19,7 @@ export type SalesBudgetCategory = {
   plannedCount: number;
   availableNowCount: number;
   needsNewViewCount: number;
+  color?: string;
   highlights: SalesBudgetChartPreview[];
 };
 

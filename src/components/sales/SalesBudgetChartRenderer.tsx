@@ -12,6 +12,7 @@ import ComparisonKpiGrid from "./charts/ComparisonKpiGrid";
 import ComboChart from "./charts/ComboChart";
 import MultiLineChart from "./charts/MultiLineChart";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/formatters/financeFormat";
+import { buildTintPalette, hexToRgba, normalizeHexColor } from "@/lib/colorUtils";
 import type { SalesBudgetChartDataset } from "@/services/sales-budget-analytics.service";
 import {
   CartesianGrid,
@@ -27,6 +28,7 @@ type SalesBudgetChartRendererProps = {
   chart: SalesBudgetChartDataset | null;
   isLoading?: boolean;
   compact?: boolean;
+  accentColor?: string;
 };
 
 const getPrimaryValue = (chart: SalesBudgetChartDataset) => {
@@ -62,11 +64,14 @@ const formatValueByVisualization = (
 function HeatmapView({
   chart,
   compact,
+  accentColor,
 }: {
   chart: SalesBudgetChartDataset;
   compact: boolean;
+  accentColor?: string;
 }) {
   const maxValue = Math.max(...chart.data.map((item) => item.value ?? 0), 0);
+  const baseColor = normalizeHexColor(accentColor) ?? "#4f46e5";
 
   return (
     <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(120px,1fr))]">
@@ -82,10 +87,11 @@ function HeatmapView({
               compact ? "min-h-[76px]" : "min-h-[84px]"
             }`}
             style={{
-              borderColor: `rgba(99, 102, 241, ${borderAlpha})`,
-              backgroundImage: `linear-gradient(135deg, rgba(99, 102, 241, ${alpha}) 0%, rgba(99, 102, 241, ${
+              borderColor: hexToRgba(baseColor, borderAlpha),
+              backgroundImage: `linear-gradient(135deg, ${hexToRgba(baseColor, alpha)} 0%, ${hexToRgba(
+                baseColor,
                 alpha * 0.55
-              }) 100%)`,
+              )} 100%)`,
             }}
           >
             <div className="text-[11px] font-black uppercase tracking-[0.16em] text-neutral-700 truncate">
@@ -145,14 +151,17 @@ function KpiGridView({ chart, compact }: { chart: SalesBudgetChartDataset; compa
 function LineView({
   chart,
   compact,
+  accentColor,
 }: {
   chart: SalesBudgetChartDataset;
   compact: boolean;
+  accentColor?: string;
 }) {
   const data = chart.data.map((item) => ({
     label: item.label,
     valor: item.value ?? item.amount ?? item.count ?? 0,
   }));
+  const baseColor = normalizeHexColor(accentColor) ?? "#4f46e5";
 
   return (
     <div className={compact ? "h-[260px]" : "h-[360px]"}>
@@ -186,9 +195,9 @@ function LineView({
           <Line
             type="monotone"
             dataKey="valor"
-            stroke="#4f46e5"
+            stroke={baseColor}
             strokeWidth={3}
-            dot={{ r: 4, fill: "#4f46e5" }}
+            dot={{ r: 4, fill: baseColor }}
             activeDot={{ r: 6 }}
           />
         </LineChart>
@@ -201,7 +210,9 @@ export default function SalesBudgetChartRenderer({
   chart,
   isLoading = false,
   compact = false,
+  accentColor,
 }: SalesBudgetChartRendererProps) {
+  const resolvedAccentColor = normalizeHexColor(accentColor) ?? "#4f46e5";
   if (isLoading) {
     return (
       <ChartLoadingState
@@ -295,16 +306,17 @@ export default function SalesBudgetChartRenderer({
         }))}
         isLoading={false}
         displayMode={compact ? "default" : "detail"}
+        colors={buildTintPalette(resolvedAccentColor)}
       />
     );
   }
 
   if (chart.visualization === "line") {
-    return <LineView chart={chart} compact={compact} />;
+    return <LineView chart={chart} compact={compact} accentColor={resolvedAccentColor} />;
   }
 
   if (chart.visualization === "heatmap") {
-    return <HeatmapView chart={chart} compact={compact} />;
+    return <HeatmapView chart={chart} compact={compact} accentColor={resolvedAccentColor} />;
   }
 
   if (chart.visualization === "pareto") {
@@ -320,7 +332,7 @@ export default function SalesBudgetChartRenderer({
   }
 
   if (chart.visualization === "stacked") {
-    return <StackedBarChart chart={chart} compact={compact} />;
+    return <StackedBarChart chart={chart} compact={compact} accentColor={resolvedAccentColor} />;
   }
 
   if (chart.visualization === "comparison") {
@@ -328,11 +340,11 @@ export default function SalesBudgetChartRenderer({
   }
 
   if (chart.visualization === "combo") {
-    return <ComboChart chart={chart} compact={compact} />;
+    return <ComboChart chart={chart} compact={compact} accentColor={resolvedAccentColor} />;
   }
 
   if (chart.visualization === "multiline") {
-    return <MultiLineChart chart={chart} compact={compact} />;
+    return <MultiLineChart chart={chart} compact={compact} accentColor={resolvedAccentColor} />;
   }
 
   return (
@@ -342,6 +354,7 @@ export default function SalesBudgetChartRenderer({
         valor: Number(item.value ?? item.amount ?? item.count ?? 0),
       }))}
       isLoading={false}
+      color={resolvedAccentColor}
       valueKind={
         chart.data.some((item) => (item.amount ?? 0) !== 0) ? "currency" : "number"
       }

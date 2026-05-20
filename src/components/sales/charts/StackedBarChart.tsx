@@ -16,6 +16,7 @@ import type { SalesBudgetChartDataset } from "@/services/sales-budget-analytics.
 type StackedBarChartProps = {
   chart: SalesBudgetChartDataset;
   compact?: boolean;
+  accentColor?: string;
 };
 
 const PALETTE = [
@@ -36,7 +37,7 @@ function formatAxisValue(chart: SalesBudgetChartDataset, value: number): string 
   return formatNumber(value, { compact: true, maximumFractionDigits: 0 });
 }
 
-export default function StackedBarChart({ chart, compact = false }: StackedBarChartProps) {
+export default function StackedBarChart({ chart, compact = false, accentColor }: StackedBarChartProps) {
   if (!chart.data.length) {
     return (
       <div className="flex h-[260px] items-center justify-center rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 text-sm font-medium text-neutral-500">
@@ -73,6 +74,8 @@ export default function StackedBarChart({ chart, compact = false }: StackedBarCh
     count: "Quantidade",
     percentage: "Percentual",
   };
+
+  const palette = accentColor ? [accentColor, ...PALETTE] : [...PALETTE];
 
   return (
     <div style={{ height }}>
@@ -124,7 +127,7 @@ export default function StackedBarChart({ chart, compact = false }: StackedBarCh
               key={seg}
               dataKey={seg}
               stackId="stack"
-              fill={PALETTE[i % PALETTE.length]}
+              fill={palette[i % palette.length]}
               radius={i === segments.length - 1 ? [6, 6, 0, 0] : [0, 0, 0, 0]}
               maxBarSize={56}
             />

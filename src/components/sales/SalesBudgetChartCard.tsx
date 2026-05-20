@@ -10,6 +10,7 @@ type SalesBudgetChartCardProps = {
   chartId: string;
   fallbackTitle: string;
   isLoading?: boolean;
+  accentColor?: string;
 };
 
 export default function SalesBudgetChartCard({
@@ -17,12 +18,15 @@ export default function SalesBudgetChartCard({
   chartId,
   fallbackTitle,
   isLoading = false,
+  accentColor,
 }: SalesBudgetChartCardProps) {
   const title = chart?.title ?? fallbackTitle;
   const warnings = chart?.meta?.warnings ?? [];
 
   return (
-    <article className="rounded-[26px] border border-neutral-200 bg-white p-5 shadow-sm">
+    <article className="overflow-hidden rounded-[26px] border border-neutral-200 bg-white shadow-sm">
+      <div className="h-1.5 w-full" style={{ backgroundColor: accentColor ?? "#e5e7eb" }} />
+      <div className="p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h3 className="text-base font-black tracking-tight text-neutral-900">
@@ -48,7 +52,8 @@ export default function SalesBudgetChartCard({
       )}
 
       <div className="mt-4">
-        <SalesBudgetChartRenderer chart={chart} isLoading={isLoading} compact />
+        <SalesBudgetChartRenderer chart={chart} isLoading={isLoading} compact accentColor={accentColor} />
+      </div>
       </div>
     </article>
   );

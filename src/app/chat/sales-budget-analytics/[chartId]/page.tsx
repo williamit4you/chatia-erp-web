@@ -33,6 +33,7 @@ const catalogIndex = salesBudgetCatalog.flatMap((category) =>
     ...chart,
     categoryName: category.name,
     categoryId: category.id,
+    accentColor: chart.color ?? category.color,
   }))
 );
 
@@ -549,7 +550,11 @@ O que você gostaria de entender especificamente sobre estes números?`
                             {error}
                         </div>
                     ) : (
-                        <SalesBudgetChartRenderer chart={chart} isLoading={isLoading} />
+                        <SalesBudgetChartRenderer
+                          chart={chart}
+                          isLoading={isLoading}
+                          accentColor={chartMeta?.accentColor}
+                        />
                     )}
                 </div>
             </div>

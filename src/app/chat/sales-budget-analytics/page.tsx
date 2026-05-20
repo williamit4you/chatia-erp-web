@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import SidebarToggle from "@/components/chat/SidebarToggle";
 import ChatCompanyDropdown from "@/components/chat/ChatCompanyDropdown";
 import SalesBudgetChartCard from "@/components/sales/SalesBudgetChartCard";
-import { salesBudgetCatalog } from "@/lib/sales-budget-catalog";
+import { applySalesBudgetCatalogColors, salesBudgetCatalog } from "@/lib/sales-budget-catalog";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/formatters/financeFormat";
 import salesBudgetAnalyticsService, {
   type SalesBudgetCategory,
@@ -63,6 +63,7 @@ type VisibleChart = {
   availability: SalesBudgetChartAvailability;
   categoryId: string;
   categoryName: string;
+  accentColor?: string;
 };
 
 const formatKpiValue = (item: SalesBudgetKpiItem) => {
@@ -80,7 +81,9 @@ const formatKpiValue = (item: SalesBudgetKpiItem) => {
 export default function SalesBudgetAnalyticsPage() {
   const { data: session, status } = useSession();
   const user = (session?.user ?? null) as DashboardAccessUser | null;
-  const [catalog, setCatalog] = useState<SalesBudgetCategory[]>(salesBudgetCatalog);
+  const [catalog, setCatalog] = useState<SalesBudgetCategory[]>(
+    applySalesBudgetCatalogColors(salesBudgetCatalog)
+  );
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const [kpis, setKpis] = useState<SalesBudgetKpiItem[]>([]);
   const [isLoadingKpis, setIsLoadingKpis] = useState(false);
@@ -117,7 +120,7 @@ export default function SalesBudgetAnalyticsPage() {
       .getCatalog()
       .then((response) => {
         if (!isMounted || !response?.categories?.length) return;
-        setCatalog(response.categories);
+        setCatalog(applySalesBudgetCatalogColors(response.categories));
         setCatalogError(null);
       })
       .catch(() => {
@@ -194,6 +197,7 @@ export default function SalesBudgetAnalyticsPage() {
             availability: chart.availability,
             categoryId: category.id,
             categoryName: category.name,
+            accentColor: chart.color ?? category.color,
           }))
       );
 
@@ -210,6 +214,7 @@ export default function SalesBudgetAnalyticsPage() {
         availability: chart.availability,
         categoryId: activeCategory?.id ?? "",
         categoryName: activeCategory?.name ?? "",
+        accentColor: chart.color ?? activeCategory?.color,
       }));
   }, [activeCategory, activeCategoryId, visibleCatalog]);
 
@@ -442,7 +447,16 @@ export default function SalesBudgetAnalyticsPage() {
                       : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50"
                   }`}
                 >
-                  <div className="text-sm font-black tracking-tight">{category.name} <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral-200 px-1.5 text-[10px] font-black text-neutral-600">{category.highlights.length}</span></div>
+                  <div className="flex items-center gap-2 text-sm font-black tracking-tight">
+                    <span
+                      className="h-2.5 w-2.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: category.color ?? "#e5e7eb" }}
+                    />
+                    <span className="truncate">{category.name}</span>
+                    <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral-200 px-1.5 text-[10px] font-black text-neutral-600">
+                      {category.highlights.length}
+                    </span>
+                  </div>
                 </button>
               );
             })}
@@ -489,6 +503,7 @@ export default function SalesBudgetAnalyticsPage() {
                       chartId={chart.id}
                       fallbackTitle={chart.title}
                       isLoading={isLoadingCharts && !chartsById[chart.id]}
+                      accentColor={chart.accentColor}
                     />
                   </div>
                 ))

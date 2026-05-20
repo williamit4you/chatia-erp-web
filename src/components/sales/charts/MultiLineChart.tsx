@@ -11,11 +11,13 @@ import {
   YAxis,
 } from "recharts";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/formatters/financeFormat";
+import { normalizeHexColor } from "@/lib/colorUtils";
 import type { SalesBudgetChartDataset } from "@/services/sales-budget-analytics.service";
 
 type MultiLineChartProps = {
   chart: SalesBudgetChartDataset;
   compact?: boolean;
+  accentColor?: string;
 };
 
 const LINE_COLORS = [
@@ -39,7 +41,7 @@ function formatSeriesValue(key: string, value: number): string {
   return formatNumber(value, { compact: true, maximumFractionDigits: 0 });
 }
 
-export default function MultiLineChart({ chart, compact = false }: MultiLineChartProps) {
+export default function MultiLineChart({ chart, compact = false, accentColor }: MultiLineChartProps) {
   if (!chart.data.length) {
     return (
       <div className="flex h-[260px] items-center justify-center rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 text-sm font-medium text-neutral-500">
@@ -72,6 +74,8 @@ export default function MultiLineChart({ chart, compact = false }: MultiLineChar
 
   // Use the first series key for the Y-axis formatter
   const primaryKey = activeSeries[0] ?? "value";
+  const baseColor = normalizeHexColor(accentColor);
+  const palette = baseColor ? [baseColor, ...LINE_COLORS] : [...LINE_COLORS];
 
   return (
     <div style={{ height }}>
@@ -119,17 +123,20 @@ export default function MultiLineChart({ chart, compact = false }: MultiLineChar
             )}
           />
 
-          {activeSeries.map((key, i) => (
-            <Line
-              key={key}
-              type="monotone"
-              dataKey={key}
-              stroke={LINE_COLORS[i % LINE_COLORS.length]}
-              strokeWidth={2.5}
-              dot={{ r: compact ? 2 : 3, fill: LINE_COLORS[i % LINE_COLORS.length], strokeWidth: 0 }}
-              activeDot={{ r: compact ? 4 : 5, strokeWidth: 0 }}
-            />
-          ))}
+          {activeSeries.map((key, i) => {
+            const stroke = palette[i % palette.length];
+            return (
+              <Line
+                key={key}
+                type="monotone"
+                dataKey={key}
+                stroke={stroke}
+                strokeWidth={2.5}
+                dot={{ r: compact ? 2 : 3, fill: stroke, strokeWidth: 0 }}
+                activeDot={{ r: compact ? 4 : 5, strokeWidth: 0 }}
+              />
+            );
+          })}
         </LineChart>
       </ResponsiveContainer>
     </div>

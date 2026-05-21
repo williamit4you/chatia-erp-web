@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import DistributionBarChart from "@/components/finance/DistributionBarChart";
 import DistributionPieChart from "@/components/finance/DistributionPieChart";
 import ChartLoadingState from "@/components/finance/ChartLoadingState";
@@ -31,6 +31,121 @@ type SalesBudgetChartRendererProps = {
   isLoading?: boolean;
   compact?: boolean;
   accentColor?: string;
+};
+
+const BR_UFS = new Set([
+  "AC",
+  "AL",
+  "AP",
+  "AM",
+  "BA",
+  "CE",
+  "DF",
+  "ES",
+  "GO",
+  "MA",
+  "MT",
+  "MS",
+  "MG",
+  "PA",
+  "PB",
+  "PR",
+  "PE",
+  "PI",
+  "RJ",
+  "RN",
+  "RS",
+  "RO",
+  "RR",
+  "SC",
+  "SP",
+  "SE",
+  "TO",
+]);
+
+const UF_MAP_TOGGLE_CHART_IDS = new Set([
+  "geo_amount_by_uf",
+  "geo_count_by_uf",
+  "geo_conversion_by_uf",
+  "customer_by_uf",
+  "product_by_geo",
+  "source_by_geo",
+  "geo_origin_by_region",
+  "geo_highest_avg_discount_regions",
+  "geo_highest_markup_regions",
+  "geo_growth_opportunity_regions",
+]);
+
+const normalizeLabel = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toUpperCase();
+
+const extractUfFromLabel = (label?: string | null) => {
+  if (!label) return null;
+  const normalized = normalizeLabel(label);
+
+  // Most common: "SP", "SP / PRODUTO", "NENHUM / SP"
+  const candidates = normalized
+    .split(/[\|/;,>-]+/g)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  for (const token of candidates) {
+    const maybe = token.slice(0, 2);
+    if (BR_UFS.has(maybe)) return maybe;
+  }
+
+  // Fallback: any standalone UF in the string
+  const match = normalized.match(/\b[A-Z]{2}\b/g) ?? [];
+  for (const token of match) {
+    if (BR_UFS.has(token)) return token;
+  }
+
+  return null;
+};
+
+const buildUfAggregation = (chart: SalesBudgetChartDataset) => {
+  const valuesByUf = new Map<string, number>();
+  for (const point of chart.data) {
+    const uf = extractUfFromLabel(point.label);
+    if (!uf) continue;
+    const raw = Number(point.value ?? point.amount ?? point.count ?? 0);
+    const current = valuesByUf.get(uf) ?? 0;
+    valuesByUf.set(uf, current + (Number.isFinite(raw) ? raw : 0));
+  }
+
+  return Array.from(valuesByUf.entries())
+    .map(([local, valor]) => ({ local, valor }))
+    .sort((a, b) => b.valor - a.valor || a.local.localeCompare(b.local, "pt-BR"));
+};
+
+const inferValueKind = (
+  chart: SalesBudgetChartDataset
+): "currency" | "number" | "percent" => {
+  const id = chart.chartId;
+  if (id.includes("conversion")) return "percent";
+
+  const hasAmount = chart.data.some((item) => (item.amount ?? 0) !== 0);
+  if (hasAmount) return "currency";
+
+  const hasPercentage = chart.data.some((item) => (item.percentage ?? 0) !== 0);
+  if (hasPercentage) return "percent";
+
+  const values = chart.data
+    .map((item) => Number(item.value ?? item.count ?? 0))
+    .filter((value) => Number.isFinite(value));
+
+  const looksLikePercent =
+    values.length > 0 &&
+    values.every((value) => value >= 0 && value <= 1) &&
+    (id.includes("markup") || id.includes("discount"));
+
+  if (looksLikePercent) return "percent";
+
+  return "number";
 };
 
 const getPrimaryValue = (chart: SalesBudgetChartDataset) => {
@@ -72,7 +187,33 @@ function StateHeatmapToggleView({
   compact: boolean;
   accentColor: string;
 }) {
-  const storageKey = `sales_budget_heatmap_view_${chart.chartId}`;
+  return (
+    <UfToggleView
+      chart={chart}
+      compact={compact}
+      accentColor={accentColor}
+      valueKind="currency"
+      renderCards={() => (
+        <HeatmapView chart={chart} compact={compact} accentColor={accentColor} />
+      )}
+    />
+  );
+}
+
+function UfToggleView({
+  chart,
+  compact,
+  accentColor,
+  valueKind,
+  renderCards,
+}: {
+  chart: SalesBudgetChartDataset;
+  compact: boolean;
+  accentColor: string;
+  valueKind: "currency" | "number" | "percent";
+  renderCards: () => ReactNode;
+}) {
+  const storageKey = `sales_budget_geo_view_${chart.chartId}`;
   const [view, setView] = useState<"cards" | "map">("cards");
 
   useEffect(() => {
@@ -94,12 +235,10 @@ function StateHeatmapToggleView({
     }
   };
 
-  const mapData = chart.data.map((item) => ({
-    local: item.label,
-    valor: Number(item.value ?? item.amount ?? item.count ?? 0),
-  }));
+  const mapData = buildUfAggregation(chart);
 
-  const activeClass = "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200/80";
+  const activeClass =
+    "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200/80";
   const inactiveClass = "text-neutral-500 hover:text-neutral-800";
 
   return (
@@ -109,14 +248,18 @@ function StateHeatmapToggleView({
           <button
             type="button"
             onClick={() => updateView("cards")}
-            className={`rounded-full px-3 py-1.5 transition ${view === "cards" ? activeClass : inactiveClass}`}
+            className={`rounded-full px-3 py-1.5 transition ${
+              view === "cards" ? activeClass : inactiveClass
+            }`}
           >
             Cards
           </button>
           <button
             type="button"
             onClick={() => updateView("map")}
-            className={`rounded-full px-3 py-1.5 transition ${view === "map" ? activeClass : inactiveClass}`}
+            className={`rounded-full px-3 py-1.5 transition ${
+              view === "map" ? activeClass : inactiveClass
+            }`}
           >
             Mapa
           </button>
@@ -124,12 +267,13 @@ function StateHeatmapToggleView({
       </div>
 
       {view === "cards" ? (
-        <HeatmapView chart={chart} compact={compact} accentColor={accentColor} />
+        renderCards()
       ) : (
         <BrazilUfMapChart
           data={mapData}
           isLoading={false}
           color={accentColor}
+          valueKind={valueKind}
           displayMode={compact ? "compact" : "detail"}
           variant={compact ? "map_only" : "full"}
         />
@@ -417,7 +561,19 @@ export default function SalesBudgetChartRenderer({
   }
 
   if (chart.visualization === "ranking") {
-    return <RankingTable chart={chart} compact={compact} />;
+    const content = <RankingTable chart={chart} compact={compact} />;
+    if (UF_MAP_TOGGLE_CHART_IDS.has(chart.chartId)) {
+      return (
+        <UfToggleView
+          chart={chart}
+          compact={compact}
+          accentColor={resolvedAccentColor}
+          valueKind={inferValueKind(chart)}
+          renderCards={() => content}
+        />
+      );
+    }
+    return content;
   }
 
   if (chart.visualization === "table") {
@@ -441,19 +597,38 @@ export default function SalesBudgetChartRenderer({
   }
 
   return (
-    <DistributionBarChart
-      data={chart.data.map((item) => ({
-        label: item.label,
-        valor: Number(item.value ?? item.amount ?? item.count ?? 0),
-      }))}
-      isLoading={false}
-      color={resolvedAccentColor}
-      valueKind={
-        chart.data.some((item) => (item.amount ?? 0) !== 0) ? "currency" : "number"
-      }
-      layout={compact ? "vertical" : "horizontal"}
-      maxItems={compact ? 8 : 12}
-      preserveOrder={chart.visualization === "bar" ? false : true}
-    />
+    (() => {
+      const content = (
+        <DistributionBarChart
+          data={chart.data.map((item) => ({
+            label: item.label,
+            valor: Number(item.value ?? item.amount ?? item.count ?? 0),
+          }))}
+          isLoading={false}
+          color={resolvedAccentColor}
+          valueKind={
+            chart.data.some((item) => (item.amount ?? 0) !== 0)
+              ? "currency"
+              : "number"
+          }
+          layout={compact ? "vertical" : "horizontal"}
+          maxItems={compact ? 8 : 12}
+          preserveOrder={chart.visualization === "bar" ? false : true}
+        />
+      );
+
+      if (!UF_MAP_TOGGLE_CHART_IDS.has(chart.chartId)) return content;
+      if (buildUfAggregation(chart).length === 0) return content;
+
+      return (
+        <UfToggleView
+          chart={chart}
+          compact={compact}
+          accentColor={resolvedAccentColor}
+          valueKind={inferValueKind(chart)}
+          renderCards={() => content}
+        />
+      );
+    })()
   );
 }

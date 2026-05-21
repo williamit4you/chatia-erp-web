@@ -13,6 +13,7 @@ interface BrazilUfMapChartProps {
     color?: string;
     displayMode?: "default" | "detail" | "compact";
     variant?: "full" | "map_only";
+    valueKind?: "currency" | "number" | "percent";
     onDrilldownSelect?: (selection: ChartSelection) => void;
 }
 
@@ -165,6 +166,7 @@ export default function BrazilUfMapChart({
     color = "#16a34a",
     displayMode = "default",
     variant = "full",
+    valueKind = "currency",
     onDrilldownSelect,
 }: BrazilUfMapChartProps) {
     const drilldownFromContext = useDrilldownSelect();
@@ -228,8 +230,18 @@ export default function BrazilUfMapChart({
         return 0.16 + ((value - minValue) / (maxValue - minValue)) * 0.84;
     };
 
-    const formatCurrency = (value: number) =>
-        new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(value);
+    const formatValue = (value: number) => {
+        if (valueKind === "percent") {
+            const normalized = value > 1 ? value / 100 : value;
+            return new Intl.NumberFormat("pt-BR", { style: "percent", maximumFractionDigits: 1 }).format(normalized);
+        }
+
+        if (valueKind === "number") {
+            return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 }).format(value);
+        }
+
+        return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(value);
+    };
 
     const hoveredValue = hoveredUf ? valuesByUf.get(hoveredUf) || 0 : null;
 
@@ -266,7 +278,7 @@ export default function BrazilUfMapChart({
                                             drillHandler({ kind: "geo_uf", uf: state.uf, label: state.uf });
                                         }}
                                     >
-                                        <title>{`${state.uf}: ${formatCurrency(value)}`}</title>
+                                        <title>{`${state.uf}: ${formatValue(value)}`}</title>
                                     </path>
                                 );
                             })}
@@ -280,7 +292,7 @@ export default function BrazilUfMapChart({
                             }`}
                         >
                             <div className="text-neutral-900">{hoveredUf}</div>
-                            <div>{formatCurrency(hoveredValue || 0)}</div>
+                            <div>{formatValue(hoveredValue || 0)}</div>
                         </div>
                     )}
 
@@ -338,7 +350,7 @@ export default function BrazilUfMapChart({
                                         drillHandler({ kind: "geo_uf", uf: state.uf, label: state.uf });
                                     }}
                                 >
-                                    <title>{`${state.uf}: ${formatCurrency(value)}`}</title>
+                                    <title>{`${state.uf}: ${formatValue(value)}`}</title>
                                 </path>
                             );
                         })}
@@ -348,9 +360,9 @@ export default function BrazilUfMapChart({
                 {hoveredUf && (
                     <div className={`pointer-events-none absolute left-3 top-3 rounded-lg border border-neutral-200 bg-white/95 font-bold text-neutral-700 shadow-sm ${isDetailMode ? "px-2.5 py-1.5 text-[11px]" : "px-3 py-2 text-xs"}`}>
                         <div className="text-neutral-900">{hoveredUf}</div>
-                        <div>{formatCurrency(hoveredValue || 0)}</div>
-                    </div>
-                )}
+                            <div>{formatValue(hoveredValue || 0)}</div>
+                        </div>
+                    )}
             </div>
 
             <div className={`min-h-0 overflow-hidden rounded-2xl border border-neutral-200 bg-white/90 ${isDetailMode ? "p-2.5" : "p-3"}`}>
@@ -385,7 +397,7 @@ export default function BrazilUfMapChart({
                                         } ${drillHandler ? "cursor-pointer" : "cursor-default"}`}
                                     >
                                         <span className={`font-black text-neutral-700 ${isDetailMode ? "text-[10px]" : "text-[11px]"}`}>{item.uf}</span>
-                                        <span className={`font-bold tabular-nums text-neutral-600 ${isDetailMode ? "text-[10px]" : "text-[11px]"}`}>{formatCurrency(item.valor)}</span>
+                                        <span className={`font-bold tabular-nums text-neutral-600 ${isDetailMode ? "text-[10px]" : "text-[11px]"}`}>{formatValue(item.valor)}</span>
                                     </button>
                                 );
                             })

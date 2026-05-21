@@ -293,6 +293,7 @@ export default function SalesBudgetAnalyticsDetailPage() {
   const [chart, setChart] = useState<SalesBudgetChartDataset | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isChartDetailsVisible, setIsChartDetailsVisible] = useState(false);
   const [isQueriesOpen, setIsQueriesOpen] = useState(false);
   const [queryDetails, setQueryDetails] = useState<SalesBudgetChartQueryDetailsItem | null>(null);
   const [isLoadingQueryDetails, setIsLoadingQueryDetails] = useState(false);
@@ -371,11 +372,13 @@ export default function SalesBudgetAnalyticsDetailPage() {
 
   useEffect(() => {
     if (!shouldAutoHelp) return;
+    setIsChartDetailsVisible(true);
     setIsQueriesOpen(true);
   }, [shouldAutoHelp]);
 
   useEffect(() => {
     if (!chartId) return;
+    if (!isChartDetailsVisible && !shouldAutoHelp) return;
     // We always try to load query details so every chart can show SQL/rules when available.
 
     const cached = queryDetailsCacheRef.current.get(queryKey);
@@ -400,7 +403,7 @@ export default function SalesBudgetAnalyticsDetailPage() {
       .finally(() => {
         setIsLoadingQueryDetails(false);
       });
-  }, [chartId, endDate, queryKey, startDate]);
+  }, [chartId, endDate, isChartDetailsVisible, queryKey, shouldAutoHelp, startDate]);
 
   // Chat initialization
   useEffect(() => {
@@ -815,20 +818,33 @@ O que você gostaria de entender especificamente sobre estes números?`
                         </div>
                     ) : (
                         <div className="mx-auto w-full max-w-[1100px] space-y-4">
-                            {chartDefinition ? (
-                              <ChartInsightOverview chartId={chartId} title={title} />
-                            ) : (
-                              <div className="rounded-[28px] border border-neutral-200 bg-white p-5 shadow-sm">
-                                <div className="rounded-2xl bg-blue-50/70 p-4">
-                                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-700">
-                                    O que este gráfico mostra
-                                  </p>
-                                  <div className="mt-2 text-sm leading-6 text-neutral-700">
-                                    <MarkdownLite content={description} />
+                            <div className="flex justify-end">
+                              <button
+                                type="button"
+                                onClick={() => setIsChartDetailsVisible((current) => !current)}
+                                className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-neutral-700 shadow-sm transition hover:bg-neutral-50 hover:text-neutral-900"
+                              >
+                                <Info className="h-3.5 w-3.5" />
+                                {isChartDetailsVisible ? "Ocultar dados do gráfico" : "Visualizar dados do gráfico"}
+                              </button>
+                            </div>
+
+                            {isChartDetailsVisible ? (
+                              chartDefinition ? (
+                                <ChartInsightOverview chartId={chartId} title={title} />
+                              ) : (
+                                <div className="rounded-[28px] border border-neutral-200 bg-white p-5 shadow-sm">
+                                  <div className="rounded-2xl bg-blue-50/70 p-4">
+                                    <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-700">
+                                      O que este gráfico mostra
+                                    </p>
+                                    <div className="mt-2 text-sm leading-6 text-neutral-700">
+                                      <MarkdownLite content={description} />
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            )}
+                              )
+                            ) : null}
 
                             <SalesBudgetChartRenderer
                               chart={chart}
@@ -836,12 +852,14 @@ O que você gostaria de entender especificamente sobre estes números?`
                               accentColor={chartMeta?.accentColor}
                             />
 
-                            <ChartQueryDetailsPanel
-                              isOpen={isQueriesOpen}
-                              onToggle={(next) => setIsQueriesOpen(next)}
-                              isLoading={isLoadingQueryDetails}
-                              details={queryDetails}
-                            />
+                            {isChartDetailsVisible ? (
+                              <ChartQueryDetailsPanel
+                                isOpen={isQueriesOpen}
+                                onToggle={(next) => setIsQueriesOpen(next)}
+                                isLoading={isLoadingQueryDetails}
+                                details={queryDetails}
+                              />
+                            ) : null}
                         </div>
                     )}
                 </div>

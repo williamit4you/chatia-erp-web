@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import SidebarToggle from "@/components/chat/SidebarToggle";
 import ChatCompanyDropdown from "@/components/chat/ChatCompanyDropdown";
 import SalesBudgetChartRenderer from "@/components/sales/SalesBudgetChartRenderer";
 import { salesBudgetCatalog } from "@/lib/sales-budget-catalog";
+import { getSalesBudgetAutoHelpPrompt, getSalesBudgetChartObjective } from "@/lib/salesBudgetChartHelp";
 import salesBudgetAnalyticsService, {
   type SalesBudgetChartDataset,
 } from "@/services/sales-budget-analytics.service";
@@ -92,6 +93,7 @@ function SqlViewer({ sqlQueries }: { sqlQueries: string }) {
 export default function SalesBudgetAnalyticsDetailPage() {
   const params = useParams<{ chartId: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const user = (session?.user ?? null) as DashboardAccessUser | null;
   const userId = (session?.user as any)?.id;
@@ -135,7 +137,14 @@ export default function SalesBudgetAnalyticsDetailPage() {
   );
   
 	  const title = chart?.title ?? chartMeta?.title ?? chartId;
-	  const description = "Análise de dados do orçamento de vendas.";
+	  const description = getSalesBudgetChartObjective({
+        chartId,
+        title,
+        categoryName: chartMeta?.categoryName ?? null,
+      });
+
+    const shouldAutoHelp = searchParams?.get("help") === "1";
+    const autoHelpTriggeredRef = useRef(false);
 
 	  const loadChart = async () => {
 	    if (chartMeta?.availability && chartMeta.availability !== "available_now") {
@@ -385,6 +394,17 @@ O que você gostaria de entender especificamente sobre estes números?`
         setIsTyping(false);
     }
   };
+
+  useEffect(() => {
+    if (!shouldAutoHelp) return;
+    if (autoHelpTriggeredRef.current) return;
+    if (!chart) return;
+    if (isTyping) return;
+
+    autoHelpTriggeredRef.current = true;
+    void handleSend(undefined, getSalesBudgetAutoHelpPrompt({ chartId, title }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chart, isTyping, shouldAutoHelp]);
 
   const handleExportCsv = () => {
     if (!chart || !chart.data) {

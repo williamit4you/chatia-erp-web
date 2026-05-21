@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, BookOpenText } from "lucide-react";
 import SalesBudgetChartRenderer from "@/components/sales/SalesBudgetChartRenderer";
 import type { SalesBudgetChartDataset } from "@/services/sales-budget-analytics.service";
 
@@ -38,13 +38,22 @@ export default function SalesBudgetChartCard({
           ) : null}
         </div>
 
-        <Link
-          href={`/chat/sales-budget-analytics/${chartId}`}
-          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-neutral-200 text-neutral-400 transition hover:bg-neutral-50 hover:text-neutral-700"
-          title="Abrir gráfico"
-        >
-          <ArrowUpRight className="h-4 w-4" />
-        </Link>
+        <div className="flex items-center gap-1">
+          <Link
+            href={`/chat/sales-budget-analytics/${chartId}?help=1`}
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-neutral-200 text-neutral-400 transition hover:bg-blue-50 hover:text-blue-700"
+            title="Ajuda do gráfico"
+          >
+            <BookOpenText className="h-4 w-4" />
+          </Link>
+          <Link
+            href={`/chat/sales-budget-analytics/${chartId}`}
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-neutral-200 text-neutral-400 transition hover:bg-neutral-50 hover:text-neutral-700"
+            title="Abrir gráfico"
+          >
+            <ArrowUpRight className="h-4 w-4" />
+          </Link>
+        </div>
       </div>
 
       {accentColor ? (

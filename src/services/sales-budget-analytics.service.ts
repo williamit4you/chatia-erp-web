@@ -74,6 +74,16 @@ export type SalesBudgetChartBatchResponse = {
   items: SalesBudgetChartDataset[];
 };
 
+export type SalesBudgetChartQueryDetailsItem = {
+  chartId: string;
+  sqlQueries: string[];
+  rules: string[];
+};
+
+export type SalesBudgetChartQueryDetailsResponse = {
+  items: SalesBudgetChartQueryDetailsItem[];
+};
+
 const normalizeFilter = (filters?: SalesBudgetFilter) => ({
   startDate: filters?.startDate ? new Date(filters.startDate).toISOString() : null,
   endDate: filters?.endDate ? new Date(filters.endDate).toISOString() : null,
@@ -103,6 +113,19 @@ export const salesBudgetAnalyticsService = {
     const response = await apiClient.post("/api/sales-budget-analytics/charts/batch", {
       chartIds: params.chartIds,
       filters: normalizeFilter(params.filters),
+    });
+    return response.data;
+  },
+
+  getChartQueryDetails: async (params: {
+    chartIds: string[];
+    startDate?: string;
+    endDate?: string;
+  }): Promise<SalesBudgetChartQueryDetailsResponse> => {
+    const response = await apiClient.post("/api/sales-budget-analytics/chart-query-details", {
+      chartIds: params.chartIds,
+      startDate: params.startDate ? new Date(params.startDate).toISOString() : null,
+      endDate: params.endDate ? new Date(params.endDate).toISOString() : null,
     });
     return response.data;
   },

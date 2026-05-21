@@ -10,6 +10,7 @@ import { salesBudgetCatalog } from "@/lib/sales-budget-catalog";
 import { getSalesBudgetAutoHelpPrompt, getSalesBudgetChartObjective } from "@/lib/salesBudgetChartHelp";
 import salesBudgetAnalyticsService, {
   type SalesBudgetChartDataset,
+  type SalesBudgetChartQueryDetailsItem,
 } from "@/services/sales-budget-analytics.service";
 	import { 
 	    ArrowLeft, Lock, Calendar, Bot, User, Send, Loader2, Info, Sparkles, 
@@ -54,6 +55,74 @@ interface ChatSessionInfo {
     id: string;
     title: string;
     createdAt: string;
+}
+
+function ChartQueryDetailsPanel({
+  isOpen,
+  onToggle,
+  isLoading,
+  details,
+}: {
+  isOpen: boolean;
+  onToggle: (nextOpen: boolean) => void;
+  isLoading: boolean;
+  details: SalesBudgetChartQueryDetailsItem | null;
+}) {
+  const rules = details?.rules ?? [];
+  const sqlQueries = details?.sqlQueries ?? [];
+  const hasAny = rules.length > 0 || sqlQueries.length > 0;
+
+  if (!hasAny && !isLoading) return null;
+
+  return (
+    <details
+      className="w-full rounded-2xl border border-neutral-200 bg-white p-4"
+      open={isOpen}
+      onToggle={(event) => {
+        onToggle((event.currentTarget as HTMLDetailsElement).open);
+      }}
+    >
+      <summary className="cursor-pointer select-none text-sm font-black text-neutral-900">
+        Consultas e regras
+        {isLoading ? (
+          <span className="ml-2 text-[11px] font-bold text-neutral-500">
+            (carregando...)
+          </span>
+        ) : null}
+      </summary>
+
+      {rules.length > 0 ? (
+        <div className="mt-3">
+          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-neutral-500">
+            Regras aplicadas
+          </p>
+          <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm leading-6 text-neutral-700">
+            {rules.map((r) => (
+              <li key={r}>{r}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {sqlQueries.length > 0 ? (
+        <div className="mt-4">
+          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-neutral-500">
+            SQL
+          </p>
+          <div className="mt-2 space-y-2">
+            {sqlQueries.map((q, i) => (
+              <pre
+                key={`sql-${i}`}
+                className="overflow-x-auto whitespace-pre-wrap break-all rounded-xl bg-neutral-900 p-3 font-mono text-[11px] leading-relaxed text-green-400"
+              >
+                {q}
+              </pre>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </details>
+  );
 }
 
 function SqlViewer({ sqlQueries }: { sqlQueries: string }) {
@@ -108,6 +177,10 @@ export default function SalesBudgetAnalyticsDetailPage() {
   const [chart, setChart] = useState<SalesBudgetChartDataset | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isQueriesOpen, setIsQueriesOpen] = useState(false);
+  const [queryDetails, setQueryDetails] = useState<SalesBudgetChartQueryDetailsItem | null>(null);
+  const [isLoadingQueryDetails, setIsLoadingQueryDetails] = useState(false);
+  const queryDetailsCacheRef = useRef<Map<string, SalesBudgetChartQueryDetailsItem | null>>(new Map());
 
   // Chat States
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -145,6 +218,7 @@ export default function SalesBudgetAnalyticsDetailPage() {
 
     const shouldAutoHelp = searchParams?.get("help") === "1";
     const autoHelpTriggeredRef = useRef(false);
+    const queryKey = useMemo(() => `${chartId}|${startDate}|${endDate}`, [chartId, endDate, startDate]);
 
 	  const loadChart = async () => {
 	    if (chartMeta?.availability && chartMeta.availability !== "available_now") {
@@ -174,6 +248,39 @@ export default function SalesBudgetAnalyticsDetailPage() {
     void loadChart();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canSeeSalesBudget, chartId, endDate, startDate]);
+
+  useEffect(() => {
+    if (!shouldAutoHelp) return;
+    setIsQueriesOpen(true);
+  }, [shouldAutoHelp]);
+
+  useEffect(() => {
+    if (!isQueriesOpen) return;
+    if (!chartId) return;
+
+    const cached = queryDetailsCacheRef.current.get(queryKey);
+    if (cached !== undefined) {
+      setQueryDetails(cached);
+      return;
+    }
+
+    setIsLoadingQueryDetails(true);
+    salesBudgetAnalyticsService
+      .getChartQueryDetails({ chartIds: [chartId], startDate, endDate })
+      .then((res) => {
+        const item =
+          res.items?.find((it) => it?.chartId === chartId) ?? null;
+        queryDetailsCacheRef.current.set(queryKey, item);
+        setQueryDetails(item);
+      })
+      .catch(() => {
+        queryDetailsCacheRef.current.set(queryKey, null);
+        setQueryDetails(null);
+      })
+      .finally(() => {
+        setIsLoadingQueryDetails(false);
+      });
+  }, [chartId, endDate, isQueriesOpen, queryKey, startDate]);
 
   // Chat initialization
   useEffect(() => {
@@ -598,17 +705,26 @@ O que você gostaria de entender especificamente sobre estes números?`
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-center">
+                <div className="flex-1 overflow-y-auto p-6">
                     {error ? (
                         <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
                             {error}
                         </div>
                     ) : (
-                        <SalesBudgetChartRenderer
-                          chart={chart}
-                          isLoading={isLoading}
-                          accentColor={chartMeta?.accentColor}
-                        />
+                        <div className="mx-auto w-full max-w-[1100px] space-y-4">
+                            <SalesBudgetChartRenderer
+                              chart={chart}
+                              isLoading={isLoading}
+                              accentColor={chartMeta?.accentColor}
+                            />
+
+                            <ChartQueryDetailsPanel
+                              isOpen={isQueriesOpen}
+                              onToggle={(next) => setIsQueriesOpen(next)}
+                              isLoading={isLoadingQueryDetails}
+                              details={queryDetails}
+                            />
+                        </div>
                     )}
                 </div>
             </div>

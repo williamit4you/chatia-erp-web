@@ -3,6 +3,7 @@
 import { startTransition, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import SalesBudgetChartCard from "@/components/sales/SalesBudgetChartCard";
+import SalesBudgetChartDetailsModal from "@/components/sales/SalesBudgetChartDetailsModal";
 import { applySalesBudgetCatalogColors, salesBudgetCatalog } from "@/lib/sales-budget-catalog";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/formatters/financeFormat";
 import salesBudgetAnalyticsService, {
@@ -12,7 +13,7 @@ import salesBudgetAnalyticsService, {
   type SalesBudgetChartPoint,
   type SalesBudgetKpiItem,
 } from "@/services/sales-budget-analytics.service";
-import { Calendar, Lock, Search } from "lucide-react";
+import { BookOpenText, Calendar, Lock, Search } from "lucide-react";
 import { useSessionStorageDate } from "@/hooks/useSessionStorageDate";
 
 const LIVE_KPI_IDS = [
@@ -103,6 +104,7 @@ export default function SalesBudgetAnalyticsPage() {
   const [activeScope, setActiveScope] = useState<DashboardScope>("budget");
   const [activeCategoryId, setActiveCategoryId] = useState("overview");
   const [search, setSearch] = useState("");
+  const [isChartDetailsOpen, setIsChartDetailsOpen] = useState(false);
 
   const deferredSearch = useDeferredValue(search.trim().toLowerCase());
 
@@ -374,14 +376,14 @@ export default function SalesBudgetAnalyticsPage() {
                   type="date"
                   value={draftStartDate}
                   onChange={(event) => setDraftStartDate(event.target.value)}
-                  className="w-28 bg-transparent text-xs font-bold text-neutral-700 outline-none"
+                  className="w-28 text-xs font-bold text-neutral-700 outline-none"
                 />
                 <span className="text-neutral-300">/</span>
                 <input
                   type="date"
                   value={draftEndDate}
                   onChange={(event) => setDraftEndDate(event.target.value)}
-                  className="w-28 bg-transparent text-xs font-bold text-neutral-700 outline-none"
+                  className="w-28 text-xs font-bold text-neutral-700 outline-none"
                 />
               </div>
               <button
@@ -391,9 +393,28 @@ export default function SalesBudgetAnalyticsPage() {
               >
                 Atualizar
               </button>
+              <button
+                type="button"
+                onClick={() => setIsChartDetailsOpen(true)}
+                className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-1.5 text-xs font-black uppercase text-blue-700 transition-colors hover:bg-blue-100"
+              >
+                <BookOpenText className="h-4 w-4" />
+                Detalhes dos gráficos
+              </button>
             </div>
           </div>
         </div>
+
+        <SalesBudgetChartDetailsModal
+          isOpen={isChartDetailsOpen}
+          title={activeCategory?.name ? `Vendas • ${activeCategory.name}` : "Vendas"}
+          entries={activeCategoryCharts.map((chart) => ({
+            id: chart.id,
+            title: chart.title,
+            categoryName: chart.categoryName,
+          }))}
+          onClose={() => setIsChartDetailsOpen(false)}
+        />
 
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-sm">

@@ -1,3 +1,8 @@
+import {
+  getSalesBudgetChartDefinition,
+  getSalesBudgetChartHelpMarkdown,
+} from "@/lib/salesBudgetChartDefinitions";
+
 export function getSalesBudgetChartObjective(params: {
   chartId: string;
   title: string;
@@ -5,6 +10,24 @@ export function getSalesBudgetChartObjective(params: {
 }): string {
   const chartId = params.chartId ?? "";
   const title = params.title ?? chartId;
+
+  const def = getSalesBudgetChartDefinition(chartId);
+  if (def) {
+    const bullets = (label: string, items: string[]) =>
+      items.length
+        ? [`**${label}:**`, ...items.map((i) => `- ${i}`)].join("\n")
+        : "";
+
+    return [
+      `**Objetivo:** ${def.help.objective}`,
+      "",
+      bullets("Como interpretar", def.help.howToRead),
+      "",
+      bullets("Cuidados", def.help.cautions),
+    ]
+      .filter((p) => p.trim().length > 0)
+      .join("\n");
+  }
 
   const normalizedTitle = title
     .normalize("NFD")
@@ -23,7 +46,13 @@ export function getSalesBudgetChartObjective(params: {
     if (has("cliente") || has("customer")) return "cliente";
     if (has("produto") || has("product")) return "produto";
     if (has("status")) return "status";
-    if (has("periodo") || has("period") || has("mensal") || has("semanal") || has("diar"))
+    if (
+      has("periodo") ||
+      has("period") ||
+      has("mensal") ||
+      has("semanal") ||
+      has("diar")
+    )
       return "período";
     return "dimensão";
   })();
@@ -42,7 +71,8 @@ export function getSalesBudgetChartObjective(params: {
   const visualizationHint = (() => {
     if (has("mapa") || has("heatmap") || has("calor"))
       return "Em modo **Mapa**, a cor mais forte indica maior valor relativo no período.";
-    if (has("ranking") || has("top")) return "O ranking ordena do maior para o menor.";
+    if (has("ranking") || has("top"))
+      return "O ranking ordena do maior para o menor.";
     return "";
   })();
 
@@ -50,6 +80,7 @@ export function getSalesBudgetChartObjective(params: {
 
   return [
     `**Objetivo:** mostrar **${metric}** por **${dimension}**${category}, considerando o período filtrado.`,
+    "",
     `**Como ler:** compare os itens para identificar concentração, destaque e distribuição.`,
     visualizationHint,
   ]
@@ -61,15 +92,39 @@ export function getSalesBudgetAutoHelpPrompt(params: {
   chartId: string;
   title: string;
 }): string {
+  const chartId = params.chartId ?? "";
   const title = params.title ?? params.chartId;
+
+  const def = getSalesBudgetChartDefinition(chartId);
+  const registryHelp = getSalesBudgetChartHelpMarkdown({
+    chartId,
+    titleFallback: title,
+  });
+
+  const viewHint =
+    def?.secondaryVisualizations?.length
+      ? `Visualizações disponíveis (na UI): ${[
+          def.primaryVisualization,
+          ...(def.secondaryVisualizations ?? []),
+        ].join(", ")}`
+      : "";
+
   return [
-    `Explique de forma objetiva o gráfico **${title}**.`,
+    `Explique de forma objetiva o gráfico **${title}** com base nos dados do período.`,
     "",
     "Quero:",
     "- Objetivo do gráfico (1 frase)",
     "- Como interpretar (3 bullets)",
     "- 2 insights comuns que ele revela",
     "- 2 cuidados/armadilhas na leitura",
-  ].join("\n");
+    "",
+    registryHelp ? "Contexto (help do produto):" : "",
+    registryHelp ? registryHelp : "",
+    "",
+    viewHint,
+    "",
+    "Se a visualização atual não for a melhor para o objetivo, sugira uma alternativa (ex.: ranking, mapa, tabela).",
+  ]
+    .filter((line) => line.trim().length > 0)
+    .join("\n");
 }
-

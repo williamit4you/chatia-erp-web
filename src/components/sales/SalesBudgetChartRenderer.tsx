@@ -66,10 +66,12 @@ const BR_UFS = new Set([
 const UF_MAP_TOGGLE_CHART_IDS = new Set([
   "geo_amount_by_uf",
   "geo_count_by_uf",
+  "geo_avg_ticket_by_uf",
   "geo_conversion_by_uf",
   "customer_by_uf",
   "product_by_geo",
   "source_by_geo",
+  "geo_top_product_by_uf",
   "geo_origin_by_region",
   "geo_highest_avg_discount_regions",
   "geo_highest_markup_regions",
@@ -112,7 +114,7 @@ const buildUfAggregation = (chart: SalesBudgetChartDataset) => {
   for (const point of chart.data) {
     const uf = extractUfFromLabel(point.label);
     if (!uf) continue;
-    const raw = Number(point.value ?? point.amount ?? point.count ?? 0);
+    const raw = Number(point.value ?? point.amount ?? point.count ?? point.percentage ?? 0);
     const current = valuesByUf.get(uf) ?? 0;
     valuesByUf.set(uf, current + (Number.isFinite(raw) ? raw : 0));
   }

@@ -24,7 +24,7 @@ export default function SalesBudgetChartCard({
   const warnings = chart?.meta?.warnings ?? [];
 
   return (
-    <article className="group relative h-full overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
       <div className="flex items-center justify-between gap-3 border-b border-neutral-50 px-4 py-2">
         <div className="min-w-0">
           <h3 className="truncate text-sm font-bold text-neutral-700">{title}</h3>
@@ -41,14 +41,14 @@ export default function SalesBudgetChartCard({
         <div className="flex items-center gap-1">
           <Link
             href={`/chat/sales-budget-analytics/${chartId}?help=1`}
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-neutral-200 text-neutral-400 transition hover:bg-blue-50 hover:text-blue-700"
-            title="Ajuda do gráfico"
+            className="rounded p-1 text-neutral-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
+            title="Entender este gráfico"
           >
             <BookOpenText className="h-4 w-4" />
           </Link>
           <Link
             href={`/chat/sales-budget-analytics/${chartId}`}
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-neutral-200 text-neutral-400 transition hover:bg-neutral-50 hover:text-neutral-700"
+            className="rounded p-1 text-neutral-400 transition-colors hover:bg-neutral-50 hover:text-neutral-700"
             title="Abrir gráfico"
           >
             <ArrowUpRight className="h-4 w-4" />
@@ -64,7 +64,7 @@ export default function SalesBudgetChartCard({
         />
       ) : null}
 
-      <div className="min-h-0 p-4">
+      <div className="min-h-0 flex-1 overflow-hidden p-3 sm:p-4">
         <SalesBudgetChartRenderer
           chart={chart}
           isLoading={isLoading}
@@ -75,3 +75,4 @@ export default function SalesBudgetChartCard({
     </article>
   );
 }
+

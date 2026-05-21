@@ -2,8 +2,6 @@
 
 import { startTransition, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
-import SidebarToggle from "@/components/chat/SidebarToggle";
-import ChatCompanyDropdown from "@/components/chat/ChatCompanyDropdown";
 import SalesBudgetChartCard from "@/components/sales/SalesBudgetChartCard";
 import { applySalesBudgetCatalogColors, salesBudgetCatalog } from "@/lib/sales-budget-catalog";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/formatters/financeFormat";
@@ -100,6 +98,8 @@ export default function SalesBudgetAnalyticsPage() {
     return d.toISOString().split("T")[0];
   });
   const [endDate, setEndDate] = useSessionStorageDate("salesBudgetEndDate", () => new Date().toISOString().split("T")[0]);
+  const [draftStartDate, setDraftStartDate] = useState(startDate);
+  const [draftEndDate, setDraftEndDate] = useState(endDate);
   const [activeScope, setActiveScope] = useState<DashboardScope>("budget");
   const [activeCategoryId, setActiveCategoryId] = useState("overview");
   const [search, setSearch] = useState("");
@@ -110,6 +110,16 @@ export default function SalesBudgetAnalyticsPage() {
     user?.role === "TENANT_ADMIN" ||
     user?.role === "SUPER_ADMIN" ||
     user?.hasBudgetDashboardAccess;
+
+  useEffect(() => {
+    setDraftStartDate(startDate);
+    setDraftEndDate(endDate);
+  }, [endDate, startDate]);
+
+  const handleFilter = () => {
+    setStartDate(draftStartDate);
+    setEndDate(draftEndDate);
+  };
 
   useEffect(() => {
     if (!canSeeSalesBudget) return;
@@ -306,14 +316,8 @@ export default function SalesBudgetAnalyticsPage() {
 
   if (status === "loading") {
     return (
-      <div className="h-full w-full overflow-y-auto bg-neutral-50">
-        <header className="sticky top-0 z-10 border-b border-neutral-200 bg-neutral-50/80 backdrop-blur">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-            <SidebarToggle />
-            <ChatCompanyDropdown />
-          </div>
-        </header>
-        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+      <div className="flex-1 overflow-auto bg-neutral-50/70 scroll-smooth">
+        <div className="mx-auto max-w-[1700px] p-4 sm:p-6 lg:p-8">
           <div className="grid gap-4 md:grid-cols-3">
             {[1, 2, 3].map((item) => (
               <div key={item} className="h-28 animate-pulse rounded-3xl border border-neutral-200 bg-white" />
@@ -326,20 +330,14 @@ export default function SalesBudgetAnalyticsPage() {
 
   if (!canSeeSalesBudget) {
     return (
-      <div className="h-full w-full overflow-y-auto bg-neutral-50">
-        <header className="sticky top-0 z-10 border-b border-neutral-200 bg-neutral-50/80 backdrop-blur">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-            <SidebarToggle />
-            <ChatCompanyDropdown />
-          </div>
-        </header>
-        <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+      <div className="flex-1 overflow-auto bg-neutral-50/70 scroll-smooth">
+        <div className="mx-auto max-w-[1700px] p-4 sm:p-6 lg:p-8">
           <div className="rounded-[28px] border border-rose-200 bg-white p-8 shadow-sm">
             <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
               <Lock className="h-7 w-7" />
             </div>
             <h1 className="text-2xl font-black tracking-tight text-neutral-900">
-              Vendas &gt; Orçamento
+              Vendas
             </h1>
             <p className="mt-3 text-sm leading-6 text-neutral-600">
                O acesso a esta área precisa estar habilitado para a sua conta.
@@ -351,49 +349,54 @@ export default function SalesBudgetAnalyticsPage() {
   }
 
   return (
-    <div className="h-full w-full overflow-y-auto bg-neutral-50">
-      <header className="sticky top-0 z-10 border-b border-neutral-200 bg-neutral-50/80 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-          <SidebarToggle />
-          <ChatCompanyDropdown />
-        </div>
-      </header>
-
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        <section className="rounded-[30px] border border-neutral-200 bg-white p-6 shadow-sm sm:p-8">
-          <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-            <div className="max-w-3xl">
-              <h1 className="text-3xl font-black tracking-tight text-neutral-900 sm:text-4xl">
-                Vendas &gt; Orçamento
+    <div className="flex-1 overflow-auto bg-neutral-50/70 scroll-smooth">
+      <div className="mx-auto max-w-[1700px] p-4 sm:p-6 lg:p-8">
+        <div className="mb-8 flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+          <div>
+            <div className="mb-1 flex items-center gap-2">
+              <h1 className="text-2xl font-black tracking-tight text-neutral-900">
+                Vendas
               </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-600 sm:text-base">
-                Acompanhe os principais indicadores e explore os gráficos do período selecionado.
-              </p>
+              <span className="rounded bg-blue-600 px-1.5 py-0.5 text-[10px] font-black text-white shadow-[0_2px_10px_-3px_rgba(37,99,235,0.5)]">
+                ORÇAMENTO
+              </span>
             </div>
-
-            <div className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-3 sm:flex-row sm:items-center">
-              <div className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2">
-                <Calendar className="h-4 w-4 text-neutral-400" />
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(event) => setStartDate(event.target.value)}
-                  className="w-32 bg-transparent text-xs font-bold text-neutral-700 outline-none"
-                />
-              </div>
-              <div className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2">
-                <Calendar className="h-4 w-4 text-neutral-400" />
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(event) => setEndDate(event.target.value)}
-                  className="w-32 bg-transparent text-xs font-bold text-neutral-700 outline-none"
-                />
-              </div>
-            </div>
+            <p className="text-sm font-medium text-neutral-500">
+              Gráficos e KPIs organizados por categoria e período selecionado.
+            </p>
           </div>
 
-          <div className="mt-6 flex flex-wrap items-center gap-2 rounded-[28px] border border-neutral-200 bg-neutral-50 p-2 shadow-sm">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3 rounded-xl border border-neutral-200 bg-white p-1.5 shadow-sm">
+              <div className="flex items-center gap-2 px-3 sm:border-r sm:border-neutral-100">
+                <Calendar className="h-4 w-4 text-neutral-400" />
+                <input
+                  type="date"
+                  value={draftStartDate}
+                  onChange={(event) => setDraftStartDate(event.target.value)}
+                  className="w-28 bg-transparent text-xs font-bold text-neutral-700 outline-none"
+                />
+                <span className="text-neutral-300">/</span>
+                <input
+                  type="date"
+                  value={draftEndDate}
+                  onChange={(event) => setDraftEndDate(event.target.value)}
+                  className="w-28 bg-transparent text-xs font-bold text-neutral-700 outline-none"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleFilter}
+                className="rounded-lg bg-neutral-900 px-5 py-1.5 text-xs font-black uppercase text-white transition-colors hover:bg-black"
+              >
+                Atualizar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-sm">
             {DASHBOARD_SCOPES.map((scope) => {
               const isActive = activeScope === scope.key;
               return (
@@ -405,10 +408,10 @@ export default function SalesBudgetAnalyticsPage() {
                       setActiveScope(scope.key);
                     })
                   }
-                  className={`rounded-[20px] px-5 py-3 text-sm font-black transition-colors ${
+                  className={`rounded-xl px-4 py-2 text-sm font-black transition-colors ${
                     isActive
                       ? "bg-neutral-900 text-white"
-                      : "bg-white text-neutral-700 hover:bg-neutral-100"
+                      : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
                   }`}
                 >
                   {scope.label}
@@ -416,7 +419,7 @@ export default function SalesBudgetAnalyticsPage() {
               );
             })}
           </div>
-        </section>
+        </div>
 
         {activeScope === "budget" && (
           <section className="mt-6 rounded-[30px] border border-neutral-200 bg-white p-6 shadow-sm">

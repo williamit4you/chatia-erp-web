@@ -529,6 +529,8 @@ export default function SalesBudgetAnalyticsPage() {
             title: chart.title,
             categoryName: chart.categoryName,
           }))}
+          startDate={draftStartDate}
+          endDate={draftEndDate}
           onClose={() => setIsChartDetailsOpen(false)}
         />
 

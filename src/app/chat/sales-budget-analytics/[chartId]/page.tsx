@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import SidebarToggle from "@/components/chat/SidebarToggle";
 import ChatCompanyDropdown from "@/components/chat/ChatCompanyDropdown";
 import SalesBudgetChartRenderer from "@/components/sales/SalesBudgetChartRenderer";
+import SalesBudgetChartDetailsModal from "@/components/sales/SalesBudgetChartDetailsModal";
 import { salesBudgetCatalog } from "@/lib/sales-budget-catalog";
 import { getSalesBudgetChartDefinition } from "@/lib/salesBudgetChartDefinitions";
 import { getSalesBudgetAutoHelpPrompt, getSalesBudgetChartObjective } from "@/lib/salesBudgetChartHelp";
@@ -293,11 +294,7 @@ export default function SalesBudgetAnalyticsDetailPage() {
   const [chart, setChart] = useState<SalesBudgetChartDataset | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isChartDetailsVisible, setIsChartDetailsVisible] = useState(false);
-  const [isQueriesOpen, setIsQueriesOpen] = useState(false);
-  const [queryDetails, setQueryDetails] = useState<SalesBudgetChartQueryDetailsItem | null>(null);
-  const [isLoadingQueryDetails, setIsLoadingQueryDetails] = useState(false);
-  const queryDetailsCacheRef = useRef<Map<string, SalesBudgetChartQueryDetailsItem | null>>(new Map());
+  const [isChartDetailsOpen, setIsChartDetailsOpen] = useState(false);
 
   // Chat States
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -339,8 +336,6 @@ export default function SalesBudgetAnalyticsDetailPage() {
 
     const shouldAutoHelp = searchParams?.get("help") === "1";
     const autoHelpTriggeredRef = useRef(false);
-    const queryKey = useMemo(() => `${chartId}|${startDate}|${endDate}`, [chartId, endDate, startDate]);
-
 	  const loadChart = async () => {
 	    if (chartMeta?.availability && chartMeta.availability !== "available_now") {
 	      setChart(null);
@@ -371,33 +366,9 @@ export default function SalesBudgetAnalyticsDetailPage() {
   }, [canSeeSalesBudget, chartId, endDate, startDate]);
 
   useEffect(() => {
-    if (!chartId) return;
-    if (!isChartDetailsVisible) return;
-    // We always try to load query details so every chart can show SQL/rules when available.
-
-    const cached = queryDetailsCacheRef.current.get(queryKey);
-    if (cached !== undefined) {
-      setQueryDetails(cached);
-      return;
-    }
-
-    setIsLoadingQueryDetails(true);
-    salesBudgetAnalyticsService
-      .getChartQueryDetails({ chartIds: [chartId], startDate, endDate })
-      .then((res) => {
-        const item =
-          res.items?.find((it) => it?.chartId === chartId) ?? null;
-        queryDetailsCacheRef.current.set(queryKey, item);
-        setQueryDetails(item);
-      })
-      .catch(() => {
-        queryDetailsCacheRef.current.set(queryKey, null);
-        setQueryDetails(null);
-      })
-      .finally(() => {
-        setIsLoadingQueryDetails(false);
-      });
-  }, [chartId, endDate, isChartDetailsVisible, queryKey, startDate]);
+    if (!shouldAutoHelp) return;
+    setIsChartDetailsOpen(true);
+  }, [shouldAutoHelp]);
 
   // Chat initialization
   useEffect(() => {
@@ -815,30 +786,13 @@ O que você gostaria de entender especificamente sobre estes números?`
                             <div className="flex justify-end">
                               <button
                                 type="button"
-                                onClick={() => setIsChartDetailsVisible((current) => !current)}
+                                onClick={() => setIsChartDetailsOpen(true)}
                                 className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-neutral-700 shadow-sm transition hover:bg-neutral-50 hover:text-neutral-900"
                               >
                                 <Info className="h-3.5 w-3.5" />
-                                {isChartDetailsVisible ? "Ocultar dados do gráfico" : "Visualizar dados do gráfico"}
+                                Visualizar dados do gráfico
                               </button>
                             </div>
-
-                            {isChartDetailsVisible ? (
-                              chartDefinition ? (
-                                <ChartInsightOverview chartId={chartId} title={title} />
-                              ) : (
-                                <div className="rounded-[28px] border border-neutral-200 bg-white p-5 shadow-sm">
-                                  <div className="rounded-2xl bg-blue-50/70 p-4">
-                                    <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-700">
-                                      O que este gráfico mostra
-                                    </p>
-                                    <div className="mt-2 text-sm leading-6 text-neutral-700">
-                                      <MarkdownLite content={description} />
-                                    </div>
-                                  </div>
-                                </div>
-                              )
-                            ) : null}
 
                             <SalesBudgetChartRenderer
                               chart={chart}
@@ -846,14 +800,6 @@ O que você gostaria de entender especificamente sobre estes números?`
                               accentColor={chartMeta?.accentColor}
                             />
 
-                            {isChartDetailsVisible ? (
-                              <ChartQueryDetailsPanel
-                                isOpen={isQueriesOpen}
-                                onToggle={(next) => setIsQueriesOpen(next)}
-                                isLoading={isLoadingQueryDetails}
-                                details={queryDetails}
-                              />
-                            ) : null}
                         </div>
                     )}
                 </div>
@@ -1053,6 +999,21 @@ O que você gostaria de entender especificamente sobre estes números?`
             )}
         </div>
       </div>
+
+      <SalesBudgetChartDetailsModal
+        isOpen={isChartDetailsOpen}
+        title={title}
+        entries={[
+          {
+            id: chartId,
+            title,
+            categoryName: chartMeta?.categoryName ?? "Análise do gráfico",
+          },
+        ]}
+        startDate={startDate}
+        endDate={endDate}
+        onClose={() => setIsChartDetailsOpen(false)}
+      />
     </div>
   );
 }

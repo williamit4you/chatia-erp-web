@@ -371,14 +371,8 @@ export default function SalesBudgetAnalyticsDetailPage() {
   }, [canSeeSalesBudget, chartId, endDate, startDate]);
 
   useEffect(() => {
-    if (!shouldAutoHelp) return;
-    setIsChartDetailsVisible(true);
-    setIsQueriesOpen(true);
-  }, [shouldAutoHelp]);
-
-  useEffect(() => {
     if (!chartId) return;
-    if (!isChartDetailsVisible && !shouldAutoHelp) return;
+    if (!isChartDetailsVisible) return;
     // We always try to load query details so every chart can show SQL/rules when available.
 
     const cached = queryDetailsCacheRef.current.get(queryKey);
@@ -403,7 +397,7 @@ export default function SalesBudgetAnalyticsDetailPage() {
       .finally(() => {
         setIsLoadingQueryDetails(false);
       });
-  }, [chartId, endDate, isChartDetailsVisible, queryKey, shouldAutoHelp, startDate]);
+  }, [chartId, endDate, isChartDetailsVisible, queryKey, startDate]);
 
   // Chat initialization
   useEffect(() => {

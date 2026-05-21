@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef, type ReactNode } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import SidebarToggle from "@/components/chat/SidebarToggle";
 import ChatCompanyDropdown from "@/components/chat/ChatCompanyDropdown";
 import SalesBudgetChartRenderer from "@/components/sales/SalesBudgetChartRenderer";
 import { salesBudgetCatalog } from "@/lib/sales-budget-catalog";
+import { getSalesBudgetChartDefinition } from "@/lib/salesBudgetChartDefinitions";
 import { getSalesBudgetAutoHelpPrompt, getSalesBudgetChartObjective } from "@/lib/salesBudgetChartHelp";
 import salesBudgetAnalyticsService, {
   type SalesBudgetChartDataset,
@@ -57,6 +58,99 @@ interface ChatSessionInfo {
     createdAt: string;
 }
 
+function SectionList({
+  icon,
+  title,
+  items,
+}: {
+  icon: ReactNode;
+  title: string;
+  items: string[];
+}) {
+  if (items.length === 0) return null;
+
+  return (
+    <section className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+      <div className="mb-3 flex items-center gap-2 text-sm font-black text-neutral-900">
+        <span className="text-neutral-500">{icon}</span>
+        {title}
+      </div>
+      <div className="space-y-2">
+        {items.map((item) => (
+          <p key={item} className="text-sm leading-6 text-neutral-600">
+            {item}
+          </p>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ChartInsightOverview({
+  chartId,
+  title,
+}: {
+  chartId: string;
+  title: string;
+}) {
+  const definition = getSalesBudgetChartDefinition(chartId);
+  if (!definition) return null;
+
+  return (
+    <article className="rounded-[28px] border border-neutral-200 bg-white p-5 shadow-sm">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <span className="rounded-full bg-blue-50 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-blue-700">
+          {title}
+        </span>
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-2">
+        <div className="space-y-3">
+          <div className="rounded-2xl bg-blue-50/70 p-4">
+            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-700">
+              O que este gráfico mostra
+            </p>
+            <p className="mt-2 text-sm leading-6 text-neutral-700">
+              {definition.help.objective}
+            </p>
+          </div>
+
+          <SectionList
+            icon={<Sparkles className="h-4 w-4" />}
+            title="Como interpretar"
+            items={definition.help.howToRead}
+          />
+        </div>
+
+        <div className="space-y-3">
+          <SectionList
+            icon={<Database className="h-4 w-4" />}
+            title="Como é calculado"
+            items={definition.help.calculation}
+          />
+
+          <SectionList
+            icon={<Info className="h-4 w-4" />}
+            title="Cuidados na leitura"
+            items={definition.help.cautions}
+          />
+
+          {definition.help.bestVisualization ? (
+            <SectionList
+              icon={<ChevronUp className="h-4 w-4" />}
+              title="Melhor visualização"
+              items={[
+                definition.help.bestVisualization,
+                ...(definition.help.alternativeViews ?? []),
+              ]}
+            />
+          ) : null}
+        </div>
+      </div>
+    </article>
+  );
+}
+
 function ChartQueryDetailsPanel({
   isOpen,
   onToggle,
@@ -72,11 +166,33 @@ function ChartQueryDetailsPanel({
   const sqlQueries = details?.sqlQueries ?? [];
   const hasAny = rules.length > 0 || sqlQueries.length > 0;
 
-  if (!hasAny && !isLoading) return null;
+  if (!hasAny && !isLoading) {
+    return (
+      <details
+        className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 p-4"
+        open={isOpen}
+        onToggle={(event) => {
+          onToggle((event.currentTarget as HTMLDetailsElement).open);
+        }}
+      >
+        <summary className="cursor-pointer select-none text-sm font-black text-neutral-900">
+          Consultas e regras
+          <span className="ml-2 text-[11px] font-bold text-neutral-500">
+            (sem dados)
+          </span>
+        </summary>
+        <p className="mt-3 text-sm leading-6 text-neutral-600">
+          Este gráfico ainda não retornou detalhes de SQL/regras. Se você for
+          TENANT_ADMIN/SUPER_ADMIN, valide se o endpoint de query details está
+          habilitado no backend.
+        </p>
+      </details>
+    );
+  }
 
   return (
     <details
-      className="w-full rounded-2xl border border-neutral-200 bg-white p-4"
+      className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 p-4"
       open={isOpen}
       onToggle={(event) => {
         onToggle((event.currentTarget as HTMLDetailsElement).open);
@@ -208,6 +324,10 @@ export default function SalesBudgetAnalyticsDetailPage() {
     () => catalogIndex.find((item) => item.id === chartId),
     [chartId]
   );
+  const chartDefinition = useMemo(
+    () => getSalesBudgetChartDefinition(chartId),
+    [chartId]
+  );
   
 	  const title = chart?.title ?? chartMeta?.title ?? chartId;
 	  const description = getSalesBudgetChartObjective({
@@ -255,8 +375,8 @@ export default function SalesBudgetAnalyticsDetailPage() {
   }, [shouldAutoHelp]);
 
   useEffect(() => {
-    if (!isQueriesOpen) return;
     if (!chartId) return;
+    // We always try to load query details so every chart can show SQL/rules when available.
 
     const cached = queryDetailsCacheRef.current.get(queryKey);
     if (cached !== undefined) {
@@ -280,7 +400,7 @@ export default function SalesBudgetAnalyticsDetailPage() {
       .finally(() => {
         setIsLoadingQueryDetails(false);
       });
-  }, [chartId, endDate, isQueriesOpen, queryKey, startDate]);
+  }, [chartId, endDate, queryKey, startDate]);
 
   // Chat initialization
   useEffect(() => {
@@ -688,23 +808,6 @@ O que você gostaria de entender especificamente sobre estes números?`
                     </div>
                 )}
                 
-                <div className="px-6 py-5 bg-gradient-to-br from-indigo-50/80 to-white border-b border-neutral-100 shrink-0">
-                    <div className="flex items-start justify-between gap-4">
-                        <div className="space-y-2">
-                            <h3 className="text-[11px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2">
-                                <Sparkles className="w-3.5 h-3.5" />
-                                Insight Estratégico
-                            </h3>
-                            <p className="text-sm text-neutral-700 leading-relaxed max-w-3xl">
-                                {description}
-                            </p>
-                        </div>
-                        <div className="hidden sm:flex shrink-0 w-10 h-10 bg-indigo-100 rounded-full items-center justify-center text-indigo-500">
-                            <Info className="w-5 h-5" />
-                        </div>
-                    </div>
-                </div>
-
                 <div className="flex-1 overflow-y-auto p-6">
                     {error ? (
                         <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
@@ -712,6 +815,21 @@ O que você gostaria de entender especificamente sobre estes números?`
                         </div>
                     ) : (
                         <div className="mx-auto w-full max-w-[1100px] space-y-4">
+                            {chartDefinition ? (
+                              <ChartInsightOverview chartId={chartId} title={title} />
+                            ) : (
+                              <div className="rounded-[28px] border border-neutral-200 bg-white p-5 shadow-sm">
+                                <div className="rounded-2xl bg-blue-50/70 p-4">
+                                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-700">
+                                    O que este gráfico mostra
+                                  </p>
+                                  <div className="mt-2 text-sm leading-6 text-neutral-700">
+                                    <MarkdownLite content={description} />
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
                             <SalesBudgetChartRenderer
                               chart={chart}
                               isLoading={isLoading}

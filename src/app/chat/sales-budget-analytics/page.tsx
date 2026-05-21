@@ -669,6 +669,9 @@ export default function SalesBudgetAnalyticsPage() {
                           isLoading={isLoadingCharts}
                           accentColor={accentColor}
                           defaultTabId={item.defaultTabId ?? null}
+                          startDate={startDate}
+                          endDate={endDate}
+                          categoryName={item.charts[0]?.categoryName ?? "Geo"}
                         />
                       </div>
                     );
@@ -691,6 +694,9 @@ export default function SalesBudgetAnalyticsPage() {
                           isLoading={isLoadingCharts}
                           accentColor={accentColor}
                           defaultTabId={item.defaultTabId ?? null}
+                          startDate={startDate}
+                          endDate={endDate}
+                          categoryName={item.charts[0]?.categoryName ?? "Funil"}
                         />
                       </div>
                     );
@@ -713,6 +719,9 @@ export default function SalesBudgetAnalyticsPage() {
                           isLoading={isLoadingCharts}
                           accentColor={accentColor}
                           defaultTabId={item.defaultTabId ?? null}
+                          startDate={startDate}
+                          endDate={endDate}
+                          categoryName={item.charts[0]?.categoryName ?? "Funil"}
                         />
                       </div>
                     );
@@ -727,6 +736,9 @@ export default function SalesBudgetAnalyticsPage() {
                         fallbackTitle={chart.title}
                         isLoading={isLoadingCharts && !chartsById[chart.id]}
                         accentColor={chart.accentColor}
+                        startDate={startDate}
+                        endDate={endDate}
+                        categoryName={chart.categoryName ?? activeCategory?.name ?? null}
                       />
                     </div>
                   );

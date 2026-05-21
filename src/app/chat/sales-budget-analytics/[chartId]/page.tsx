@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import SidebarToggle from "@/components/chat/SidebarToggle";
 import ChatCompanyDropdown from "@/components/chat/ChatCompanyDropdown";
+import SalesBudgetChartDetailsButton from "@/components/sales/SalesBudgetChartDetailsButton";
 import SalesBudgetChartRenderer from "@/components/sales/SalesBudgetChartRenderer";
 import SalesBudgetChartDetailsModal from "@/components/sales/SalesBudgetChartDetailsModal";
 import { salesBudgetCatalog } from "@/lib/sales-budget-catalog";
@@ -784,14 +785,10 @@ O que você gostaria de entender especificamente sobre estes números?`
                     ) : (
                         <div className="mx-auto w-full max-w-[1100px] space-y-4">
                             <div className="flex justify-end">
-                              <button
-                                type="button"
+                              <SalesBudgetChartDetailsButton
                                 onClick={() => setIsChartDetailsOpen(true)}
-                                className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-neutral-700 shadow-sm transition hover:bg-neutral-50 hover:text-neutral-900"
-                              >
-                                <Info className="h-3.5 w-3.5" />
-                                Visualizar dados do gráfico
-                              </button>
+                                title="Visualizar dados do gráfico"
+                              />
                             </div>
 
                             <SalesBudgetChartRenderer

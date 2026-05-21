@@ -968,7 +968,7 @@ const definitions: Record<string, SalesBudgetChartDefinition> = {
 
   funnel_open_approved_lost: {
     chartId: "funnel_open_approved_lost",
-    groupId: "funnel_status_summary",
+    groupId: "funnel_by_status_family",
     categoryId: "funnel",
     title: "Orcamentos em aberto x aprovados x perdidos",
     question: "Qual o mix de status (aberto/aprovado/perdido) no periodo?",

@@ -14,6 +14,7 @@ interface BrazilUfMapChartProps {
     displayMode?: "default" | "detail" | "compact";
     variant?: "full" | "map_only";
     valueKind?: "currency" | "number" | "percent";
+    legendLayout?: "horizontal" | "vertical";
     onDrilldownSelect?: (selection: ChartSelection) => void;
 }
 
@@ -167,6 +168,7 @@ export default function BrazilUfMapChart({
     displayMode = "default",
     variant = "full",
     valueKind = "currency",
+    legendLayout = "horizontal",
     onDrilldownSelect,
 }: BrazilUfMapChartProps) {
     const drilldownFromContext = useDrilldownSelect();
@@ -296,15 +298,27 @@ export default function BrazilUfMapChart({
                         </div>
                     )}
 
-                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-bold text-neutral-500 shadow-sm ring-1 ring-neutral-200/80">
-                        <span>Menor</span>
-                        <span
-                            className="mx-3 h-2 flex-1 rounded-full"
-                            style={{ background: `linear-gradient(to right, ${colorWithIntensity(color, 0.08)}, ${color})` }}
-                            aria-hidden="true"
-                        />
-                        <span>Maior</span>
-                    </div>
+                    {legendLayout === "vertical" ? (
+                        <div className="absolute bottom-3 right-3 flex flex-col items-center justify-between gap-1.5 rounded-2xl bg-white/90 px-2 py-2 text-[10px] font-bold text-neutral-500 shadow-sm ring-1 ring-neutral-200/80">
+                            <span>Maior</span>
+                            <span
+                                className={`${isCompactMode ? "h-24 w-3" : "h-28 w-3.5"} rounded`}
+                                style={{ background: `linear-gradient(to top, ${colorWithIntensity(color, 0.08)}, ${color})` }}
+                                aria-hidden="true"
+                            />
+                            <span>Menor</span>
+                        </div>
+                    ) : (
+                        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-bold text-neutral-500 shadow-sm ring-1 ring-neutral-200/80">
+                            <span>Menor</span>
+                            <span
+                                className="mx-3 h-2 flex-1 rounded-full"
+                                style={{ background: `linear-gradient(to right, ${colorWithIntensity(color, 0.08)}, ${color})` }}
+                                aria-hidden="true"
+                            />
+                            <span>Maior</span>
+                        </div>
+                    )}
                 </div>
             </div>
         );

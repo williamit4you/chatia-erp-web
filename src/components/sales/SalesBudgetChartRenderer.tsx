@@ -279,6 +279,7 @@ function UfToggleView({
           valueKind={valueKind}
           displayMode={compact ? "compact" : "detail"}
           variant={compact ? "map_only" : "full"}
+          legendLayout="vertical"
         />
       )}
     </div>

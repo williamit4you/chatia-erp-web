@@ -4,6 +4,7 @@ import { startTransition, useDeferredValue, useEffect, useMemo, useState } from 
 import { useSession } from "next-auth/react";
 import SalesBudgetChartCard from "@/components/sales/SalesBudgetChartCard";
 import SalesBudgetChartDetailsModal from "@/components/sales/SalesBudgetChartDetailsModal";
+import SalesBudgetFunnelByStatusWidget from "@/components/sales/SalesBudgetFunnelByStatusWidget";
 import SalesBudgetFunnelConversionWidget from "@/components/sales/SalesBudgetFunnelConversionWidget";
 import SalesBudgetGeoByUfWidget from "@/components/sales/SalesBudgetGeoByUfWidget";
 import { applySalesBudgetCatalogColors, salesBudgetCatalog } from "@/lib/sales-budget-catalog";
@@ -311,6 +312,11 @@ export default function SalesBudgetAnalyticsPage() {
         kind: "funnel_conversion_segments";
         charts: VisibleChart[];
         defaultTabId?: string | null;
+      }
+    | {
+        kind: "funnel_by_status_family";
+        charts: VisibleChart[];
+        defaultTabId?: string | null;
       };
 
   const renderHighlights = useMemo<RenderItem[]>(() => {
@@ -330,6 +336,10 @@ export default function SalesBudgetAnalyticsPage() {
       (item) => groupIdByChartId.get(item.id) === "funnel_conversion_segments"
     );
 
+    const statusGroupChartsAll = activeCategoryCharts.filter(
+      (item) => groupIdByChartId.get(item.id) === "funnel_by_status_family"
+    );
+
     const matchedIds = new Set(filteredHighlights.map((c) => c.id));
 
     const showGeoGroup =
@@ -342,8 +352,15 @@ export default function SalesBudgetAnalyticsPage() {
         ? conversionGroupChartsAll.some((c) => matchedIds.has(c.id))
         : true);
 
+    const showStatusGroup =
+      statusGroupChartsAll.length >= 2 &&
+      (deferredSearch
+        ? statusGroupChartsAll.some((c) => matchedIds.has(c.id))
+        : true);
+
     const geoSet = new Set(geoGroupChartsAll.map((c) => c.id));
     const conversionSet = new Set(conversionGroupChartsAll.map((c) => c.id));
+    const statusSet = new Set(statusGroupChartsAll.map((c) => c.id));
 
     const items: RenderItem[] = [];
 
@@ -365,6 +382,17 @@ export default function SalesBudgetAnalyticsPage() {
       });
     };
 
+    const pushStatusGroup = () => {
+      const defaultTabId = deferredSearch
+        ? statusGroupChartsAll.find((c) => matchedIds.has(c.id))?.id ?? null
+        : null;
+      items.push({
+        kind: "funnel_by_status_family",
+        charts: statusGroupChartsAll,
+        defaultTabId,
+      });
+    };
+
     // Render order: keep list order, but collapse group members into one widget.
     for (const chart of filteredHighlights) {
       if (showGeoGroup && geoSet.has(chart.id)) {
@@ -375,6 +403,11 @@ export default function SalesBudgetAnalyticsPage() {
       if (showConversionGroup && conversionSet.has(chart.id)) {
         if (!items.some((i) => i.kind === "funnel_conversion_segments"))
           pushConversionGroup();
+        continue;
+      }
+
+      if (showStatusGroup && statusSet.has(chart.id)) {
+        if (!items.some((i) => i.kind === "funnel_by_status_family")) pushStatusGroup();
         continue;
       }
 
@@ -652,6 +685,28 @@ export default function SalesBudgetAnalyticsPage() {
                     return (
                       <div key={`funnel_conversion_${index}`}>
                         <SalesBudgetFunnelConversionWidget
+                          charts={byId as any}
+                          isLoading={isLoadingCharts}
+                          accentColor={accentColor}
+                          defaultTabId={item.defaultTabId ?? null}
+                        />
+                      </div>
+                    );
+                  }
+
+                  if (item.kind === "funnel_by_status_family") {
+                    const byId: Record<string, SalesBudgetChartDataset | null> = {};
+                    for (const chart of item.charts) {
+                      byId[chart.id] = chartsById[chart.id] ?? null;
+                    }
+
+                    const accentColor =
+                      item.charts.find((c) => c.categoryId === "funnel")?.accentColor ??
+                      item.charts[0]?.accentColor;
+
+                    return (
+                      <div key={`funnel_by_status_${index}`}>
+                        <SalesBudgetFunnelByStatusWidget
                           charts={byId as any}
                           isLoading={isLoadingCharts}
                           accentColor={accentColor}

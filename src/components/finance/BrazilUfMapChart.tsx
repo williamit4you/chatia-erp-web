@@ -11,7 +11,8 @@ interface BrazilUfMapChartProps {
     data: Geographic[];
     isLoading: boolean;
     color?: string;
-    displayMode?: "default" | "detail";
+    displayMode?: "default" | "detail" | "compact";
+    variant?: "full" | "map_only";
     onDrilldownSelect?: (selection: ChartSelection) => void;
 }
 
@@ -38,6 +39,8 @@ type GeoGeometry =
 
 const DEFAULT_MAP_WIDTH = 360;
 const DEFAULT_MAP_HEIGHT = 320;
+const COMPACT_MAP_WIDTH = 320;
+const COMPACT_MAP_HEIGHT = 260;
 const DETAIL_MAP_WIDTH = 500;
 const DETAIL_MAP_HEIGHT = 380;
 
@@ -156,14 +159,22 @@ const normalizeGeoDataForD3 = (geoData: GeoFeatureCollection): GeoFeatureCollect
     })),
 });
 
-export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a", displayMode = "default", onDrilldownSelect }: BrazilUfMapChartProps) {
+export default function BrazilUfMapChart({
+    data,
+    isLoading,
+    color = "#16a34a",
+    displayMode = "default",
+    variant = "full",
+    onDrilldownSelect,
+}: BrazilUfMapChartProps) {
     const drilldownFromContext = useDrilldownSelect();
     const drillHandler = onDrilldownSelect ?? drilldownFromContext ?? null;
     const [hoveredUf, setHoveredUf] = useState<string | null>(null);
     const geoData = useMemo(() => normalizeGeoDataForD3(brUfsGeoJson as GeoFeatureCollection), []);
     const isDetailMode = displayMode === "detail";
-    const mapWidth = isDetailMode ? DETAIL_MAP_WIDTH : DEFAULT_MAP_WIDTH;
-    const mapHeight = isDetailMode ? DETAIL_MAP_HEIGHT : DEFAULT_MAP_HEIGHT;
+    const isCompactMode = displayMode === "compact";
+    const mapWidth = isDetailMode ? DETAIL_MAP_WIDTH : isCompactMode ? COMPACT_MAP_WIDTH : DEFAULT_MAP_WIDTH;
+    const mapHeight = isDetailMode ? DETAIL_MAP_HEIGHT : isCompactMode ? COMPACT_MAP_HEIGHT : DEFAULT_MAP_HEIGHT;
 
     const valuesByUf = useMemo(() => {
         return new Map(data.map((item) => [normalizeUf(item.local), item.valor]));
@@ -200,7 +211,7 @@ export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a", d
                 viewBoxWidth={mapWidth}
                 viewBoxHeight={mapHeight}
                 accentColor={color}
-                displayMode={displayMode}
+                displayMode={displayMode === "compact" ? "default" : displayMode}
                 label="Carregando mapa"
             />
         );
@@ -222,8 +233,81 @@ export default function BrazilUfMapChart({ data, isLoading, color = "#16a34a", d
 
     const hoveredValue = hoveredUf ? valuesByUf.get(hoveredUf) || 0 : null;
 
+    if (variant === "map_only") {
+        return (
+            <div className={`relative grid w-full ${isDetailMode ? "h-[380px]" : isCompactMode ? "h-[260px]" : "h-[320px]"}`}>
+                <div className="relative flex h-full min-w-0 items-center justify-center overflow-hidden rounded-2xl border border-neutral-200 bg-white">
+                    <svg
+                        viewBox={`0 0 ${mapWidth} ${mapHeight}`}
+                        className="block h-auto w-auto max-h-full max-w-full"
+                        preserveAspectRatio="xMidYMid meet"
+                        role="img"
+                        aria-label="Mapa do Brasil por UF"
+                    >
+                        <g>
+                            {mapPaths.map((state) => {
+                                const value = valuesByUf.get(state.uf) || 0;
+                                const fill = colorWithIntensity(color, intensityFor(state.uf));
+                                const isHovered = hoveredUf === state.uf;
+
+                                return (
+                                    <path
+                                        key={state.uf}
+                                        d={state.d}
+                                        fill={isHovered ? color : fill}
+                                        stroke={isHovered ? "#ffffff" : "#d6d3d1"}
+                                        strokeWidth={isHovered ? 1.4 : 0.7}
+                                        className={drillHandler ? "transition-colors duration-150 cursor-pointer" : "transition-colors duration-150"}
+                                        onMouseEnter={() => setHoveredUf(state.uf)}
+                                        onMouseLeave={() => setHoveredUf(null)}
+                                        onClick={() => {
+                                            if (!drillHandler) return;
+                                            if (!state.uf) return;
+                                            drillHandler({ kind: "geo_uf", uf: state.uf, label: state.uf });
+                                        }}
+                                    >
+                                        <title>{`${state.uf}: ${formatCurrency(value)}`}</title>
+                                    </path>
+                                );
+                            })}
+                        </g>
+                    </svg>
+
+                    {hoveredUf && (
+                        <div
+                            className={`pointer-events-none absolute left-3 top-3 rounded-lg border border-neutral-200 bg-white/95 font-bold text-neutral-700 shadow-sm ${
+                                isDetailMode ? "px-2.5 py-1.5 text-[11px]" : "px-3 py-2 text-xs"
+                            }`}
+                        >
+                            <div className="text-neutral-900">{hoveredUf}</div>
+                            <div>{formatCurrency(hoveredValue || 0)}</div>
+                        </div>
+                    )}
+
+                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-bold text-neutral-500 shadow-sm ring-1 ring-neutral-200/80">
+                        <span>Menor</span>
+                        <span
+                            className="mx-3 h-2 flex-1 rounded-full"
+                            style={{ background: `linear-gradient(to right, ${colorWithIntensity(color, 0.08)}, ${color})` }}
+                            aria-hidden="true"
+                        />
+                        <span>Maior</span>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className={`grid w-full items-stretch ${isDetailMode ? "h-[380px] grid-cols-[minmax(0,1fr)_176px_148px] gap-4" : "h-[320px] grid-cols-[minmax(0,1fr)_168px_96px] gap-4"}`}>
+        <div
+            className={`grid w-full items-stretch ${
+                isDetailMode
+                    ? "h-[380px] grid-cols-[minmax(0,1fr)_176px_148px] gap-4"
+                    : isCompactMode
+                      ? "h-[260px] grid-cols-[minmax(0,1fr)_140px_84px] gap-3"
+                      : "h-[320px] grid-cols-[minmax(0,1fr)_168px_96px] gap-4"
+            }`}
+        >
             <div className="relative flex h-full min-w-0 items-center justify-center overflow-hidden">
                 <svg
                     viewBox={`0 0 ${mapWidth} ${mapHeight}`}

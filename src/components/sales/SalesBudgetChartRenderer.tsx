@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import DistributionBarChart from "@/components/finance/DistributionBarChart";
 import DistributionPieChart from "@/components/finance/DistributionPieChart";
 import ChartLoadingState from "@/components/finance/ChartLoadingState";
+import BrazilUfMapChart from "@/components/finance/BrazilUfMapChart";
 import ParetoChart from "./charts/ParetoChart";
 import RankingTable from "./charts/RankingTable";
 import TableView from "./charts/TableView";
@@ -60,6 +62,81 @@ const formatValueByVisualization = (
 
   return formatNumber(value, { compact: true, maximumFractionDigits: 0 });
 };
+
+function StateHeatmapToggleView({
+  chart,
+  compact,
+  accentColor,
+}: {
+  chart: SalesBudgetChartDataset;
+  compact: boolean;
+  accentColor: string;
+}) {
+  const storageKey = `sales_budget_heatmap_view_${chart.chartId}`;
+  const [view, setView] = useState<"cards" | "map">("cards");
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved === "map" || saved === "cards") setView(saved);
+    } catch {
+      // ignore
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const updateView = (next: "cards" | "map") => {
+    setView(next);
+    try {
+      localStorage.setItem(storageKey, next);
+    } catch {
+      // ignore
+    }
+  };
+
+  const mapData = chart.data.map((item) => ({
+    local: item.label,
+    valor: Number(item.value ?? item.amount ?? item.count ?? 0),
+  }));
+
+  const activeClass = "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200/80";
+  const inactiveClass = "text-neutral-500 hover:text-neutral-800";
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-end">
+        <div className="inline-flex rounded-full border border-neutral-200 bg-neutral-50 p-1 text-[11px] font-black uppercase tracking-[0.18em] text-neutral-500">
+          <button
+            type="button"
+            onClick={() => updateView("cards")}
+            className={`rounded-full px-3 py-1.5 transition ${view === "cards" ? activeClass : inactiveClass}`}
+          >
+            Cards
+          </button>
+          <button
+            type="button"
+            onClick={() => updateView("map")}
+            className={`rounded-full px-3 py-1.5 transition ${view === "map" ? activeClass : inactiveClass}`}
+          >
+            Mapa
+          </button>
+        </div>
+      </div>
+
+      {view === "cards" ? (
+        <HeatmapView chart={chart} compact={compact} accentColor={accentColor} />
+      ) : (
+        <BrazilUfMapChart
+          data={mapData}
+          isLoading={false}
+          color={accentColor}
+          displayMode={compact ? "compact" : "detail"}
+          variant={compact ? "map_only" : "full"}
+        />
+      )}
+    </div>
+  );
+}
 
 function HeatmapView({
   chart,
@@ -316,7 +393,23 @@ export default function SalesBudgetChartRenderer({
   }
 
   if (chart.visualization === "heatmap") {
-    return <HeatmapView chart={chart} compact={compact} accentColor={resolvedAccentColor} />;
+    if (chart.chartId === "geo_state_heatmap") {
+      return (
+        <StateHeatmapToggleView
+          chart={chart}
+          compact={compact}
+          accentColor={resolvedAccentColor}
+        />
+      );
+    }
+
+    return (
+      <HeatmapView
+        chart={chart}
+        compact={compact}
+        accentColor={resolvedAccentColor}
+      />
+    );
   }
 
   if (chart.visualization === "pareto") {

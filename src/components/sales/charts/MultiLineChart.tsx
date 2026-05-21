@@ -111,11 +111,12 @@ export default function MultiLineChart({ chart, compact = false, accentColor }: 
             labelStyle={{ fontWeight: 700, color: "#262626" }}
           />
           <Legend
+            layout="vertical"
+            align="right"
             verticalAlign="top"
-            align="center"
             iconType="circle"
             iconSize={8}
-            wrapperStyle={{ paddingBottom: 12 }}
+            wrapperStyle={{ paddingTop: 8 }}
             formatter={(value: string) => (
               <span className="text-xs font-semibold text-neutral-600">
                 {SERIES_LABELS[value] ?? value}

@@ -120,6 +120,9 @@ export default function ComboChart({ chart, compact = false, accentColor }: Comb
             labelStyle={{ fontWeight: 700, color: "#262626" }}
           />
           <Legend
+            layout="vertical"
+            align="right"
+            verticalAlign="top"
             iconType="circle"
             iconSize={8}
             wrapperStyle={{ paddingTop: 8 }}

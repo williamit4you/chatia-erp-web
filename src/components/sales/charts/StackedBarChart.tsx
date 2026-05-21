@@ -112,6 +112,9 @@ export default function StackedBarChart({ chart, compact = false, accentColor }:
           />
           {segments.length > 1 && (
             <Legend
+              layout="vertical"
+              align="right"
+              verticalAlign="top"
               iconType="circle"
               iconSize={8}
               wrapperStyle={{ paddingTop: 8 }}

@@ -326,6 +326,8 @@ O que você gostaria de entender especificamente sobre estes números?`
     
     const messageToSend = customInput || input;
     if (!messageToSend.trim() || isTyping || !chart) return;
+    const helpPrompt = getSalesBudgetAutoHelpPrompt({ chartId, title });
+    const shouldCacheHelp = Boolean(customInput) && Boolean(helpCacheKey) && messageToSend === helpPrompt;
 
     setHasAsked(true);
     const userMsg: ChatMessage = { id: Date.now().toString(), role: "user", content: messageToSend };
@@ -362,6 +364,14 @@ O que você gostaria de entender especificamente sobre estes números?`
             metricsValor: response.metricsValorTotal || undefined,
         };
         setMessages(prev => [...prev, aiMsg]);
+
+        if (shouldCacheHelp && typeof window !== "undefined" && helpCacheKey) {
+            try {
+                window.localStorage.setItem(helpCacheKey, aiMsg.content);
+            } catch {
+                // ignore
+            }
+        }
         
         if (!currentSessionId) {
             setCurrentSessionId(response.sessionId);
@@ -395,6 +405,30 @@ O que você gostaria de entender especificamente sobre estes números?`
     }
   };
 
+  const helpCacheKey = useMemo(() => {
+    if (!chartId) return null;
+    return `sales_budget_chart_help_${chartId}_${startDate}_${endDate}`;
+  }, [chartId, endDate, startDate]);
+
+  const runAutoHelp = async () => {
+    if (!helpCacheKey) return;
+
+    if (typeof window !== "undefined") {
+      const cached = window.localStorage.getItem(helpCacheKey);
+      if (cached) {
+        setMessages((prev) => [
+          ...prev,
+          { id: `help_${Date.now()}`, role: "assistant", content: cached },
+        ]);
+        setHasAsked(true);
+        return;
+      }
+    }
+
+    const prompt = getSalesBudgetAutoHelpPrompt({ chartId, title });
+    await handleSend(undefined, prompt);
+  };
+
   useEffect(() => {
     if (!shouldAutoHelp) return;
     if (autoHelpTriggeredRef.current) return;
@@ -402,7 +436,7 @@ O que você gostaria de entender especificamente sobre estes números?`
     if (isTyping) return;
 
     autoHelpTriggeredRef.current = true;
-    void handleSend(undefined, getSalesBudgetAutoHelpPrompt({ chartId, title }));
+    void runAutoHelp();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chart, isTyping, shouldAutoHelp]);
 

@@ -46,7 +46,7 @@ export default function CashProjectionChart({ data, isLoading }: CashProjectionC
                             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                             formatter={(value: any) => formatCurrency(Number(value), { compact: false, maximumFractionDigits: 2 })}
                         />
-                        <Legend verticalAlign="top" align="right" />
+                        <Legend verticalAlign="top" align="right" layout="vertical" />
                         <Line
                             type="monotone"
                             dataKey="pagamentos"

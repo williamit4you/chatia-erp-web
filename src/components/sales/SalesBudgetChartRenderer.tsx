@@ -72,6 +72,7 @@ const UF_MAP_TOGGLE_CHART_IDS = new Set([
   "product_by_geo",
   "source_by_geo",
   "geo_top_product_by_uf",
+  "funnel_conversion_by_geo",
   "geo_origin_by_region",
   "geo_highest_avg_discount_regions",
   "geo_highest_markup_regions",

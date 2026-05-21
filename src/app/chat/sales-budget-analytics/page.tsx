@@ -4,6 +4,7 @@ import { startTransition, useDeferredValue, useEffect, useMemo, useState } from 
 import { useSession } from "next-auth/react";
 import SalesBudgetChartCard from "@/components/sales/SalesBudgetChartCard";
 import SalesBudgetChartDetailsModal from "@/components/sales/SalesBudgetChartDetailsModal";
+import SalesBudgetFunnelConversionWidget from "@/components/sales/SalesBudgetFunnelConversionWidget";
 import SalesBudgetGeoByUfWidget from "@/components/sales/SalesBudgetGeoByUfWidget";
 import { applySalesBudgetCatalogColors, salesBudgetCatalog } from "@/lib/sales-budget-catalog";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/formatters/financeFormat";
@@ -305,36 +306,75 @@ export default function SalesBudgetAnalyticsPage() {
 
   type RenderItem =
     | { kind: "single"; chart: VisibleChart }
-    | { kind: "geo_by_uf"; charts: VisibleChart[]; defaultTabId?: string | null };
+    | { kind: "geo_by_uf"; charts: VisibleChart[]; defaultTabId?: string | null }
+    | {
+        kind: "funnel_conversion_segments";
+        charts: VisibleChart[];
+        defaultTabId?: string | null;
+      };
 
   const renderHighlights = useMemo<RenderItem[]>(() => {
-    if (filteredHighlights.length === 0) return [];
+    if (activeCategoryCharts.length === 0) return [];
 
     const groupIdByChartId = new Map<string, string | null>();
-    for (const item of filteredHighlights) {
+    for (const item of activeCategoryCharts) {
       const def = getSalesBudgetChartDefinition(item.id);
       groupIdByChartId.set(item.id, def?.groupId ?? null);
     }
 
-    const geoGroupCharts = filteredHighlights.filter(
+    const geoGroupChartsAll = activeCategoryCharts.filter(
       (item) => groupIdByChartId.get(item.id) === "geo_by_uf"
     );
 
-    const geoSet = new Set(geoGroupCharts.map((c) => c.id));
-    const preferGeoGroup =
-      geoGroupCharts.length > 0 && (geoGroupCharts.length >= 2 || Boolean(deferredSearch));
+    const conversionGroupChartsAll = activeCategoryCharts.filter(
+      (item) => groupIdByChartId.get(item.id) === "funnel_conversion_segments"
+    );
+
+    const matchedIds = new Set(filteredHighlights.map((c) => c.id));
+
+    const showGeoGroup =
+      geoGroupChartsAll.length >= 2 &&
+      (deferredSearch ? geoGroupChartsAll.some((c) => matchedIds.has(c.id)) : true);
+
+    const showConversionGroup =
+      conversionGroupChartsAll.length >= 2 &&
+      (deferredSearch
+        ? conversionGroupChartsAll.some((c) => matchedIds.has(c.id))
+        : true);
+
+    const geoSet = new Set(geoGroupChartsAll.map((c) => c.id));
+    const conversionSet = new Set(conversionGroupChartsAll.map((c) => c.id));
 
     const items: RenderItem[] = [];
 
+    const pushGeoGroup = () => {
+      const defaultTabId = deferredSearch
+        ? geoGroupChartsAll.find((c) => matchedIds.has(c.id))?.id ?? null
+        : null;
+      items.push({ kind: "geo_by_uf", charts: geoGroupChartsAll, defaultTabId });
+    };
+
+    const pushConversionGroup = () => {
+      const defaultTabId = deferredSearch
+        ? conversionGroupChartsAll.find((c) => matchedIds.has(c.id))?.id ?? null
+        : null;
+      items.push({
+        kind: "funnel_conversion_segments",
+        charts: conversionGroupChartsAll,
+        defaultTabId,
+      });
+    };
+
+    // Render order: keep list order, but collapse group members into one widget.
     for (const chart of filteredHighlights) {
-      if (preferGeoGroup && geoSet.has(chart.id)) {
-        if (!items.some((i) => i.kind === "geo_by_uf")) {
-          items.push({
-            kind: "geo_by_uf",
-            charts: geoGroupCharts,
-            defaultTabId: deferredSearch ? chart.id : null,
-          });
-        }
+      if (showGeoGroup && geoSet.has(chart.id)) {
+        if (!items.some((i) => i.kind === "geo_by_uf")) pushGeoGroup();
+        continue;
+      }
+
+      if (showConversionGroup && conversionSet.has(chart.id)) {
+        if (!items.some((i) => i.kind === "funnel_conversion_segments"))
+          pushConversionGroup();
         continue;
       }
 
@@ -342,7 +382,7 @@ export default function SalesBudgetAnalyticsPage() {
     }
 
     return items;
-  }, [deferredSearch, filteredHighlights]);
+  }, [activeCategoryCharts, deferredSearch, filteredHighlights]);
 
   const kpiMap = useMemo(() => {
     return kpis.reduce<Record<string, SalesBudgetKpiItem>>((acc, item) => {
@@ -590,6 +630,28 @@ export default function SalesBudgetAnalyticsPage() {
                     return (
                       <div key={`geo_by_uf_${index}`}>
                         <SalesBudgetGeoByUfWidget
+                          charts={byId as any}
+                          isLoading={isLoadingCharts}
+                          accentColor={accentColor}
+                          defaultTabId={item.defaultTabId ?? null}
+                        />
+                      </div>
+                    );
+                  }
+
+                  if (item.kind === "funnel_conversion_segments") {
+                    const byId: Record<string, SalesBudgetChartDataset | null> = {};
+                    for (const chart of item.charts) {
+                      byId[chart.id] = chartsById[chart.id] ?? null;
+                    }
+
+                    const accentColor =
+                      item.charts.find((c) => c.categoryId === "funnel")?.accentColor ??
+                      item.charts[0]?.accentColor;
+
+                    return (
+                      <div key={`funnel_conversion_${index}`}>
+                        <SalesBudgetFunnelConversionWidget
                           charts={byId as any}
                           isLoading={isLoadingCharts}
                           accentColor={accentColor}

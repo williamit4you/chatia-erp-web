@@ -4,8 +4,10 @@ import { startTransition, useDeferredValue, useEffect, useMemo, useState } from 
 import { useSession } from "next-auth/react";
 import SalesBudgetChartCard from "@/components/sales/SalesBudgetChartCard";
 import SalesBudgetChartDetailsModal from "@/components/sales/SalesBudgetChartDetailsModal";
+import SalesBudgetGeoByUfWidget from "@/components/sales/SalesBudgetGeoByUfWidget";
 import { applySalesBudgetCatalogColors, salesBudgetCatalog } from "@/lib/sales-budget-catalog";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/formatters/financeFormat";
+import { getSalesBudgetChartDefinition } from "@/lib/salesBudgetChartDefinitions";
 import salesBudgetAnalyticsService, {
   type SalesBudgetCategory,
   type SalesBudgetChartAvailability,
@@ -301,6 +303,47 @@ export default function SalesBudgetAnalyticsPage() {
     });
   }, [activeCategoryCharts, deferredSearch]);
 
+  type RenderItem =
+    | { kind: "single"; chart: VisibleChart }
+    | { kind: "geo_by_uf"; charts: VisibleChart[]; defaultTabId?: string | null };
+
+  const renderHighlights = useMemo<RenderItem[]>(() => {
+    if (filteredHighlights.length === 0) return [];
+
+    const groupIdByChartId = new Map<string, string | null>();
+    for (const item of filteredHighlights) {
+      const def = getSalesBudgetChartDefinition(item.id);
+      groupIdByChartId.set(item.id, def?.groupId ?? null);
+    }
+
+    const geoGroupCharts = filteredHighlights.filter(
+      (item) => groupIdByChartId.get(item.id) === "geo_by_uf"
+    );
+
+    const geoSet = new Set(geoGroupCharts.map((c) => c.id));
+    const preferGeoGroup =
+      geoGroupCharts.length > 0 && (geoGroupCharts.length >= 2 || Boolean(deferredSearch));
+
+    const items: RenderItem[] = [];
+
+    for (const chart of filteredHighlights) {
+      if (preferGeoGroup && geoSet.has(chart.id)) {
+        if (!items.some((i) => i.kind === "geo_by_uf")) {
+          items.push({
+            kind: "geo_by_uf",
+            charts: geoGroupCharts,
+            defaultTabId: deferredSearch ? chart.id : null,
+          });
+        }
+        continue;
+      }
+
+      items.push({ kind: "single", chart });
+    }
+
+    return items;
+  }, [deferredSearch, filteredHighlights]);
+
   const kpiMap = useMemo(() => {
     return kpis.reduce<Record<string, SalesBudgetKpiItem>>((acc, item) => {
       acc[item.kpiId] = item;
@@ -526,24 +569,49 @@ export default function SalesBudgetAnalyticsPage() {
 
           <div className="mt-6">
             <div className="grid gap-4 xl:grid-cols-2">
-              {filteredHighlights.length === 0 ? (
+              {renderHighlights.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500 xl:col-span-2">
                   {upcomingCategoryCharts.length > 0 && !deferredSearch
                     ? "Esta categoria ainda não possui gráficos disponíveis."
                     : "Nenhum gráfico desta categoria corresponde ao filtro digitado."}
                 </div>
               ) : (
-                filteredHighlights.map((chart) => (
-                  <div key={chart.id}>
-                    <SalesBudgetChartCard
-                      chart={chartsById[chart.id] ?? null}
-                      chartId={chart.id}
-                      fallbackTitle={chart.title}
-                      isLoading={isLoadingCharts && !chartsById[chart.id]}
-                      accentColor={chart.accentColor}
-                    />
-                  </div>
-                ))
+                renderHighlights.map((item, index) => {
+                  if (item.kind === "geo_by_uf") {
+                    const byId: Record<string, SalesBudgetChartDataset | null> = {};
+                    for (const chart of item.charts) {
+                      byId[chart.id] = chartsById[chart.id] ?? null;
+                    }
+
+                    const accentColor =
+                      item.charts.find((c) => c.categoryId === "geo")?.accentColor ??
+                      item.charts[0]?.accentColor;
+
+                    return (
+                      <div key={`geo_by_uf_${index}`}>
+                        <SalesBudgetGeoByUfWidget
+                          charts={byId as any}
+                          isLoading={isLoadingCharts}
+                          accentColor={accentColor}
+                          defaultTabId={item.defaultTabId ?? null}
+                        />
+                      </div>
+                    );
+                  }
+
+                  const chart = item.chart;
+                  return (
+                    <div key={chart.id}>
+                      <SalesBudgetChartCard
+                        chart={chartsById[chart.id] ?? null}
+                        chartId={chart.id}
+                        fallbackTitle={chart.title}
+                        isLoading={isLoadingCharts && !chartsById[chart.id]}
+                        accentColor={chart.accentColor}
+                      />
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>

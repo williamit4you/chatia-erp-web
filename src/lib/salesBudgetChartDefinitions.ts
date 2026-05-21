@@ -436,6 +436,827 @@ const definitions: Record<string, SalesBudgetChartDefinition> = {
       ],
     },
   },
+
+  overview_total_amount_period: {
+    chartId: "overview_total_amount_period",
+    groupId: "overview_period_totals",
+    categoryId: "overview",
+    title: "Valor total de orcamentos por periodo",
+    question: "Como o valor total orcado evolui ao longo do periodo filtrado?",
+    metric: "amount",
+    dimension: "period",
+    grain: "budget",
+    primaryVisualization: "line",
+    secondaryVisualizations: ["bar", "table"],
+    help: {
+      objective: "Mostrar a evolucao do valor total de orcamentos ao longo do periodo filtrado.",
+      calculation: [
+        "Agrupa orcamentos por faixa de tempo (dia/semana/mes) conforme o dataset.",
+        "Soma o valor total de orcamentos em cada faixa.",
+      ],
+      howToRead: [
+        "Use para identificar tendencia (alta/queda) e sazonalidade.",
+        "Picos indicam dias/semanas com concentracao de valor orcado.",
+        "Compare com 'Quantidade por periodo' para separar volume vs valor.",
+      ],
+      cautions: [
+        "Mudancas de campanha/feriados podem causar picos pontuais; compare periodos equivalentes.",
+        "Valores muito altos podem vir de poucos orcamentos grandes (outliers).",
+      ],
+    },
+  },
+
+  overview_total_count_period: {
+    chartId: "overview_total_count_period",
+    groupId: "overview_period_totals",
+    categoryId: "overview",
+    title: "Quantidade de orcamentos por periodo",
+    question: "Como o volume de orcamentos evolui ao longo do periodo filtrado?",
+    metric: "count",
+    dimension: "period",
+    grain: "budget",
+    primaryVisualization: "line",
+    secondaryVisualizations: ["bar", "table"],
+    help: {
+      objective: "Mostrar a evolucao da quantidade de orcamentos ao longo do periodo filtrado.",
+      calculation: [
+        "Agrupa orcamentos por faixa de tempo (dia/semana/mes) conforme o dataset.",
+        "Conta orcamentos em cada faixa de tempo.",
+      ],
+      howToRead: [
+        "Use para ver volume e identificar semanas/dias mais fortes.",
+        "Compare com valor total para entender se o volume esta trazendo valor.",
+        "Quedas persistentes sinalizam perda de demanda ou problema no canal de entrada.",
+      ],
+      cautions: [
+        "Mudancas no horario de captura/integrações podem alterar o volume reportado.",
+        "Considere o tamanho do periodo: janelas curtas variam mais.",
+      ],
+    },
+  },
+
+  overview_avg_ticket: {
+    chartId: "overview_avg_ticket",
+    groupId: "overview_period_totals",
+    categoryId: "overview",
+    title: "Ticket medio dos orcamentos",
+    question: "O valor medio por orcamento esta subindo ou caindo no periodo?",
+    metric: "avg_ticket",
+    dimension: "period",
+    grain: "derived",
+    primaryVisualization: "kpi",
+    secondaryVisualizations: ["line", "table"],
+    help: {
+      objective: "Mostrar o ticket medio (valor total / quantidade) dos orcamentos no periodo filtrado.",
+      calculation: [
+        "Calcula o valor total de orcamentos no periodo.",
+        "Calcula a quantidade de orcamentos no periodo.",
+        "Divide valor total por quantidade para obter o ticket medio.",
+      ],
+      howToRead: [
+        "Use para entender se os orcamentos estao ficando maiores ou menores.",
+        "Combine com conversao para ver se ticket mais alto afeta fechamento.",
+        "Se o ticket subir e o volume cair, pode haver mudanca de mix.",
+      ],
+      cautions: [
+        "Tickets podem ser distorcidos por poucos orcamentos grandes (outliers).",
+        "Compare periodos equivalentes para conclusoes de tendencia.",
+      ],
+    },
+  },
+
+  overview_amount_by_company: {
+    chartId: "overview_amount_by_company",
+    categoryId: "overview",
+    title: "Valor total por empresa/filial",
+    question: "Qual empresa/filial concentra mais valor orcado no periodo?",
+    metric: "amount",
+    dimension: "company",
+    grain: "budget",
+    primaryVisualization: "ranking",
+    secondaryVisualizations: ["bar", "table"],
+    help: {
+      objective: "Comparar o valor total de orcamentos por empresa/filial no periodo filtrado.",
+      calculation: [
+        "Agrupa orcamentos por empresa/filial.",
+        "Soma o valor total por empresa/filial.",
+      ],
+      howToRead: [
+        "Use para identificar concentracao de receita potencial por filial.",
+        "Diferenças grandes podem indicar distribuicao desigual de leads/time.",
+        "Cruze com conversao para separar volume de qualidade.",
+      ],
+      cautions: [
+        "Empresas com pouca amostra podem variar mais; valide quantidade.",
+        "Mudancas de cadastro podem mover orcamentos entre filiais.",
+      ],
+    },
+  },
+
+  overview_count_by_company: {
+    chartId: "overview_count_by_company",
+    categoryId: "overview",
+    title: "Quantidade de orcamentos por empresa/filial",
+    question: "Qual empresa/filial gera mais volume de orcamentos no periodo?",
+    metric: "count",
+    dimension: "company",
+    grain: "budget",
+    primaryVisualization: "ranking",
+    secondaryVisualizations: ["bar", "table"],
+    help: {
+      objective: "Comparar o volume (quantidade) de orcamentos por empresa/filial no periodo filtrado.",
+      calculation: [
+        "Agrupa orcamentos por empresa/filial.",
+        "Conta orcamentos por empresa/filial.",
+      ],
+      howToRead: [
+        "Use para entender distribuicao de demanda por filial.",
+        "Compare com valor total por filial para ver onde ha volume vs valor.",
+      ],
+      cautions: [
+        "Volatilidade aumenta em periodos curtos; compare janelas equivalentes.",
+        "Considere orcamentos duplicados/retrabalhos dependendo do processo.",
+      ],
+    },
+  },
+
+  overview_monthly_evolution: {
+    chartId: "overview_monthly_evolution",
+    categoryId: "overview",
+    title: "Evolucao mensal de orcamentos",
+    question: "Como o volume de orcamentos se comporta mes a mes?",
+    metric: "count",
+    dimension: "period",
+    grain: "budget",
+    primaryVisualization: "line",
+    secondaryVisualizations: ["bar", "table"],
+    help: {
+      objective: "Mostrar a evolucao mensal da quantidade de orcamentos no periodo filtrado.",
+      calculation: [
+        "Agrupa orcamentos por mes.",
+        "Conta orcamentos em cada mes.",
+      ],
+      howToRead: [
+        "Use para enxergar sazonalidade mensal e tendencia de medio prazo.",
+        "Picos sugerem campanhas/periodos fortes; vales sugerem baixa demanda.",
+      ],
+      cautions: [
+        "Meses incompletos (inicio/fim do filtro) podem subestimar valores.",
+        "Compare sempre com o mesmo mes do ano anterior quando possivel.",
+      ],
+    },
+  },
+
+  overview_weekly_evolution: {
+    chartId: "overview_weekly_evolution",
+    categoryId: "overview",
+    title: "Evolucao semanal de orcamentos",
+    question: "Como o volume de orcamentos varia semana a semana?",
+    metric: "count",
+    dimension: "period",
+    grain: "budget",
+    primaryVisualization: "line",
+    secondaryVisualizations: ["bar", "table"],
+    help: {
+      objective: "Mostrar a evolucao semanal da quantidade de orcamentos no periodo filtrado.",
+      calculation: [
+        "Agrupa orcamentos por semana.",
+        "Conta orcamentos em cada semana.",
+      ],
+      howToRead: [
+        "Use para acompanhar variacao de curto/medio prazo e efeito de campanhas.",
+        "Quedas consecutivas podem indicar problema de canal ou time comercial.",
+      ],
+      cautions: [
+        "Semanas com feriados tendem a ter volume menor; compare com semanas equivalentes.",
+        "Periodos curtos podem aumentar ruido; use janelas maiores quando necessario.",
+      ],
+    },
+  },
+
+  overview_daily_evolution: {
+    chartId: "overview_daily_evolution",
+    categoryId: "overview",
+    title: "Evolucao diaria de orcamentos",
+    question: "Como o volume de orcamentos varia dia a dia?",
+    metric: "count",
+    dimension: "period",
+    grain: "budget",
+    primaryVisualization: "line",
+    secondaryVisualizations: ["bar", "table"],
+    help: {
+      objective: "Mostrar a evolucao diaria da quantidade de orcamentos no periodo filtrado.",
+      calculation: [
+        "Agrupa orcamentos por dia.",
+        "Conta orcamentos em cada dia.",
+      ],
+      howToRead: [
+        "Use para detectar picos e quedas diarias (acoes pontuais, campanhas, instabilidades).",
+        "A variacao diaria costuma ser alta; observe tendencias com medias/semana.",
+      ],
+      cautions: [
+        "Instabilidades de sistema/integracao podem reduzir captacao em dias especificos.",
+        "Dias incompletos (hoje) podem subestimar volume.",
+      ],
+    },
+  },
+
+  overview_current_vs_previous_month: {
+    chartId: "overview_current_vs_previous_month",
+    groupId: "overview_comparisons",
+    categoryId: "overview",
+    title: "Comparativo mes atual x mes anterior",
+    question: "Como o desempenho do mes atual compara com o mes anterior?",
+    metric: "amount",
+    dimension: "period",
+    grain: "derived",
+    primaryVisualization: "kpi",
+    secondaryVisualizations: ["table"],
+    help: {
+      objective: "Comparar os principais indicadores do mes atual contra o mes anterior.",
+      calculation: [
+        "Calcula indicadores do mes atual (valor, quantidade, ticket, conversao).",
+        "Calcula os mesmos indicadores para o mes anterior.",
+        "Exibe variacao (delta) entre os dois periodos.",
+      ],
+      howToRead: [
+        "Use para acompanhar ganho/perda recente de performance.",
+        "Variacoes grandes pedem investigacao por canal, vendedor, UF ou produto.",
+      ],
+      cautions: [
+        "Se o mes atual estiver incompleto, a comparacao pode ser enviesada.",
+        "Compare janelas equivalentes (ex.: ate o dia X) quando necessario.",
+      ],
+    },
+  },
+
+  overview_current_year_vs_previous_year: {
+    chartId: "overview_current_year_vs_previous_year",
+    groupId: "overview_comparisons",
+    categoryId: "overview",
+    title: "Comparativo ano atual x ano anterior",
+    question: "Como o desempenho do ano atual compara com o ano anterior?",
+    metric: "amount",
+    dimension: "period",
+    grain: "derived",
+    primaryVisualization: "kpi",
+    secondaryVisualizations: ["table"],
+    help: {
+      objective: "Comparar os principais indicadores do ano atual contra o ano anterior.",
+      calculation: [
+        "Calcula indicadores do ano atual (valor, quantidade, ticket, conversao).",
+        "Calcula os mesmos indicadores para o ano anterior.",
+        "Exibe variacao (delta) entre os dois anos.",
+      ],
+      howToRead: [
+        "Use para avaliar crescimento/queda anual e efeito de estrategia.",
+        "Quebre por UF/produto/origem para explicar diferencas.",
+      ],
+      cautions: [
+        "Se o ano atual estiver incompleto, compare YTD (ano ate a data).",
+        "Mudancas de mix (produto/canal) podem alterar ticket e conversao.",
+      ],
+    },
+  },
+
+  overview_top_days_by_volume: {
+    chartId: "overview_top_days_by_volume",
+    categoryId: "overview",
+    title: "Top dias com maior volume de orcamentos",
+    question: "Quais dias tiveram maior volume de orcamentos no periodo?",
+    metric: "count",
+    dimension: "period",
+    grain: "budget",
+    primaryVisualization: "ranking",
+    secondaryVisualizations: ["bar", "table"],
+    help: {
+      objective: "Listar os dias com maior quantidade de orcamentos no periodo filtrado.",
+      calculation: [
+        "Agrupa orcamentos por dia.",
+        "Conta orcamentos por dia e ordena do maior para o menor.",
+      ],
+      howToRead: [
+        "Use para identificar dias fora da curva (campanhas, eventos, instabilidade).",
+        "Compare com origem/canal para explicar os picos.",
+      ],
+      cautions: [
+        "Dias com campanhas pontuais podem dominar o ranking.",
+        "Dias incompletos podem subestimar volume.",
+      ],
+    },
+  },
+
+  overview_top_months_by_amount: {
+    chartId: "overview_top_months_by_amount",
+    categoryId: "overview",
+    title: "Top meses com maior valor orcado",
+    question: "Quais meses concentraram maior valor total orcado no periodo?",
+    metric: "amount",
+    dimension: "period",
+    grain: "budget",
+    primaryVisualization: "ranking",
+    secondaryVisualizations: ["bar", "table"],
+    help: {
+      objective: "Listar os meses com maior valor total orcado no periodo filtrado.",
+      calculation: [
+        "Agrupa orcamentos por mes.",
+        "Soma o valor total por mes e ordena do maior para o menor.",
+      ],
+      howToRead: [
+        "Use para identificar meses fortes e sazonalidade por valor.",
+        "Combine com quantidade para ver se o valor vem de volume ou ticket.",
+      ],
+      cautions: [
+        "Meses incompletos (inicio/fim do filtro) podem subestimar valores.",
+        "Outliers (orcamentos grandes) podem inflar um mes especifico.",
+      ],
+    },
+  },
+
+  overview_month_seasonality: {
+    chartId: "overview_month_seasonality",
+    categoryId: "overview",
+    title: "Sazonalidade por mes",
+    question: "Existe padrao de sazonalidade por mes no volume de orcamentos?",
+    metric: "count",
+    dimension: "period",
+    grain: "budget",
+    primaryVisualization: "bar",
+    secondaryVisualizations: ["table"],
+    help: {
+      objective: "Mostrar a distribuicao de orcamentos por mes para identificar sazonalidade.",
+      calculation: [
+        "Agrupa orcamentos por mes do ano.",
+        "Conta orcamentos por mes (agregado).",
+      ],
+      howToRead: [
+        "Use para planejar campanhas e capacidade (meses historicamente fortes/fracos).",
+        "Cruze com valor e conversao para entender qualidade do volume.",
+      ],
+      cautions: [
+        "Sazonalidade depende do historico; periodos curtos podem enganar.",
+        "Mudancas de estrategia/canal mudam o padrao ao longo do tempo.",
+      ],
+    },
+  },
+
+  overview_weekday_heatmap: {
+    chartId: "overview_weekday_heatmap",
+    categoryId: "overview",
+    title: "Mapa de calor por dia da semana",
+    question: "Quais dias da semana concentram mais orcamentos?",
+    metric: "count",
+    dimension: "period",
+    grain: "budget",
+    primaryVisualization: "heatmap",
+    secondaryVisualizations: ["bar", "table"],
+    help: {
+      objective: "Mostrar concentracao de orcamentos por dia da semana (heatmap).",
+      calculation: [
+        "Extrai o dia da semana a partir da data do orcamento.",
+        "Conta orcamentos por dia da semana e converte em intensidade de cor.",
+      ],
+      howToRead: [
+        "Use para ver rapidamente quais dias performam melhor.",
+        "A cor mais forte indica maior volume relativo.",
+      ],
+      cautions: [
+        "Feriados e sazonalidade podem distorcer semanas especificas.",
+        "Pode haver diferenca de volume entre canais (ex.: online vs presencial).",
+      ],
+    },
+  },
+
+  overview_month_year_heatmap: {
+    chartId: "overview_month_year_heatmap",
+    categoryId: "overview",
+    title: "Mapa de calor por mes e ano",
+    question: "Como o volume varia por mes ao longo dos anos (sazonalidade)?",
+    metric: "count",
+    dimension: "period",
+    grain: "budget",
+    primaryVisualization: "heatmap",
+    secondaryVisualizations: ["line", "table"],
+    help: {
+      objective: "Mostrar volume por mes/ano em formato de heatmap para enxergar sazonalidade e tendencia.",
+      calculation: [
+        "Agrupa orcamentos por mes e ano.",
+        "Conta orcamentos por combinacao e converte em intensidade de cor.",
+      ],
+      howToRead: [
+        "Use para identificar meses recorrentes de alta/baixa ao longo dos anos.",
+        "A cor mais forte indica maior volume relativo naquela celula (mes/ano).",
+      ],
+      cautions: [
+        "Meses incompletos (periodo atual) podem aparecer mais fracos.",
+        "Mudancas de mix/canal podem mudar o padrao entre anos.",
+      ],
+    },
+  },
+
+  funnel_by_status: {
+    chartId: "funnel_by_status",
+    groupId: "funnel_by_status_family",
+    categoryId: "funnel",
+    title: "Funil por status do orcamento",
+    question: "Como os orcamentos se distribuem pelos status do funil?",
+    metric: "count",
+    dimension: "status",
+    grain: "budget_status",
+    primaryVisualization: "funnel",
+    secondaryVisualizations: ["bar", "table"],
+    help: {
+      objective: "Mostrar a distribuicao de orcamentos por status atual no periodo filtrado.",
+      calculation: [
+        "Agrupa orcamentos pelo status atual.",
+        "Conta orcamentos em cada status.",
+      ],
+      howToRead: [
+        "Use para entender onde o funil esta concentrado (aberto/aprovado/perdido).",
+        "Gargalos aparecem como grande concentracao em status intermediarios.",
+      ],
+      cautions: [
+        "Mudancas no fluxo de status alteram comparacoes historicas.",
+        "Status nao padronizados (ou muitos status) podem dificultar leitura; use agrupamentos.",
+      ],
+    },
+  },
+
+  funnel_amount_by_status: {
+    chartId: "funnel_amount_by_status",
+    groupId: "funnel_by_status_family",
+    categoryId: "funnel",
+    title: "Valor total por status",
+    question: "Em quais status existe maior valor total orcado no periodo?",
+    metric: "amount",
+    dimension: "status",
+    grain: "budget_status",
+    primaryVisualization: "bar",
+    secondaryVisualizations: ["ranking", "table"],
+    help: {
+      objective: "Comparar o valor total orcado por status do funil no periodo filtrado.",
+      calculation: [
+        "Agrupa orcamentos por status atual.",
+        "Soma valor total por status.",
+      ],
+      howToRead: [
+        "Use para localizar valor travado no funil (status com alto montante).",
+        "Combine com quantidade por status para separar volume vs valor.",
+      ],
+      cautions: [
+        "Valores altos em status 'aberto' podem indicar demora de fechamento.",
+        "Outliers (orcamentos grandes) podem inflar um status especifico.",
+      ],
+    },
+  },
+
+  funnel_count_by_status: {
+    chartId: "funnel_count_by_status",
+    groupId: "funnel_by_status_family",
+    categoryId: "funnel",
+    title: "Quantidade de orcamentos por status",
+    question: "Em quais status existe maior volume de orcamentos no periodo?",
+    metric: "count",
+    dimension: "status",
+    grain: "budget_status",
+    primaryVisualization: "bar",
+    secondaryVisualizations: ["ranking", "table"],
+    help: {
+      objective: "Comparar o volume (quantidade) de orcamentos por status do funil no periodo filtrado.",
+      calculation: [
+        "Agrupa orcamentos por status atual.",
+        "Conta orcamentos por status.",
+      ],
+      howToRead: [
+        "Use para detectar gargalos (muito volume parado em um status).",
+        "Compare com conversao para entender eficiencia por etapa.",
+      ],
+      cautions: [
+        "Status muito granulados podem esconder o gargalo real; use agrupamento por etapa.",
+        "Mudancas de processo podem alterar distribuiçao por status.",
+      ],
+    },
+  },
+
+  funnel_conversion_percent_by_status: {
+    chartId: "funnel_conversion_percent_by_status",
+    groupId: "funnel_by_status_family",
+    categoryId: "funnel",
+    title: "Percentual de conversao por status",
+    question: "Qual etapa/status apresenta melhor ou pior conversao?",
+    metric: "conversion",
+    dimension: "status",
+    grain: "derived",
+    primaryVisualization: "bar",
+    secondaryVisualizations: ["table"],
+    help: {
+      objective: "Mostrar a conversao aproximada por status/etapa no periodo filtrado.",
+      calculation: [
+        "Mapeia status para etapas do funil (ex.: aberto/aprovado/perdido).",
+        "Calcula taxa percentual por etapa com base no status atual.",
+      ],
+      howToRead: [
+        "Use para ver onde o funil perde mais (baixa conversao).",
+        "Combine com volume para priorizar o gargalo com maior impacto.",
+      ],
+      cautions: [
+        ...GEO_CONVERSION_CAUTION,
+        ...PERCENT_NORMALIZATION_CAUTION,
+      ],
+    },
+  },
+
+  funnel_open_approved_lost: {
+    chartId: "funnel_open_approved_lost",
+    groupId: "funnel_status_summary",
+    categoryId: "funnel",
+    title: "Orcamentos em aberto x aprovados x perdidos",
+    question: "Qual o mix de status (aberto/aprovado/perdido) no periodo?",
+    metric: "count",
+    dimension: "status",
+    grain: "budget_status",
+    primaryVisualization: "bar",
+    secondaryVisualizations: ["pie", "table"],
+    help: {
+      objective: "Comparar rapidamente quantos orcamentos estao abertos, aprovados e perdidos no periodo filtrado.",
+      calculation: [
+        "Classifica o status atual em categorias (aberto/aprovado/perdido).",
+        "Conta orcamentos em cada categoria.",
+      ],
+      howToRead: [
+        "Use para medir saude do funil (muito aberto vs muito perdido).",
+        "Combine com taxa de aprovacao e valor por status para entender impacto.",
+      ],
+      cautions: [
+        "Se o mapeamento de status para categorias mudar, a comparacao historica muda.",
+        "Orcamentos 'abertos' podem incluir etapas muito diferentes; detalhe por status quando necessario.",
+      ],
+    },
+  },
+
+  funnel_pending_amount: {
+    chartId: "funnel_pending_amount",
+    groupId: "funnel_status_summary",
+    categoryId: "funnel",
+    title: "Valor parado em orcamentos pendentes",
+    question: "Quanto valor esta travado em orcamentos pendentes no periodo?",
+    metric: "amount",
+    dimension: "status",
+    grain: "budget_status",
+    primaryVisualization: "kpi",
+    secondaryVisualizations: ["bar", "table"],
+    help: {
+      objective: "Evidenciar o montante de valor orcado que esta parado em status pendentes no periodo filtrado.",
+      calculation: [
+        "Filtra orcamentos em status pendentes (conforme definicao do dataset).",
+        "Soma o valor total desses orcamentos.",
+      ],
+      howToRead: [
+        "Use para priorizar follow-up em orcamentos com valor travado.",
+        "Se o valor pendente subir, pode indicar gargalo ou ciclo de venda maior.",
+      ],
+      cautions: [
+        "A definicao de 'pendente' depende do conjunto de status configurado.",
+        "Poucos orcamentos grandes podem dominar o montante pendente; valide a lista.",
+      ],
+    },
+  },
+
+  funnel_approval_rate: {
+    chartId: "funnel_approval_rate",
+    groupId: "funnel_rates",
+    categoryId: "funnel",
+    title: "Taxa de aprovacao de orcamentos",
+    question: "Qual a taxa de aprovacao no periodo filtrado?",
+    metric: "conversion",
+    dimension: "status",
+    grain: "derived",
+    primaryVisualization: "kpi",
+    secondaryVisualizations: ["line", "table"],
+    help: {
+      objective: "Mostrar a taxa de aprovacao (conversao para aprovado) no periodo filtrado.",
+      calculation: [
+        "Define o conjunto de orcamentos considerados (base).",
+        "Calcula percentual aprovado (aprovados / base).",
+      ],
+      howToRead: [
+        "Use para acompanhar eficiencia do funil ao longo do tempo.",
+        "Se cair, investigue por vendedor/origem/UF/produto para achar a causa.",
+      ],
+      cautions: [
+        ...GEO_CONVERSION_CAUTION,
+        ...PERCENT_NORMALIZATION_CAUTION,
+      ],
+    },
+  },
+
+  funnel_loss_cancel_rate: {
+    chartId: "funnel_loss_cancel_rate",
+    groupId: "funnel_rates",
+    categoryId: "funnel",
+    title: "Taxa de perda/cancelamento",
+    question: "Qual a taxa de perda/cancelamento no periodo filtrado?",
+    metric: "conversion",
+    dimension: "status",
+    grain: "derived",
+    primaryVisualization: "kpi",
+    secondaryVisualizations: ["line", "table"],
+    help: {
+      objective: "Mostrar a taxa de perda/cancelamento no periodo filtrado.",
+      calculation: [
+        "Define o conjunto de orcamentos considerados (base).",
+        "Calcula percentual perdido/cancelado (perdidos / base).",
+      ],
+      howToRead: [
+        "Use para monitorar aumento de perdas e acionar correcoes (preco, prazo, produto).",
+        "Combine com motivos de perda (se houver) e com desconto/markup.",
+      ],
+      cautions: [
+        ...GEO_CONVERSION_CAUTION,
+        ...PERCENT_NORMALIZATION_CAUTION,
+      ],
+    },
+  },
+
+  funnel_conversion_evolution: {
+    chartId: "funnel_conversion_evolution",
+    groupId: "funnel_rates",
+    categoryId: "funnel",
+    title: "Evolucao da conversao ao longo do tempo",
+    question: "A conversao esta melhorando ou piorando ao longo do tempo?",
+    metric: "conversion",
+    dimension: "period",
+    grain: "derived",
+    primaryVisualization: "line",
+    secondaryVisualizations: ["bar", "table"],
+    help: {
+      objective: "Mostrar a evolucao da conversao ao longo do periodo filtrado.",
+      calculation: [
+        "Calcula taxa de conversao por faixa de tempo (dia/semana/mes).",
+        "Exibe a serie temporal da taxa.",
+      ],
+      howToRead: [
+        "Use para ver tendencia e impacto de mudancas de processo/campanhas.",
+        "Picos/vales sugerem mudancas pontuais; valide com volume no mesmo periodo.",
+      ],
+      cautions: [
+        ...GEO_CONVERSION_CAUTION,
+        "Conversao pode oscilar muito com volume baixo; considere janelas maiores.",
+      ],
+    },
+  },
+
+  funnel_conversion_by_seller: {
+    chartId: "funnel_conversion_by_seller",
+    groupId: "funnel_conversion_segments",
+    categoryId: "funnel",
+    title: "Conversao por vendedor",
+    question: "Quais vendedores tem melhor desempenho de conversao?",
+    metric: "conversion",
+    dimension: "seller",
+    grain: "derived",
+    primaryVisualization: "ranking",
+    secondaryVisualizations: ["bar", "table"],
+    help: {
+      objective: "Comparar a taxa de conversao por vendedor no periodo filtrado.",
+      calculation: [
+        "Agrupa orcamentos por vendedor.",
+        "Calcula taxa de conversao com base no status atual para cada vendedor.",
+      ],
+      howToRead: [
+        "Use para identificar melhores praticas (alta conversao) e gaps de treinamento.",
+        "Combine com quantidade para evitar conclusoes com base em poucos casos.",
+      ],
+      cautions: [...GEO_CONVERSION_CAUTION],
+    },
+  },
+
+  funnel_conversion_by_customer: {
+    chartId: "funnel_conversion_by_customer",
+    groupId: "funnel_conversion_segments",
+    categoryId: "funnel",
+    title: "Conversao por cliente",
+    question: "Quais clientes/contas convertem melhor no periodo?",
+    metric: "conversion",
+    dimension: "customer",
+    grain: "derived",
+    primaryVisualization: "ranking",
+    secondaryVisualizations: ["table"],
+    help: {
+      objective: "Comparar a taxa de conversao por cliente no periodo filtrado.",
+      calculation: [
+        "Agrupa orcamentos por cliente.",
+        "Calcula taxa de conversao com base no status atual para cada cliente.",
+      ],
+      howToRead: [
+        "Use para identificar contas com maior propensao de fechamento.",
+        "Combine com ticket/valor para priorizar contas mais relevantes.",
+      ],
+      cautions: [...GEO_CONVERSION_CAUTION],
+    },
+  },
+
+  funnel_conversion_by_origin: {
+    chartId: "funnel_conversion_by_origin",
+    groupId: "funnel_conversion_segments",
+    categoryId: "funnel",
+    title: "Conversao por origem",
+    question: "Quais canais/origens convertem melhor no periodo?",
+    metric: "conversion",
+    dimension: "origin",
+    grain: "derived",
+    primaryVisualization: "ranking",
+    secondaryVisualizations: ["bar", "table"],
+    help: {
+      objective: "Comparar a taxa de conversao por origem/canal no periodo filtrado.",
+      calculation: [
+        "Agrupa orcamentos por origem.",
+        "Calcula taxa de conversao por origem com base no status atual.",
+      ],
+      howToRead: [
+        "Use para medir qualidade dos canais (alta conversao).",
+        "Combine com volume para entender impacto total do canal.",
+      ],
+      cautions: [...GEO_CONVERSION_CAUTION],
+    },
+  },
+
+  funnel_conversion_by_geo: {
+    chartId: "funnel_conversion_by_geo",
+    groupId: "funnel_conversion_segments",
+    categoryId: "funnel",
+    title: "Conversao por cidade/UF",
+    question: "Quais regioes/UFs convertem melhor no periodo?",
+    metric: "conversion",
+    dimension: "uf",
+    grain: "derived",
+    primaryVisualization: "ranking",
+    secondaryVisualizations: ["map", "table"],
+    help: {
+      objective: "Comparar a taxa de conversao por cidade/UF no periodo filtrado.",
+      calculation: [
+        "Normaliza a localizacao (UF/cidade) dos orcamentos.",
+        "Calcula taxa de conversao por local com base no status atual.",
+      ],
+      howToRead: [
+        "Use para identificar regioes com melhor desempenho de fechamento.",
+        "No modo Mapa, a cor mais forte indica maior conversao relativa no periodo (agregado por UF).",
+      ],
+      cautions: [...GEO_UF_COMMON_CAUTION, ...GEO_CONVERSION_CAUTION],
+    },
+  },
+
+  funnel_conversion_by_payment: {
+    chartId: "funnel_conversion_by_payment",
+    groupId: "funnel_conversion_segments",
+    categoryId: "funnel",
+    title: "Conversao por condicao de pagamento",
+    question: "Quais condicoes de pagamento convertem melhor no periodo?",
+    metric: "conversion",
+    dimension: "payment",
+    grain: "derived",
+    primaryVisualization: "ranking",
+    secondaryVisualizations: ["bar", "table"],
+    help: {
+      objective: "Comparar a taxa de conversao por condicao de pagamento no periodo filtrado.",
+      calculation: [
+        "Agrupa orcamentos por condicao de pagamento.",
+        "Calcula taxa de conversao por condicao com base no status atual.",
+      ],
+      howToRead: [
+        "Use para entender se prazos/condicoes afetam fechamento.",
+        "Combine com ticket/valor para avaliar impacto financeiro.",
+      ],
+      cautions: [...GEO_CONVERSION_CAUTION],
+    },
+  },
+
+  funnel_blocking_status_ranking: {
+    chartId: "funnel_blocking_status_ranking",
+    categoryId: "funnel",
+    title: "Ranking de status que mais travam vendas",
+    question: "Quais status concentram mais orcamentos parados (gargalos)?",
+    metric: "count",
+    dimension: "status",
+    grain: "budget_status",
+    primaryVisualization: "ranking",
+    secondaryVisualizations: ["bar", "table"],
+    help: {
+      objective: "Listar os status com maior concentracao de orcamentos que tendem a travar o fluxo de vendas.",
+      calculation: [
+        "Agrupa orcamentos por status atual.",
+        "Conta volume (ou mede idade media, dependendo do dataset) e ordena do maior para o menor.",
+      ],
+      howToRead: [
+        "Use para priorizar melhorias de processo nos status mais problemáticos.",
+        "Combine com tempo medio no status (se houver) e com valor parado.",
+      ],
+      cautions: [
+        "O ranking pode ser influenciado por status muito usados; valide com tempo/valor para confirmar gargalo real.",
+        "Mudancas de fluxo/status podem alterar o ranking historico.",
+      ],
+    },
+  },
 };
 
 export function getSalesBudgetChartDefinition(

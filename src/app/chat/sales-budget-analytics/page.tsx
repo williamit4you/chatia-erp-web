@@ -352,28 +352,35 @@ export default function SalesBudgetAnalyticsPage() {
         defaultTabId?: string | null;
       };
 
-  const renderHighlights = useMemo<RenderItem[]>(() => {
-    if (activeCategoryCharts.length === 0) return [];
+  const buildRenderHighlights = (sourceCharts: VisibleChart[]): RenderItem[] => {
+    if (sourceCharts.length === 0) return [];
+
+    const localFilteredHighlights = sourceCharts.filter((chart) => {
+      if (!deferredSearch) return true;
+      return chart.title.toLowerCase().includes(deferredSearch);
+    });
+
+    if (localFilteredHighlights.length === 0) return [];
 
     const groupIdByChartId = new Map<string, string | null>();
-    for (const item of activeCategoryCharts) {
+    for (const item of sourceCharts) {
       const def = getSalesBudgetChartDefinition(item.id);
       groupIdByChartId.set(item.id, def?.groupId ?? null);
     }
 
-    const geoGroupChartsAll = activeCategoryCharts.filter(
+    const geoGroupChartsAll = sourceCharts.filter(
       (item) => groupIdByChartId.get(item.id) === "geo_by_uf"
     );
 
-    const conversionGroupChartsAll = activeCategoryCharts.filter(
+    const conversionGroupChartsAll = sourceCharts.filter(
       (item) => groupIdByChartId.get(item.id) === "funnel_conversion_segments"
     );
 
-    const statusGroupChartsAll = activeCategoryCharts.filter(
+    const statusGroupChartsAll = sourceCharts.filter(
       (item) => groupIdByChartId.get(item.id) === "funnel_by_status_family"
     );
 
-    const matchedIds = new Set(filteredHighlights.map((c) => c.id));
+    const matchedIds = new Set(localFilteredHighlights.map((c) => c.id));
 
     const showGeoGroup =
       geoGroupChartsAll.length >= 2 &&
@@ -427,7 +434,7 @@ export default function SalesBudgetAnalyticsPage() {
     };
 
     // Render order: keep list order, but collapse group members into one widget.
-    for (const chart of filteredHighlights) {
+    for (const chart of localFilteredHighlights) {
       if (showGeoGroup && geoSet.has(chart.id)) {
         if (!items.some((i) => i.kind === "geo_by_uf")) pushGeoGroup();
         continue;
@@ -448,7 +455,41 @@ export default function SalesBudgetAnalyticsPage() {
     }
 
     return items;
-  }, [activeCategoryCharts, deferredSearch, filteredHighlights]);
+  };
+
+  const renderHighlights = useMemo<RenderItem[]>(() => {
+    return buildRenderHighlights(activeCategoryCharts);
+  }, [activeCategoryCharts, deferredSearch]);
+
+  const overviewSections = useMemo(() => {
+    if (activeCategoryId !== "overview") return [];
+
+    return visibleCatalog
+      .map((category, index) => {
+        const categoryCharts = (category.highlights ?? [])
+          .filter((chart) => chart.availability === "available_now")
+          .map((chart) => ({
+            id: chart.id,
+            title: chart.title,
+            availability: chart.availability,
+            categoryId: category.id,
+            categoryName: category.name,
+            accentColor: chart.color ?? category.color,
+          }));
+
+        const items = buildRenderHighlights(categoryCharts);
+
+        return {
+          id: category.id,
+          name: category.name,
+          description: category.description,
+          number: index + 1,
+          theme: SALES_BUDGET_CATEGORY_THEMES[category.id] ?? "general",
+          items,
+        };
+      })
+      .filter((section) => section.items.length > 0);
+  }, [activeCategoryId, deferredSearch, visibleCatalog]);
 
   const kpiMap = useMemo(() => {
     return kpis.reduce<Record<string, SalesBudgetKpiItem>>((acc, item) => {
@@ -464,6 +505,99 @@ export default function SalesBudgetAnalyticsPage() {
       amount: Number(seller.amount ?? seller.value ?? 0),
     }));
   }, [topSellers]);
+
+  const renderHighlightItem = (item: RenderItem, index: number, fallbackCategoryName?: string | null) => {
+    if (item.kind === "geo_by_uf") {
+      const byId: Record<string, SalesBudgetChartDataset | null> = {};
+      for (const chart of item.charts) {
+        byId[chart.id] = chartsById[chart.id] ?? null;
+      }
+
+      const accentColor =
+        item.charts.find((c) => c.categoryId === "geo")?.accentColor ??
+        item.charts[0]?.accentColor;
+
+      return (
+        <div key={`geo_by_uf_${index}`}>
+          <SalesBudgetGeoByUfWidget
+            charts={byId as any}
+            isLoading={isLoadingCharts}
+            accentColor={accentColor}
+            defaultTabId={item.defaultTabId ?? null}
+            startDate={startDate}
+            endDate={endDate}
+            categoryName={item.charts[0]?.categoryName ?? fallbackCategoryName ?? "Geo"}
+          />
+        </div>
+      );
+    }
+
+    if (item.kind === "funnel_conversion_segments") {
+      const byId: Record<string, SalesBudgetChartDataset | null> = {};
+      for (const chart of item.charts) {
+        byId[chart.id] = chartsById[chart.id] ?? null;
+      }
+
+      const accentColor =
+        item.charts.find((c) => c.categoryId === "funnel")?.accentColor ??
+        item.charts[0]?.accentColor;
+
+      return (
+        <div key={`funnel_conversion_${index}`}>
+          <SalesBudgetFunnelConversionWidget
+            charts={byId as any}
+            isLoading={isLoadingCharts}
+            accentColor={accentColor}
+            defaultTabId={item.defaultTabId ?? null}
+            startDate={startDate}
+            endDate={endDate}
+            categoryName={item.charts[0]?.categoryName ?? fallbackCategoryName ?? "Funil"}
+          />
+        </div>
+      );
+    }
+
+    if (item.kind === "funnel_by_status_family") {
+      const byId: Record<string, SalesBudgetChartDataset | null> = {};
+      for (const chart of item.charts) {
+        byId[chart.id] = chartsById[chart.id] ?? null;
+      }
+
+      const accentColor =
+        item.charts.find((c) => c.categoryId === "funnel")?.accentColor ??
+        item.charts[0]?.accentColor;
+
+      return (
+        <div key={`funnel_by_status_${index}`}>
+          <SalesBudgetFunnelByStatusWidget
+            charts={byId as any}
+            isLoading={isLoadingCharts}
+            accentColor={accentColor}
+            defaultTabId={item.defaultTabId ?? null}
+            startDate={startDate}
+            endDate={endDate}
+            categoryName={item.charts[0]?.categoryName ?? fallbackCategoryName ?? "Funil"}
+          />
+        </div>
+      );
+    }
+
+    const chart = item.chart;
+    return (
+      <div key={chart.id}>
+        <SalesBudgetChartCard
+          chart={chartsById[chart.id] ?? null}
+          chartId={chart.id}
+          fallbackTitle={chart.title}
+          isLoading={isLoadingCharts && !chartsById[chart.id]}
+          accentColor={chart.accentColor}
+          startDate={startDate}
+          endDate={endDate}
+          categoryName={chart.categoryName ?? fallbackCategoryName ?? activeCategory?.name ?? null}
+        />
+      </div>
+    );
+  };
 
   if (status === "loading") {
     return (
@@ -683,6 +817,32 @@ export default function SalesBudgetAnalyticsPage() {
           ) : null}
 
           <div className="mt-6">
+            {activeCategoryId === "overview" ? (
+              <div className="space-y-6">
+                {overviewSections.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500">
+                    Nenhum grÃ¡fico da visÃ£o geral corresponde ao filtro digitado.
+                  </div>
+                ) : (
+                  overviewSections.map((section) => (
+                    <DashboardSection
+                      key={section.id}
+                      number={section.number}
+                      title={section.name}
+                      description={section.description}
+                      theme={section.theme}
+                    >
+                      <SectionChartGrid variant="analysis">
+                        {section.items.map((item, index) =>
+                          renderHighlightItem(item, index, section.name)
+                        )}
+                      </SectionChartGrid>
+                    </DashboardSection>
+                  ))
+                )}
+              </div>
+            ) : null}
+            {activeCategoryId !== "overview" ? (
             <SectionChartGrid variant="analysis">
               {renderHighlights.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500 xl:col-span-3">
@@ -785,6 +945,7 @@ export default function SalesBudgetAnalyticsPage() {
                 })
               )}
             </SectionChartGrid>
+            ) : null}
           </div>
           </DashboardSection>
         )}

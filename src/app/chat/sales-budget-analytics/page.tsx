@@ -951,6 +951,7 @@ export default function SalesBudgetAnalyticsPage() {
         )}
 
         {activeScope === "budget" ? (
+          <div className="mt-6">
           <DashboardSection
             number={visibleCatalog.length + 1}
             title="Resumo do período"
@@ -1047,6 +1048,7 @@ export default function SalesBudgetAnalyticsPage() {
             </div>
           </div>
           </DashboardSection>
+          </div>
         ) : (
           <section className="mt-6 rounded-[30px] border border-neutral-200 bg-white p-8 shadow-sm">
             <h2 className="text-2xl font-black tracking-tight text-neutral-900">

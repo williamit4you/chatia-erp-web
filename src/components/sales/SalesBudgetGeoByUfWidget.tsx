@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowUpRight, BarChart3, Percent, ShoppingCart, TrendingUp } from "lucide-react";
+import { BarChart3, Percent, Search, ShoppingCart, TrendingUp } from "lucide-react";
 import SalesBudgetChartDetailsButton from "@/components/sales/SalesBudgetChartDetailsButton";
 import SalesBudgetChartDetailsModal from "@/components/sales/SalesBudgetChartDetailsModal";
 import SalesBudgetChartRenderer from "@/components/sales/SalesBudgetChartRenderer";
@@ -98,7 +98,7 @@ export default function SalesBudgetGeoByUfWidget({
               className="rounded p-1 text-neutral-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
               title="Abrir gráfico / iniciar chat"
             >
-              <ArrowUpRight className="h-4 w-4" />
+              <Search className="h-4 w-4" />
             </Link>
           </div>
         </div>

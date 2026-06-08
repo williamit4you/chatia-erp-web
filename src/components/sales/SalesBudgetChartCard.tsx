@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowUpRight } from "lucide-react";
+import { Search } from "lucide-react";
 import SalesBudgetChartDetailsButton from "@/components/sales/SalesBudgetChartDetailsButton";
 import SalesBudgetChartDetailsModal from "@/components/sales/SalesBudgetChartDetailsModal";
 import SalesBudgetChartRenderer from "@/components/sales/SalesBudgetChartRenderer";
@@ -56,7 +56,7 @@ export default function SalesBudgetChartCard({
               className="rounded p-1 text-neutral-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
               title="Abrir gráfico"
             >
-              <ArrowUpRight className="h-4 w-4" />
+              <Search className="h-4 w-4" />
             </Link>
           </div>
         </div>

@@ -6,6 +6,7 @@ import { Filter, Percent, Scale, Search, Sigma, Workflow } from "lucide-react";
 import SalesBudgetChartDetailsButton from "@/components/sales/SalesBudgetChartDetailsButton";
 import SalesBudgetChartDetailsModal from "@/components/sales/SalesBudgetChartDetailsModal";
 import SalesBudgetChartRenderer from "@/components/sales/SalesBudgetChartRenderer";
+import { getSalesBudgetChartDefinition } from "@/lib/salesBudgetChartDefinitions";
 import type { SalesBudgetChartDataset } from "@/services/sales-budget-analytics.service";
 
 type StatusTabId =
@@ -76,6 +77,8 @@ export default function SalesBudgetFunnelByStatusWidget({
 
   const activeChart = charts[activeTab] ?? null;
   const title = useMemo(() => {
+    const fromDefinition = getSalesBudgetChartDefinition(activeTab)?.title;
+    if (fromDefinition) return fromDefinition;
     const fromChart = activeChart?.title;
     if (fromChart) return fromChart;
     const fallback = TABS.find((t) => t.id === activeTab)?.label ?? "Status";

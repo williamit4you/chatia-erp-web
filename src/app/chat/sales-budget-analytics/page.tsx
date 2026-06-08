@@ -7,6 +7,9 @@ import SalesBudgetChartDetailsModal from "@/components/sales/SalesBudgetChartDet
 import SalesBudgetFunnelByStatusWidget from "@/components/sales/SalesBudgetFunnelByStatusWidget";
 import SalesBudgetFunnelConversionWidget from "@/components/sales/SalesBudgetFunnelConversionWidget";
 import SalesBudgetGeoByUfWidget from "@/components/sales/SalesBudgetGeoByUfWidget";
+import DashboardSection from "@/components/finance/DashboardSection";
+import SectionChartGrid from "@/components/finance/SectionChartGrid";
+import type { DashboardThemeKey } from "@/components/finance/dashboardThemes";
 import { applySalesBudgetCatalogColors, salesBudgetCatalog } from "@/lib/sales-budget-catalog";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/formatters/financeFormat";
 import { getSalesBudgetChartDefinition } from "@/lib/salesBudgetChartDefinitions";
@@ -54,6 +57,27 @@ const DASHBOARD_SCOPES: ScopeOption[] = [
     emptyDescription: "Os gráficos de notas fiscais vão aparecer aqui em uma próxima etapa.",
   },
 ];
+
+const SALES_BUDGET_CATEGORY_THEMES: Record<string, DashboardThemeKey> = {
+  overview: "general",
+  funnel: "receivable",
+  seller: "general",
+  customer: "analysis",
+  product: "payable",
+  margin: "analysis",
+  source: "cashflow",
+  geo: "cashflow",
+  payment: "payable",
+  freight: "efficiency",
+  executive: "general",
+  seller_insights: "receivable",
+  future_data: "analysis",
+  kpis: "general",
+  velocity: "payable",
+  risk: "efficiency",
+  efficiency: "efficiency",
+  predictive: "analysis",
+};
 
 type DashboardAccessUser = {
   role?: string;
@@ -199,6 +223,15 @@ export default function SalesBudgetAnalyticsPage() {
     visibleCatalog.find((category) => category.id === activeCategoryId) ??
     visibleCatalog[0] ??
     null;
+
+  const activeCategoryNumber = useMemo(() => {
+    const index = visibleCatalog.findIndex((category) => category.id === activeCategory?.id);
+    return index >= 0 ? index + 1 : 1;
+  }, [activeCategory?.id, visibleCatalog]);
+
+  const activeCategoryTheme = activeCategory
+    ? SALES_BUDGET_CATEGORY_THEMES[activeCategory.id] ?? "general"
+    : "general";
 
   const overviewChartsCount = useMemo(() => {
     if (!visibleCatalog.length) return 0;
@@ -523,7 +556,7 @@ export default function SalesBudgetAnalyticsPage() {
 
         <SalesBudgetChartDetailsModal
           isOpen={isChartDetailsOpen}
-          title={activeCategory?.name ? `Vendas • ${activeCategory.name}` : "Vendas"}
+          title={activeCategory?.name ? `Vendas - ${activeCategory.name}` : "Vendas"}
           entries={activeCategoryCharts.map((chart) => ({
             id: chart.id,
             title: chart.title,
@@ -561,7 +594,12 @@ export default function SalesBudgetAnalyticsPage() {
         </div>
 
         {activeScope === "budget" && (
-          <section className="mt-6 rounded-[30px] border border-neutral-200 bg-white p-6 shadow-sm">
+          <DashboardSection
+            number={activeCategoryNumber}
+            title={activeCategory?.name ?? "Gráficos por categoria"}
+            description={activeCategory?.description ?? "Escolha uma categoria para explorar os gráficos do período."}
+            theme={activeCategoryTheme}
+          >
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h2 className="text-xl font-black tracking-tight text-neutral-900">
@@ -608,8 +646,10 @@ export default function SalesBudgetAnalyticsPage() {
                       style={{ backgroundColor: category.color ?? "#e5e7eb" }}
                     />
                     <span className="truncate">{category.name}</span>
-                    <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral-200 px-1.5 text-[10px] font-black text-neutral-600">
-                      {category.id === "overview" ? overviewChartsCount : category.highlights.length}
+                    <span className={`ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-black ${
+                      isActive ? "bg-white/15 text-white" : "bg-neutral-200 text-neutral-600"
+                    }`}>
+                      {category.id === "overview" ? overviewChartsCount : category.availableNowCount}
                     </span>
                   </div>
                 </button>
@@ -643,9 +683,9 @@ export default function SalesBudgetAnalyticsPage() {
           ) : null}
 
           <div className="mt-6">
-            <div className="grid gap-4 xl:grid-cols-2">
+            <SectionChartGrid variant="analysis">
               {renderHighlights.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500 xl:col-span-2">
+                <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500 xl:col-span-3">
                   {upcomingCategoryCharts.length > 0 && !deferredSearch
                     ? "Esta categoria ainda não possui gráficos disponíveis."
                     : "Nenhum gráfico desta categoria corresponde ao filtro digitado."}
@@ -744,14 +784,19 @@ export default function SalesBudgetAnalyticsPage() {
                   );
                 })
               )}
-            </div>
+            </SectionChartGrid>
           </div>
-          </section>
+          </DashboardSection>
         )}
 
         {activeScope === "budget" ? (
-          <section className="mt-6 rounded-[30px] border border-neutral-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between gap-4">
+          <DashboardSection
+            number={visibleCatalog.length + 1}
+            title="Resumo do período"
+            description="Visão rápida dos principais indicadores para o intervalo selecionado."
+            theme="general"
+          >
+          <div className="hidden items-center justify-between gap-4">
             <div>
               <h2 className="text-xl font-black tracking-tight text-neutral-900">
                 Resumo do período
@@ -783,7 +828,7 @@ export default function SalesBudgetAnalyticsPage() {
               return (
                 <div
                   key={kpiId}
-                  className="rounded-[24px] border border-neutral-200 bg-neutral-50 p-5"
+                  className="rounded-[24px] border border-yellow-200 bg-white p-5 shadow-sm"
                 >
                   <div className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
                     {item?.label ?? "Carregando"}
@@ -798,7 +843,7 @@ export default function SalesBudgetAnalyticsPage() {
               );
             })}
 
-            <div className="rounded-[24px] border border-neutral-200 bg-neutral-50 p-5">
+            <div className="rounded-[24px] border border-yellow-200 bg-white p-5 shadow-sm">
               <div className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
                 Top 5 vendedores
               </div>
@@ -806,7 +851,7 @@ export default function SalesBudgetAnalyticsPage() {
               {isLoadingKpis && topSellerRows.length === 0 ? (
                 <div className="mt-4 space-y-3">
                   {[1, 2, 3, 4, 5].map((item) => (
-                    <div key={item} className="h-8 animate-pulse rounded-xl bg-white" />
+                    <div key={item} className="h-8 animate-pulse rounded-xl bg-neutral-50" />
                   ))}
                 </div>
               ) : topSellerRows.length > 0 ? (
@@ -814,7 +859,7 @@ export default function SalesBudgetAnalyticsPage() {
                   {topSellerRows.map((seller) => (
                     <div
                       key={`${seller.rank}-${seller.name}`}
-                      className="flex items-center justify-between gap-3 rounded-2xl bg-white px-3 py-2.5"
+                      className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-50 px-3 py-2.5"
                     >
                       <div className="flex min-w-0 items-center gap-3">
                         <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-black text-white">
@@ -834,13 +879,13 @@ export default function SalesBudgetAnalyticsPage() {
                   ))}
                 </div>
               ) : (
-                <div className="mt-4 rounded-2xl bg-white px-4 py-3 text-sm text-neutral-500">
+                  <div className="mt-4 rounded-2xl bg-neutral-50 px-4 py-3 text-sm text-neutral-500">
                   {topSellersError ?? "Sem dados para montar o ranking neste período."}
                 </div>
               )}
             </div>
           </div>
-          </section>
+          </DashboardSection>
         ) : (
           <section className="mt-6 rounded-[30px] border border-neutral-200 bg-white p-8 shadow-sm">
             <h2 className="text-2xl font-black tracking-tight text-neutral-900">

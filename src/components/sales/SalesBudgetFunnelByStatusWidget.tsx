@@ -97,17 +97,13 @@ export default function SalesBudgetFunnelByStatusWidget({
             <SalesBudgetChartDetailsButton onClick={() => setIsDetailsOpen(true)} />
             <Link
               href={`/chat/sales-budget-analytics/${activeTab}`}
-              className="rounded p-1 text-neutral-400 transition-colors hover:bg-neutral-50 hover:text-neutral-700"
+              className="rounded p-1 text-neutral-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
               title="Abrir gráfico / iniciar chat"
             >
               <ArrowUpRight className="h-4 w-4" />
             </Link>
           </div>
         </div>
-
-        {accentColor ? (
-          <div className="h-0.5 w-full" style={{ backgroundColor: accentColor }} aria-hidden="true" />
-        ) : null}
 
         <div className="border-b border-neutral-100 bg-white px-4 py-2">
           <div className="flex flex-wrap gap-2">

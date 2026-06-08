@@ -53,21 +53,13 @@ export default function SalesBudgetChartCard({
             <SalesBudgetChartDetailsButton onClick={() => setIsDetailsOpen(true)} />
             <Link
               href={`/chat/sales-budget-analytics/${chartId}`}
-              className="rounded p-1 text-neutral-400 transition-colors hover:bg-neutral-50 hover:text-neutral-700"
+              className="rounded p-1 text-neutral-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
               title="Abrir gráfico"
             >
               <ArrowUpRight className="h-4 w-4" />
             </Link>
           </div>
         </div>
-
-        {accentColor ? (
-          <div
-            className="h-0.5 w-full"
-            style={{ backgroundColor: accentColor }}
-            aria-hidden="true"
-          />
-        ) : null}
 
         <div className="min-h-0 flex-1 overflow-hidden p-3 sm:p-4">
           <SalesBudgetChartRenderer

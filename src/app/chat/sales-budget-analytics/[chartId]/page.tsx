@@ -11,6 +11,7 @@ import SalesBudgetChartDetailsModal from "@/components/sales/SalesBudgetChartDet
 import { salesBudgetCatalog } from "@/lib/sales-budget-catalog";
 import { getSalesBudgetChartDefinition } from "@/lib/salesBudgetChartDefinitions";
 import { getSalesBudgetAutoHelpPrompt, getSalesBudgetChartObjective } from "@/lib/salesBudgetChartHelp";
+import { getSalesBudgetChartHint } from "@/lib/salesBudgetChartHints";
 import salesBudgetAnalyticsService, {
   type SalesBudgetChartDataset,
   type SalesBudgetChartQueryDetailsItem,
@@ -334,6 +335,7 @@ export default function SalesBudgetAnalyticsDetailPage() {
         title,
         categoryName: chartMeta?.categoryName ?? null,
       });
+    const chartHint = useMemo(() => getSalesBudgetChartHint(chartId, title), [chartId, title]);
 
     const shouldAutoHelp = searchParams?.get("help") === "1";
     const autoHelpTriggeredRef = useRef(false);
@@ -883,7 +885,73 @@ O que você gostaria de entender especificamente sobre estes números?`
                         className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-6"
                         ref={scrollRef}
                     >
-                        {!hasAsked && messages.length <= 1 && (
+                        <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                            <section className="rounded-[28px] border border-neutral-200 bg-white p-3 shadow-[0_20px_60px_-45px_rgba(15,23,42,0.35)]">
+                                <div className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
+                                    <MiaAvatar
+                                        size={32}
+                                        className="rounded-xl border-indigo-100 ring-1 ring-indigo-50"
+                                        imageClassName="scale-[1.15]"
+                                        alt="Avatar da MIA"
+                                    />
+                                    Sugestões para você
+                                </div>
+                                <div className="mt-2 space-y-1">
+                                    {chartHint.suggestedQuestions.length === 0 ? (
+                                        <div className="rounded-2xl bg-neutral-50 px-4 py-3 text-sm text-neutral-500">
+                                            As sugestões aparecerão aqui conforme o gráfico disponível.
+                                        </div>
+                                    ) : (
+                                        chartHint.suggestedQuestions.map((question) => (
+                                            <button
+                                                key={question}
+                                                type="button"
+                                                onClick={() => handleSend(undefined, question)}
+                                                disabled={isTyping || !chart || !!error}
+                                                title={question}
+                                                className="w-full rounded-2xl border border-neutral-200 bg-white px-3.5 py-2 text-left text-neutral-700 transition hover:border-indigo-200 hover:bg-indigo-50/40 hover:text-neutral-900 disabled:opacity-60"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
+                                                        <Sparkles className="h-3.5 w-3.5" />
+                                                    </span>
+                                                    <span className="min-w-0 flex-1 truncate text-[13px] leading-5 font-normal">{question}</span>
+                                                    <span className="text-neutral-400 text-sm">›</span>
+                                                </div>
+                                            </button>
+                                        ))
+                                    )}
+                                </div>
+                            </section>
+
+                            <section className="rounded-[28px] border border-neutral-200 bg-white p-3 shadow-[0_20px_60px_-45px_rgba(15,23,42,0.35)]">
+                                <div className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
+                                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                                        <Sparkles className="h-3.5 w-3.5" />
+                                    </span>
+                                    Insights relacionados
+                                </div>
+                                <div className="mt-2 space-y-2">
+                                    <div className="rounded-2xl bg-neutral-50 px-4 py-3 text-sm leading-6 text-neutral-600">
+                                        {chartHint.description}
+                                    </div>
+                                    {chartHint.relatedInsights.length > 0 ? (
+                                        <div className="rounded-2xl bg-neutral-50 px-4 py-3">
+                                            <ul className="space-y-2 text-sm leading-6 text-neutral-600">
+                                                {chartHint.relatedInsights.map((insight) => (
+                                                    <li key={insight} className="flex gap-2">
+                                                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+                                                        <span>{insight}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    ) : null}
+                                </div>
+                            </section>
+                        </div>
+
+                        {false && !hasAsked && messages.length <= 1 && (
                             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
                                 <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex gap-3">
                                     <Sparkles className="w-5 h-5 text-emerald-500 shrink-0" />

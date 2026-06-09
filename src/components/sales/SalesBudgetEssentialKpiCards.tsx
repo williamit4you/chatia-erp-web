@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import {
   AlertTriangle,
   CheckCircle2,
   CircleDollarSign,
   FileText,
+  MessageSquareText,
   Percent,
   ReceiptText,
   Wallet,
@@ -138,12 +140,21 @@ export default function SalesBudgetEssentialKpiCards({
             }`}
           >
             <div className="min-w-0 flex-1">
-              <p
-                className="mb-1 text-xs font-medium leading-5 text-neutral-500 sm:text-sm"
-                title={config.title}
-              >
-                {config.title}
-              </p>
+              <div className="mb-1 flex items-start justify-between gap-3">
+                <p
+                  className="min-w-0 text-xs font-medium leading-5 text-neutral-500 sm:text-sm"
+                  title={config.title}
+                >
+                  {config.title}
+                </p>
+                <Link
+                  href={`/chat/sales-budget-analytics/${item.kpiId}`}
+                  className="shrink-0 rounded-full p-1.5 text-neutral-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
+                  title="Abrir KPI e conversar com a IA"
+                >
+                  <MessageSquareText className="h-4 w-4" />
+                </Link>
+              </div>
               <h3
                 className={`${getValueTextClass(formattedValue)} font-bold leading-tight whitespace-normal [overflow-wrap:anywhere] ${config.color}`}
                 title={formattedValue}

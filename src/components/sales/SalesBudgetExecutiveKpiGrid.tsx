@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import {
   AlertTriangle,
@@ -19,6 +20,7 @@ import {
   Trophy,
   UserRound,
   Wallet,
+  MessageSquareText,
 } from "lucide-react";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/formatters/financeFormat";
 import type { SalesBudgetChartDataset } from "@/services/sales-budget-analytics.service";
@@ -152,16 +154,25 @@ export default function SalesBudgetExecutiveKpiGrid({
             }`}
           >
             <div className="flex min-h-[104px] flex-col">
-              <div className="flex items-center gap-2">
-                <div className={`shrink-0 rounded-md p-1.5 ${config.bgColor} ${config.color}`}>
-                  <config.icon className="h-3.5 w-3.5" />
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2">
+                  <div className={`shrink-0 rounded-md p-1.5 ${config.bgColor} ${config.color}`}>
+                    <config.icon className="h-3.5 w-3.5" />
+                  </div>
+                  <p
+                    className="truncate text-[10px] font-bold uppercase tracking-[0.12em] text-neutral-700"
+                    title={item.title}
+                  >
+                    {item.title}
+                  </p>
                 </div>
-                <p
-                  className="truncate text-[10px] font-bold uppercase tracking-[0.12em] text-neutral-700"
-                  title={item.title}
+                <Link
+                  href={`/chat/sales-budget-analytics/${item.chartId}`}
+                  className="shrink-0 rounded-full p-1.5 text-neutral-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
+                  title="Abrir KPI e conversar com a IA"
                 >
-                  {item.title}
-                </p>
+                  <MessageSquareText className="h-4 w-4" />
+                </Link>
               </div>
 
               <h3

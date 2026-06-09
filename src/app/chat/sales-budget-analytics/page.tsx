@@ -974,23 +974,23 @@ export default function SalesBudgetAnalyticsPage() {
             </div>
           )}
 
-          <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(340px,0.9fr)] xl:items-start">
+          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <SalesBudgetEssentialKpiCards
               items={LIVE_KPI_IDS.map((kpiId) => kpiMap[kpiId]).filter(Boolean)}
               isLoading={isLoadingKpis}
             />
 
-            <div className="self-start rounded-[24px] border border-yellow-200 bg-white p-5 shadow-sm">
-              <div className="flex items-start justify-between gap-3">
+            <div className="rounded-xl border border-neutral-100 bg-white p-4 shadow-sm xl:col-span-2">
+              <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
+                  <div className="mb-1 text-xs font-medium leading-5 text-neutral-500 sm:text-sm">
                     Top 5 vendedores
                   </div>
-                  <p className="mt-2 text-sm text-neutral-500">
+                  <p className="text-[11px] font-semibold leading-4 text-neutral-600">
                     Ranking por valor orçado no período selecionado.
                   </p>
                 </div>
-                <div className="rounded-full bg-neutral-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-neutral-600">
+                <div className="shrink-0 rounded-full bg-neutral-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-neutral-600">
                   Ranking
                 </div>
               </div>
@@ -998,7 +998,7 @@ export default function SalesBudgetAnalyticsPage() {
               {isLoadingKpis && topSellerRows.length === 0 ? (
                 <div className="mt-4 space-y-3">
                   {[1, 2, 3, 4, 5].map((item) => (
-                    <div key={item} className="h-12 animate-pulse rounded-2xl bg-neutral-50" />
+                    <div key={item} className="h-10 animate-pulse rounded-xl bg-neutral-50" />
                   ))}
                 </div>
               ) : topSellerRows.length > 0 ? (
@@ -1006,17 +1006,17 @@ export default function SalesBudgetAnalyticsPage() {
                   {topSellerRows.map((seller) => (
                     <div
                       key={`${seller.rank}-${seller.name}`}
-                      className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-100 bg-neutral-50/70 px-3 py-3"
+                      className="flex items-center justify-between gap-3 rounded-xl bg-neutral-50 px-3 py-2.5"
                     >
                       <div className="flex min-w-0 items-center gap-3">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-black text-white">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-black text-white">
                           {seller.rank}
                         </div>
                         <div className="truncate text-sm font-bold text-neutral-800">
                           {seller.name}
                         </div>
                       </div>
-                      <div className="shrink-0 rounded-xl bg-white px-3 py-1.5 text-sm font-black text-neutral-900 shadow-sm">
+                      <div className="shrink-0 text-sm font-black text-neutral-900">
                         {formatCurrency(seller.amount, {
                           compact: true,
                           maximumFractionDigits: 1,
@@ -1026,7 +1026,7 @@ export default function SalesBudgetAnalyticsPage() {
                   ))}
                 </div>
               ) : (
-                  <div className="mt-4 rounded-2xl bg-neutral-50 px-4 py-3 text-sm text-neutral-500">
+                  <div className="mt-4 rounded-xl bg-neutral-50 px-4 py-3 text-sm text-neutral-500">
                   {topSellersError ?? "Sem dados para montar o ranking neste período."}
                 </div>
               )}

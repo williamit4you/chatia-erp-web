@@ -94,9 +94,9 @@ function formatKpiValue(item: SalesBudgetKpiItem) {
 function getValueTextClass(formattedValue: string) {
   const length = formattedValue.replace(/\s/g, "").length;
 
-  if (length >= 16) return "text-lg sm:text-xl";
-  if (length >= 12) return "text-xl sm:text-2xl";
-  return "text-2xl";
+  if (length >= 16) return "text-sm sm:text-base lg:text-lg";
+  if (length >= 13) return "text-base sm:text-lg lg:text-xl";
+  return "text-base sm:text-lg lg:text-xl";
 }
 
 export default function SalesBudgetEssentialKpiCards({
@@ -105,21 +105,21 @@ export default function SalesBudgetEssentialKpiCards({
 }: SalesBudgetEssentialKpiCardsProps) {
   if (isLoading && items.length === 0) {
     return (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <>
         {Array.from({ length: 7 }).map((_, index) => (
           <div
             key={index}
-            className={`rounded-2xl border border-neutral-100 bg-white p-5 shadow-sm ${
-              index < 2 ? "min-h-[142px]" : "min-h-[128px]"
+            className={`h-28 rounded-xl border border-neutral-100 bg-white p-4 shadow-sm ${
+              index < 2 ? "xl:col-span-2" : "xl:col-span-1"
             }`}
           />
         ))}
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <>
       {items.map((item, index) => {
         const config = KPI_VISUALS[item.kpiId] ?? {
           icon: CircleDollarSign,
@@ -133,13 +133,13 @@ export default function SalesBudgetEssentialKpiCards({
         return (
           <div
             key={item.kpiId}
-            className={`relative overflow-hidden rounded-2xl border border-neutral-100 bg-white p-5 shadow-sm ${
-              index < 2 ? "min-h-[142px]" : "min-h-[128px]"
+            className={`flex items-start justify-between gap-3 rounded-xl border border-neutral-100 bg-white p-4 shadow-sm ${
+              index < 2 ? "xl:col-span-2" : "xl:col-span-1"
             }`}
           >
-            <div className="min-w-0 pr-16">
+            <div className="min-w-0 flex-1">
               <p
-                className="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-neutral-500 sm:text-xs"
+                className="mb-1 text-xs font-medium leading-5 text-neutral-500 sm:text-sm"
                 title={config.title}
               >
                 {config.title}
@@ -150,17 +150,16 @@ export default function SalesBudgetEssentialKpiCards({
               >
                 {formattedValue}
               </h3>
-              <p className="mt-3 text-xs font-medium leading-5 text-neutral-600">
+              <p className="mt-1 text-[11px] font-semibold leading-4 text-neutral-600">
                 {item.warning ?? config.subtitle}
               </p>
             </div>
-            <div className={`absolute right-5 top-5 shrink-0 rounded-full p-2.5 ${config.bgColor} ${config.color}`}>
-              <config.icon className="h-5 w-5" />
+            <div className={`mt-1 shrink-0 rounded-full p-2 lg:p-3 ${config.bgColor} ${config.color}`}>
+              <config.icon className="h-5 w-5 2xl:h-6 2xl:w-6" />
             </div>
-            <div className="pointer-events-none absolute -right-6 -top-6 h-16 w-16 rounded-full bg-neutral-100/60" />
           </div>
         );
       })}
-    </div>
+    </>
   );
 }

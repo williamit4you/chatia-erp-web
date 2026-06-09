@@ -2,7 +2,34 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import {
+  BadgePercent,
+  BarChart3,
+  Boxes,
+  BriefcaseBusiness,
+  Building2,
+  CircleDollarSign,
+  FileBarChart2,
+  Flag,
+  Gauge,
+  GitCompareArrows,
+  Globe2,
+  LayoutGrid,
+  MapPinned,
+  Megaphone,
+  MessageSquareWarning,
+  Package,
+  RefreshCcw,
+  Search,
+  ShoppingCart,
+  Sparkles,
+  Target,
+  TrendingUp,
+  Truck,
+  Users,
+  Wallet,
+} from "lucide-react";
 import SalesBudgetChartDetailsButton from "@/components/sales/SalesBudgetChartDetailsButton";
 import SalesBudgetChartDetailsModal from "@/components/sales/SalesBudgetChartDetailsModal";
 import SalesBudgetChartRenderer from "@/components/sales/SalesBudgetChartRenderer";
@@ -18,6 +45,10 @@ type ExplorerGroup = {
   key: string;
   label: string;
   items: ExplorerItem[];
+};
+
+type ExplorerGroupVisual = {
+  icon: LucideIcon;
 };
 
 type SalesBudgetCategoryExplorerWidgetProps = {
@@ -78,6 +109,43 @@ function buildDisplayLabels(items: ExplorerItem[]) {
     })
   );
 }
+
+const GROUP_VISUALS: Record<string, ExplorerGroupVisual> = {
+  value: { icon: CircleDollarSign },
+  quantity: { icon: BarChart3 },
+  ticket: { icon: Wallet },
+  conversion: { icon: Target },
+  overview: { icon: LayoutGrid },
+  planning: { icon: BriefcaseBusiness },
+  composition: { icon: FileBarChart2 },
+  profitability: { icon: Gauge },
+  alerts: { icon: MessageSquareWarning },
+  reasons: { icon: Search },
+  goals: { icon: Target },
+  inventory: { icon: Boxes },
+  expansion: { icon: Megaphone },
+  discount: { icon: BadgePercent },
+  markup: { icon: Gauge },
+  surcharge: { icon: TrendingUp },
+  freight: { icon: Truck },
+  ranking: { icon: TrendingUp },
+  trend: { icon: RefreshCcw },
+  share: { icon: FileBarChart2 },
+  frequency: { icon: RefreshCcw },
+  attention: { icon: Sparkles },
+  region: { icon: MapPinned },
+  comparison: { icon: GitCompareArrows },
+  origin: { icon: Globe2 },
+  geo: { icon: Flag },
+  cross: { icon: GitCompareArrows },
+  general: { icon: LayoutGrid },
+  seller: { icon: Users },
+  customer: { icon: Building2 },
+  product: { icon: Package },
+  margin: { icon: BadgePercent },
+  source: { icon: Globe2 },
+  payment: { icon: ShoppingCart },
+};
 
 function buildExplorerGroups(categoryId: string, items: ExplorerItem[]): ExplorerGroup[] {
   const groups = new Map<string, ExplorerGroup>();
@@ -366,6 +434,7 @@ export default function SalesBudgetCategoryExplorerWidget({
             <div className="mb-3 flex flex-wrap gap-2">
               {groups.map((group) => {
                 const isActive = group.key === activeGroup?.key;
+                const GroupIcon = GROUP_VISUALS[group.key]?.icon ?? LayoutGrid;
                 return (
                   <button
                     key={group.key}
@@ -382,7 +451,10 @@ export default function SalesBudgetCategoryExplorerWidget({
                         : "bg-white text-neutral-500 ring-1 ring-neutral-200 hover:bg-neutral-100 hover:text-neutral-700"
                     }`}
                   >
-                    {group.label}
+                    <span className="inline-flex items-center gap-1.5">
+                      <GroupIcon className="h-3.5 w-3.5" />
+                      <span>{group.label}</span>
+                    </span>
                   </button>
                 );
               })}

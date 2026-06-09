@@ -1,5 +1,6 @@
 export type DashboardThemeKey =
     | "general"
+    | "executive"
     | "payable"
     | "receivable"
     | "cashflow"
@@ -29,6 +30,17 @@ export const dashboardThemes: Record<DashboardThemeKey, DashboardTheme> = {
         chartPalette: ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#64748b"],
         primary: "#2563eb",
         strong: "#1d4ed8",
+    },
+    executive: {
+        key: "executive",
+        badgeClassName: "bg-neutral-900 text-white",
+        sectionClassName: "border-neutral-200 bg-neutral-50/40",
+        headerClassName: "border-neutral-200",
+        titleClassName: "text-neutral-950",
+        dotClassName: "bg-neutral-900",
+        chartPalette: ["#111827", "#2563eb", "#16a34a", "#f59e0b", "#7c3aed", "#0ea5e9", "#64748b"],
+        primary: "#111827",
+        strong: "#030712",
     },
     payable: {
         key: "payable",

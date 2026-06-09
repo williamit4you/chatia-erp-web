@@ -551,6 +551,26 @@ export default function SalesBudgetChartRenderer({
       );
     }
 
+    if (chart.chartId === "geo_city_heatmap") {
+      return (
+        <DistributionBarChart
+          data={chart.data.map((item) => ({
+            label: item.label,
+            valor: Number(item.value ?? item.amount ?? item.count ?? 0),
+          }))}
+          isLoading={false}
+          color={resolvedAccentColor}
+          valueKind={
+            chart.data.some((item) => (item.amount ?? 0) !== 0)
+              ? "currency"
+              : "number"
+          }
+          layout="horizontal"
+          maxItems={compact ? 10 : 20}
+        />
+      );
+    }
+
     return (
       <HeatmapView
         chart={chart}

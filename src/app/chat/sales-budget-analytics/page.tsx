@@ -90,6 +90,9 @@ const EXPLORER_CATEGORY_IDS = new Set([
   "source",
   "payment",
   "freight",
+  "seller_insights",
+  "executive",
+  "future_data",
 ]);
 
 type DashboardAccessUser = {
@@ -231,7 +234,9 @@ export default function SalesBudgetAnalyticsPage() {
   }, [activeCategory?.id, visibleCatalog]);
 
   const activeCategoryTheme = activeCategory
-    ? SALES_BUDGET_CATEGORY_THEMES[activeCategory.id] ?? "general"
+    ? activeCategory.id === "overview"
+      ? "executive"
+      : SALES_BUDGET_CATEGORY_THEMES[activeCategory.id] ?? "general"
     : "general";
 
   const overviewChartsCount = useMemo(() => {
@@ -767,8 +772,16 @@ export default function SalesBudgetAnalyticsPage() {
           </div>
           <DashboardSection
             number={activeCategoryNumber}
-            title={activeCategory?.name ?? "Gráficos por categoria"}
-            description={activeCategory?.description ?? "Escolha uma categoria para explorar os gráficos do período."}
+            title={
+              activeCategoryId === "overview"
+                ? "GRUPO DE GR\u00c1FICOS"
+                : activeCategory?.name ?? "Gr\u00e1ficos por categoria"
+            }
+            description={
+              activeCategoryId === "overview"
+                ? "Cole\u00e7\u00e3o principal de visualiza\u00e7\u00f5es organizadas por tema e leitura."
+                : activeCategory?.description ?? "Escolha uma categoria para explorar os gr\u00e1ficos do per\u00edodo."
+            }
             theme={activeCategoryTheme}
           >
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">

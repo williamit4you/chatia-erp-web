@@ -37,13 +37,13 @@ function shortenExplorerLabel(label: string) {
     .replace(/ por cliente/gi, "")
     .replace(/ por produto/gi, "")
     .replace(/ por origem/gi, "")
-    .replace(/ por condi(?:ç|Ã§)(?:ã|Ã£)o de pagamento/gi, "")
+    .replace(/ por condi(?:\u00e7|\u00c3\u00a7)(?:\u00e3|\u00c3\u00a3)o de pagamento/gi, "")
     .replace(/ de vendedores/gi, "")
     .replace(/ de clientes/gi, "")
     .replace(/ de produtos/gi, "")
     .replace(/ concedido/gi, "")
     .replace(/ valor total/gi, " valor")
-    .replace(/ quantidade de or(?:ç|Ã§)amentos/gi, " quantidade")
+    .replace(/ quantidade de or(?:\u00e7|\u00c3\u00a7)amentos/gi, " quantidade")
     .replace(/Vendedores com mais /gi, "")
     .replace(/Clientes com maior /gi, "")
     .replace(/Produtos com maior /gi, "")
@@ -51,13 +51,32 @@ function shortenExplorerLabel(label: string) {
     .replace(/Top produtos /gi, "")
     .replace(/Top vendedores /gi, "")
     .replace(/Ranking de /gi, "")
-    .replace(/Condi(?:ç|Ã§)(?:ã|Ã£)o de pagamento x /gi, "")
+    .replace(/Condi(?:\u00e7|\u00c3\u00a7)(?:\u00e3|\u00c3\u00a3)o de pagamento x /gi, "")
     .replace(/Cliente x /gi, "")
     .replace(/Produtos? x /gi, "")
     .replace(/Origem x /gi, "")
-    .replace(/Relação /gi, "")
+    .replace(/Rela(?:\u00e7\u00e3o|\u00c3\u00a7\u00c3\u00a3o) /gi, "")
     .replace(/\s{2,}/g, " ")
     .trim();
+}
+
+function buildDisplayLabels(items: ExplorerItem[]) {
+  const shortenedById = new Map<string, string>();
+  const counts = new Map<string, number>();
+
+  for (const item of items) {
+    const shortened = shortenExplorerLabel(item.label);
+    shortenedById.set(item.id, shortened);
+    counts.set(shortened, (counts.get(shortened) ?? 0) + 1);
+  }
+
+  return new Map(
+    items.map((item) => {
+      const shortened = shortenedById.get(item.id) ?? item.label;
+      const hasCollision = (counts.get(shortened) ?? 0) > 1;
+      return [item.id, hasCollision ? item.label : shortened];
+    })
+  );
 }
 
 function buildExplorerGroups(categoryId: string, items: ExplorerItem[]): ExplorerGroup[] {
@@ -74,20 +93,86 @@ function buildExplorerGroups(categoryId: string, items: ExplorerItem[]): Explore
   const getGroupMeta = (item: ExplorerItem) => {
     const text = `${item.id} ${item.label}`.toLowerCase();
 
+    if (categoryId === "executive") {
+      if (/dashboard|receita|total|consolid|open_pipeline|pipeline/.test(text)) {
+        return { key: "overview", label: "Resumo executivo" };
+      }
+      if (/meta|goal|forecast|growth|evolu/.test(text)) {
+        return { key: "planning", label: "Planejamento" };
+      }
+      if (/seller|customer|product|region|origin|share|participa/.test(text)) {
+        return { key: "composition", label: "Participa\u00e7\u00e3o" };
+      }
+      if (/markup|margin|discount/.test(text)) {
+        return { key: "profitability", label: "Rentabilidade" };
+      }
+      if (/lost|negotiation|opportunit|alert/.test(text)) {
+        return { key: "alerts", label: "Alertas e oportunidades" };
+      }
+    }
+
+    if (categoryId === "future_data") {
+      if (/budget_vs_sold|converted_to_order|conversion_time|approval_time|pedido|fatur/.test(text)) {
+        return { key: "conversion", label: "Convers\u00e3o e faturamento" };
+      }
+      if (/loss_reason|cancel_reason/.test(text)) {
+        return { key: "reasons", label: "Motivos" };
+      }
+      if (/goal|meta/.test(text)) {
+        return { key: "goals", label: "Metas" };
+      }
+      if (/margin|profit|cogs|rentab/.test(text)) {
+        return { key: "profitability", label: "Rentabilidade" };
+      }
+      if (/stock|estoque|inventory|demand/.test(text)) {
+        return { key: "inventory", label: "Estoque e demanda" };
+      }
+      if (/commission|seller/.test(text)) {
+        return { key: "seller", label: "Vendedores" };
+      }
+      if (/customer|ltv|churn|repurchase|frequency|inadimpl/.test(text)) {
+        return { key: "customer", label: "Clientes e ciclo" };
+      }
+      if (/marketing|campaign|cross-sell|upsell/.test(text)) {
+        return { key: "expansion", label: "Marketing e expans\u00e3o" };
+      }
+    }
+
+    if (categoryId === "seller_insights") {
+      if (/conversion|convers|chance/.test(text)) {
+        return { key: "conversion", label: "Convers\u00e3o" };
+      }
+      if (/frequ|recorr|recompra/.test(text)) {
+        return { key: "frequency", label: "Recorr\u00eancia e recompra" };
+      }
+      if (/stopped|pararam|inativ|old_open|follow/.test(text)) {
+        return { key: "attention", label: "Follow-up e aten\u00e7\u00e3o" };
+      }
+      if (/product|produto/.test(text)) {
+        return { key: "product", label: "Produtos recomendados" };
+      }
+      if (/region|regi[a\u00e3]o/.test(text)) {
+        return { key: "region", label: "Regi\u00f5es e territ\u00f3rio" };
+      }
+      if (/ranking|avg|compar|team/.test(text)) {
+        return { key: "comparison", label: "Comparativos e equipe" };
+      }
+    }
+
     if (/ticket/.test(text)) return { key: "ticket", label: "Ticket" };
-    if (/convers|approval|aprov/.test(text)) return { key: "conversion", label: "Conversão" };
+    if (/convers|approval|aprov/.test(text)) return { key: "conversion", label: "Convers\u00e3o" };
     if (/quantidade|count|volume|usad/.test(text)) return { key: "quantity", label: "Quantidade" };
     if (/desconto|discount/.test(text)) return { key: "discount", label: "Desconto" };
     if (/markup|margem|margin/.test(text)) return { key: "markup", label: "Markup" };
-    if (/acr[ée]scimo|surcharge/.test(text)) return { key: "surcharge", label: "Acréscimo" };
+    if (/acr[\u00e9e]scimo|surcharge/.test(text)) return { key: "surcharge", label: "Acr\u00e9scimo" };
     if (/frete|freight/.test(text)) return { key: "freight", label: "Frete" };
     if (/ranking|top |melhor|maior|menor|best|highest|lowest|most|least/.test(text)) {
       return { key: "ranking", label: "Ranking" };
     }
-    if (/evolu|growth|drop|period|monthly/.test(text)) return { key: "trend", label: "Evolução" };
-    if (/share|participa|abc/.test(text)) return { key: "share", label: "Participação" };
-    if (/cliente x|vendedor x|origem x|produto x|responsável|responsible|cooccurrence|juntos/.test(text)) {
-      return { key: "cross", label: "Relações" };
+    if (/evolu|growth|drop|period|monthly/.test(text)) return { key: "trend", label: "Evolu\u00e7\u00e3o" };
+    if (/share|participa|abc/.test(text)) return { key: "share", label: "Participa\u00e7\u00e3o" };
+    if (/cliente x|vendedor x|origem x|produto x|respons\u00e1vel|responsible|cooccurrence|juntos/.test(text)) {
+      return { key: "cross", label: "Rela\u00e7\u00f5es" };
     }
     if (/origem|channel|canal/.test(text) && categoryId !== "source") {
       return { key: "origin", label: "Origem" };
@@ -129,6 +214,15 @@ function buildExplorerGroups(categoryId: string, items: ExplorerItem[]): Explore
     "quantity",
     "ticket",
     "conversion",
+    "overview",
+    "planning",
+    "composition",
+    "profitability",
+    "alerts",
+    "reasons",
+    "goals",
+    "inventory",
+    "expansion",
     "discount",
     "markup",
     "surcharge",
@@ -136,6 +230,10 @@ function buildExplorerGroups(categoryId: string, items: ExplorerItem[]): Explore
     "ranking",
     "trend",
     "share",
+    "frequency",
+    "attention",
+    "region",
+    "comparison",
     "origin",
     "geo",
     "cross",
@@ -173,6 +271,7 @@ export default function SalesBudgetCategoryExplorerWidget({
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const groups = useMemo(() => buildExplorerGroups(categoryId, items), [categoryId, items]);
+  const displayLabels = useMemo(() => buildDisplayLabels(items), [items]);
 
   useEffect(() => {
     const validIds = new Set(items.map((item) => item.id));
@@ -305,7 +404,7 @@ export default function SalesBudgetCategoryExplorerWidget({
                   }`}
                   title={item.label}
                 >
-                  {shortenExplorerLabel(item.label)}
+                  {displayLabels.get(item.id) ?? item.label}
                 </button>
               );
             })}

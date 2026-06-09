@@ -8,6 +8,7 @@ import SalesBudgetFunnelByStatusWidget from "@/components/sales/SalesBudgetFunne
 import SalesBudgetFunnelConversionWidget from "@/components/sales/SalesBudgetFunnelConversionWidget";
 import SalesBudgetGeoByUfWidget from "@/components/sales/SalesBudgetGeoByUfWidget";
 import SalesBudgetEssentialKpiCards from "@/components/sales/SalesBudgetEssentialKpiCards";
+import SalesBudgetExecutiveKpiGrid from "@/components/sales/SalesBudgetExecutiveKpiGrid";
 import DashboardSection from "@/components/finance/DashboardSection";
 import SectionChartGrid from "@/components/finance/SectionChartGrid";
 import type { DashboardThemeKey } from "@/components/finance/dashboardThemes";
@@ -810,7 +811,7 @@ export default function SalesBudgetAnalyticsPage() {
               <div className="space-y-6">
                 {overviewSections.length === 0 ? (
                   <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500">
-                    Nenhum grÃ¡fico da visÃ£o geral corresponde ao filtro digitado.
+                    {"Nenhum gr\u00e1fico da vis\u00e3o geral corresponde ao filtro digitado."}
                   </div>
                 ) : (
                   overviewSections.map((section) => (
@@ -831,7 +832,17 @@ export default function SalesBudgetAnalyticsPage() {
                 )}
               </div>
             ) : null}
-            {activeCategoryId !== "overview" ? (
+            {activeCategoryId === "kpis" ? (
+            <SalesBudgetExecutiveKpiGrid
+              items={filteredHighlights.map((chart) => ({
+                chartId: chart.id,
+                title: chart.title,
+                chart: chartsById[chart.id] ?? null,
+              }))}
+              isLoading={isLoadingCharts}
+            />
+            ) : null}
+            {activeCategoryId !== "overview" && activeCategoryId !== "kpis" ? (
             <SectionChartGrid variant="analysis">
               {renderHighlights.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500 xl:col-span-3">
@@ -987,7 +998,7 @@ export default function SalesBudgetAnalyticsPage() {
                     Top 5 vendedores
                   </div>
                   <p className="text-[11px] font-semibold leading-4 text-neutral-600">
-                    Ranking por valor orçado no período selecionado.
+                    {"Ranking por valor or\u00e7ado no per\u00edodo selecionado."}
                   </p>
                 </div>
                 <div className="shrink-0 rounded-full bg-neutral-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-neutral-600">
@@ -1027,7 +1038,7 @@ export default function SalesBudgetAnalyticsPage() {
                 </div>
               ) : (
                   <div className="mt-4 rounded-xl bg-neutral-50 px-4 py-3 text-sm text-neutral-500">
-                  {topSellersError ?? "Sem dados para montar o ranking neste período."}
+                  {topSellersError ?? "Sem dados para montar o ranking neste per\u00edodo."}
                 </div>
               )}
             </div>

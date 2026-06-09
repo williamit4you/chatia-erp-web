@@ -117,14 +117,14 @@ function getValueTextClass(text: string, isTextKpi: boolean) {
   const length = text.replace(/\s/g, "").length;
 
   if (isTextKpi) {
-    if (length >= 26) return "text-base sm:text-lg";
-    if (length >= 16) return "text-lg sm:text-xl";
-    return "text-xl sm:text-2xl";
+    if (length >= 26) return "text-sm sm:text-base";
+    if (length >= 16) return "text-base sm:text-lg";
+    return "text-lg sm:text-xl";
   }
 
-  if (length >= 16) return "text-lg";
-  if (length >= 13) return "text-xl";
-  return "text-2xl";
+  if (length >= 16) return "text-base sm:text-lg";
+  if (length >= 13) return "text-lg sm:text-xl";
+  return "text-xl sm:text-2xl";
 }
 
 export default function SalesBudgetExecutiveKpiGrid({
@@ -147,17 +147,17 @@ export default function SalesBudgetExecutiveKpiGrid({
         return (
           <div
             key={item.chartId}
-            className={`rounded-2xl border border-yellow-100 bg-white px-4 py-5 shadow-sm ${
+            className={`rounded-xl border border-neutral-100 bg-white px-4 py-4 shadow-sm ${
               index < 2 ? "2xl:col-span-2" : "2xl:col-span-1"
             }`}
           >
-            <div className="flex min-h-[126px] flex-col">
+            <div className="flex min-h-[104px] flex-col">
               <div className="flex items-center gap-2">
-                <div className={`shrink-0 rounded-lg p-2 ${config.bgColor} ${config.color}`}>
-                  <config.icon className="h-4 w-4" />
+                <div className={`shrink-0 rounded-md p-1.5 ${config.bgColor} ${config.color}`}>
+                  <config.icon className="h-3.5 w-3.5" />
                 </div>
                 <p
-                  className="truncate text-[11px] font-black uppercase tracking-[0.14em] text-neutral-700"
+                  className="truncate text-[10px] font-bold uppercase tracking-[0.12em] text-neutral-700"
                   title={item.title}
                 >
                   {item.title}
@@ -165,7 +165,7 @@ export default function SalesBudgetExecutiveKpiGrid({
               </div>
 
               <h3
-                className={`mt-5 whitespace-normal [overflow-wrap:anywhere] font-black leading-tight ${
+                className={`mt-4 whitespace-normal [overflow-wrap:anywhere] font-semibold leading-tight ${
                   getValueTextClass(String(valueText), isTextKpi)
                 } ${
                   isTextKpi ? "text-neutral-900" : config.color
@@ -175,7 +175,7 @@ export default function SalesBudgetExecutiveKpiGrid({
                 {valueText}
               </h3>
 
-              <p className="mt-3 min-h-8 text-xs font-medium leading-4 text-neutral-600">
+              <p className="mt-2 min-h-7 text-[11px] font-medium leading-4 text-neutral-500">
                 {warning ?? secondaryValue ?? "\u00a0"}
               </p>
             </div>

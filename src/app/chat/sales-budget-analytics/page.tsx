@@ -9,6 +9,7 @@ import SalesBudgetFunnelConversionWidget from "@/components/sales/SalesBudgetFun
 import SalesBudgetGeoByUfWidget from "@/components/sales/SalesBudgetGeoByUfWidget";
 import SalesBudgetEssentialKpiCards from "@/components/sales/SalesBudgetEssentialKpiCards";
 import SalesBudgetExecutiveKpiGrid from "@/components/sales/SalesBudgetExecutiveKpiGrid";
+import SalesBudgetCategoryExplorerWidget from "@/components/sales/SalesBudgetCategoryExplorerWidget";
 import DashboardSection from "@/components/finance/DashboardSection";
 import SectionChartGrid from "@/components/finance/SectionChartGrid";
 import type { DashboardThemeKey } from "@/components/finance/dashboardThemes";
@@ -80,6 +81,16 @@ const SALES_BUDGET_CATEGORY_THEMES: Record<string, DashboardThemeKey> = {
   efficiency: "efficiency",
   predictive: "analysis",
 };
+
+const EXPLORER_CATEGORY_IDS = new Set([
+  "seller",
+  "customer",
+  "product",
+  "margin",
+  "source",
+  "payment",
+  "freight",
+]);
 
 type DashboardAccessUser = {
   role?: string;
@@ -842,7 +853,25 @@ export default function SalesBudgetAnalyticsPage() {
               isLoading={isLoadingCharts}
             />
             ) : null}
-            {activeCategoryId !== "overview" && activeCategoryId !== "kpis" ? (
+            {EXPLORER_CATEGORY_IDS.has(activeCategoryId) ? (
+            <SalesBudgetCategoryExplorerWidget
+              categoryId={activeCategoryId}
+              categoryName={activeCategory?.name ?? "Explorador"}
+              categoryDescription={activeCategory?.description ?? null}
+              items={filteredHighlights.map((chart) => ({
+                id: chart.id,
+                label: chart.title,
+                chart: chartsById[chart.id] ?? null,
+              }))}
+              isLoading={isLoadingCharts}
+              accentColor={activeCategory?.color}
+              startDate={startDate}
+              endDate={endDate}
+            />
+            ) : null}
+            {activeCategoryId !== "overview" &&
+            activeCategoryId !== "kpis" &&
+            !EXPLORER_CATEGORY_IDS.has(activeCategoryId) ? (
             <SectionChartGrid variant="analysis">
               {renderHighlights.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500 xl:col-span-3">

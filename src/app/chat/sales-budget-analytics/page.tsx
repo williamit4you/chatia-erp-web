@@ -728,34 +728,8 @@ export default function SalesBudgetAnalyticsPage() {
         </div>
 
         {activeScope === "budget" && (
-          <DashboardSection
-            number={activeCategoryNumber}
-            title={activeCategory?.name ?? "Gráficos por categoria"}
-            description={activeCategory?.description ?? "Escolha uma categoria para explorar os gráficos do período."}
-            theme={activeCategoryTheme}
-          >
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <h2 className="text-xl font-black tracking-tight text-neutral-900">
-                Gráficos por categoria
-              </h2>
-              <p className="mt-1 text-sm text-neutral-500">
-                Escolha uma categoria para explorar os gráficos do período.
-              </p>
-            </div>
-
-            <div className="flex w-full max-w-md items-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-2">
-              <Search className="h-4 w-4 text-neutral-400" />
-              <input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Buscar gráfico"
-                className="w-full bg-transparent text-sm text-neutral-700 outline-none placeholder:text-neutral-400"
-              />
-            </div>
-          </div>
-
-          <div className="mt-5 flex gap-2 overflow-x-auto pb-2">
+          <>
+          <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
             {visibleCatalog.map((category) => {
               const isActive = category.id === activeCategory?.id;
 
@@ -789,6 +763,32 @@ export default function SalesBudgetAnalyticsPage() {
                 </button>
               );
             })}
+          </div>
+          <DashboardSection
+            number={activeCategoryNumber}
+            title={activeCategory?.name ?? "Gráficos por categoria"}
+            description={activeCategory?.description ?? "Escolha uma categoria para explorar os gráficos do período."}
+            theme={activeCategoryTheme}
+          >
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h2 className="text-xl font-black tracking-tight text-neutral-900">
+                Gráficos por categoria
+              </h2>
+              <p className="mt-1 text-sm text-neutral-500">
+                Escolha uma categoria para explorar os gráficos do período.
+              </p>
+            </div>
+
+            <div className="flex w-full max-w-md items-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-2">
+              <Search className="h-4 w-4 text-neutral-400" />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Buscar gráfico"
+                className="w-full bg-transparent text-sm text-neutral-700 outline-none placeholder:text-neutral-400"
+              />
+            </div>
           </div>
 
           {chartsError && (
@@ -948,6 +948,7 @@ export default function SalesBudgetAnalyticsPage() {
             ) : null}
           </div>
           </DashboardSection>
+          </>
         )}
 
         {activeScope === "budget" ? (

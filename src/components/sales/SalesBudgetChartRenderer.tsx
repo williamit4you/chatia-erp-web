@@ -602,6 +602,13 @@ export default function SalesBudgetChartRenderer({
 
   return (
     (() => {
+      const isMonthSeasonalityChart = chart.chartId === "overview_month_seasonality";
+      const preserveChartOrder = isMonthSeasonalityChart
+        ? true
+        : chart.visualization === "bar"
+          ? false
+          : true;
+
       const content = (
         <DistributionBarChart
           data={chart.data.map((item) => ({
@@ -615,9 +622,9 @@ export default function SalesBudgetChartRenderer({
               ? "currency"
               : "number"
           }
-          layout={compact ? "vertical" : "horizontal"}
+          layout={isMonthSeasonalityChart ? "vertical" : compact ? "vertical" : "horizontal"}
           maxItems={compact ? 8 : 12}
-          preserveOrder={chart.visualization === "bar" ? false : true}
+          preserveOrder={preserveChartOrder}
         />
       );
 

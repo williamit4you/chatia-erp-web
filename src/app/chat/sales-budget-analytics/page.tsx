@@ -7,11 +7,12 @@ import SalesBudgetChartDetailsModal from "@/components/sales/SalesBudgetChartDet
 import SalesBudgetFunnelByStatusWidget from "@/components/sales/SalesBudgetFunnelByStatusWidget";
 import SalesBudgetFunnelConversionWidget from "@/components/sales/SalesBudgetFunnelConversionWidget";
 import SalesBudgetGeoByUfWidget from "@/components/sales/SalesBudgetGeoByUfWidget";
+import SalesBudgetEssentialKpiCards from "@/components/sales/SalesBudgetEssentialKpiCards";
 import DashboardSection from "@/components/finance/DashboardSection";
 import SectionChartGrid from "@/components/finance/SectionChartGrid";
 import type { DashboardThemeKey } from "@/components/finance/dashboardThemes";
 import { applySalesBudgetCatalogColors, salesBudgetCatalog } from "@/lib/sales-budget-catalog";
-import { formatCurrency, formatNumber, formatPercent } from "@/lib/formatters/financeFormat";
+import { formatCurrency } from "@/lib/formatters/financeFormat";
 import { getSalesBudgetChartDefinition } from "@/lib/salesBudgetChartDefinitions";
 import salesBudgetAnalyticsService, {
   type SalesBudgetCategory,
@@ -91,18 +92,6 @@ type VisibleChart = {
   categoryId: string;
   categoryName: string;
   accentColor?: string;
-};
-
-const formatKpiValue = (item: SalesBudgetKpiItem) => {
-  if (item.format === "text") return item.textValue ?? "Sem dados";
-  const value = Number(item.value ?? 0);
-  if (item.format === "currency") {
-    return formatCurrency(value, { compact: true, maximumFractionDigits: 1 });
-  }
-  if (item.format === "percentage") {
-    return formatPercent(value, { maximumFractionDigits: 1 });
-  }
-  return formatNumber(value, { compact: true, maximumFractionDigits: 0 });
 };
 
 export default function SalesBudgetAnalyticsPage() {
@@ -985,36 +974,31 @@ export default function SalesBudgetAnalyticsPage() {
             </div>
           )}
 
-          <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {LIVE_KPI_IDS.map((kpiId) => {
-              const item = kpiMap[kpiId];
-              return (
-                <div
-                  key={kpiId}
-                  className="rounded-[24px] border border-yellow-200 bg-white p-5 shadow-sm"
-                >
-                  <div className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
-                    {item?.label ?? "Carregando"}
-                  </div>
-                  <div className="mt-3 text-3xl font-black tracking-tight text-neutral-900">
-                    {isLoadingKpis && !item ? "..." : item ? formatKpiValue(item) : "-"}
-                  </div>
-                  <div className="mt-2 min-h-5 text-xs font-medium text-neutral-500">
-                    {item?.warning ?? "\u00a0"}
-                  </div>
-                </div>
-              );
-            })}
+          <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(340px,0.9fr)] xl:items-start">
+            <SalesBudgetEssentialKpiCards
+              items={LIVE_KPI_IDS.map((kpiId) => kpiMap[kpiId]).filter(Boolean)}
+              isLoading={isLoadingKpis}
+            />
 
-            <div className="rounded-[24px] border border-yellow-200 bg-white p-5 shadow-sm">
-              <div className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
-                Top 5 vendedores
+            <div className="self-start rounded-[24px] border border-yellow-200 bg-white p-5 shadow-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-xs font-black uppercase tracking-[0.16em] text-neutral-500">
+                    Top 5 vendedores
+                  </div>
+                  <p className="mt-2 text-sm text-neutral-500">
+                    Ranking por valor orçado no período selecionado.
+                  </p>
+                </div>
+                <div className="rounded-full bg-neutral-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-neutral-600">
+                  Ranking
+                </div>
               </div>
 
               {isLoadingKpis && topSellerRows.length === 0 ? (
                 <div className="mt-4 space-y-3">
                   {[1, 2, 3, 4, 5].map((item) => (
-                    <div key={item} className="h-8 animate-pulse rounded-xl bg-neutral-50" />
+                    <div key={item} className="h-12 animate-pulse rounded-2xl bg-neutral-50" />
                   ))}
                 </div>
               ) : topSellerRows.length > 0 ? (
@@ -1022,17 +1006,17 @@ export default function SalesBudgetAnalyticsPage() {
                   {topSellerRows.map((seller) => (
                     <div
                       key={`${seller.rank}-${seller.name}`}
-                      className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-50 px-3 py-2.5"
+                      className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-100 bg-neutral-50/70 px-3 py-3"
                     >
                       <div className="flex min-w-0 items-center gap-3">
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-black text-white">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-black text-white">
                           {seller.rank}
                         </div>
                         <div className="truncate text-sm font-bold text-neutral-800">
                           {seller.name}
                         </div>
                       </div>
-                      <div className="shrink-0 text-sm font-black text-neutral-900">
+                      <div className="shrink-0 rounded-xl bg-white px-3 py-1.5 text-sm font-black text-neutral-900 shadow-sm">
                         {formatCurrency(seller.amount, {
                           compact: true,
                           maximumFractionDigits: 1,

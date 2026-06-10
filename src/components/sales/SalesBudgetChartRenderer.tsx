@@ -31,6 +31,8 @@ type SalesBudgetChartRendererProps = {
   isLoading?: boolean;
   compact?: boolean;
   accentColor?: string;
+  startDate?: string;
+  endDate?: string;
 };
 
 const BR_UFS = new Set([
@@ -436,6 +438,8 @@ export default function SalesBudgetChartRenderer({
   isLoading = false,
   compact = false,
   accentColor,
+  startDate,
+  endDate,
 }: SalesBudgetChartRendererProps) {
   const resolvedAccentColor = normalizeHexColor(accentColor) ?? "#4f46e5";
   if (isLoading) {
@@ -514,7 +518,14 @@ export default function SalesBudgetChartRenderer({
       chart.chartId === "overview_current_vs_previous_month" ||
       chart.chartId === "overview_current_year_vs_previous_year"
     ) {
-      return <ComparisonKpiGrid chart={chart} compact={compact} />;
+      return (
+        <ComparisonKpiGrid
+          chart={chart}
+          compact={compact}
+          startDate={startDate}
+          endDate={endDate}
+        />
+      );
     }
 
     return <KpiGridView chart={chart} compact={compact} />;

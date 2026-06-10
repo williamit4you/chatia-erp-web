@@ -123,6 +123,8 @@ export default function SalesBudgetOverviewPeaksWidget({
             chart={activeChart}
             isLoading={isLoading && !activeChart}
             compact
+            startDate={startDate}
+            endDate={endDate}
           />
         </div>
       </article>

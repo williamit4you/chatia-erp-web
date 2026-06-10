@@ -102,6 +102,8 @@ export default function SalesBudgetOverviewSeasonalityWidget({
             chart={activeChart}
             isLoading={isLoading && !activeChart}
             compact
+            startDate={startDate}
+            endDate={endDate}
           />
         </div>
       </article>

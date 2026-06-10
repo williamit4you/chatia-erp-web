@@ -143,6 +143,8 @@ export default function SalesBudgetFunnelByStatusWidget({
             isLoading={isLoading && !activeChart}
             compact
             accentColor={accentColor}
+            startDate={startDate}
+            endDate={endDate}
           />
         </div>
       </article>

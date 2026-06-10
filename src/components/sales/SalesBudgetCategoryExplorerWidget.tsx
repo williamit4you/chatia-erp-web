@@ -493,6 +493,8 @@ export default function SalesBudgetCategoryExplorerWidget({
             chart={activeItem?.chart ?? null}
             isLoading={isLoading && !activeItem?.chart}
             accentColor={accentColor}
+            startDate={startDate}
+            endDate={endDate}
           />
         </div>
       </article>

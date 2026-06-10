@@ -72,6 +72,8 @@ export default function SalesBudgetChartCard({
             isLoading={isLoading}
             compact
             accentColor={accentColor}
+            startDate={startDate}
+            endDate={endDate}
           />
         </div>
       </article>

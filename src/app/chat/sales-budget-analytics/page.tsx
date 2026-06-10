@@ -1169,7 +1169,7 @@ export default function SalesBudgetAnalyticsPage() {
                       : "text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900"
                   }`}
                 >
-                  VisÃ£o geral
+                  Visão geral
                 </button>
                 <button
                   type="button"
@@ -1277,7 +1277,7 @@ export default function SalesBudgetAnalyticsPage() {
             <SectionChartGrid variant="analysis">
               {filteredHighlights.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500 xl:col-span-3">
-                  Nenhum grÃ¡fico desta categoria corresponde ao filtro digitado.
+                  Nenhum gráfico desta categoria corresponde ao filtro digitado.
                 </div>
               ) : (
                 filteredHighlights.map((chart) => (

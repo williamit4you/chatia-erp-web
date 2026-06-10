@@ -138,6 +138,8 @@ export default function SalesBudgetGeoByUfWidget({
             isLoading={isLoading && !activeChart}
             compact
             accentColor={accentColor}
+            startDate={startDate}
+            endDate={endDate}
           />
         </div>
       </article>

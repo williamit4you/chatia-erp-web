@@ -8,6 +8,9 @@ import SalesBudgetChartDetailsModal from "@/components/sales/SalesBudgetChartDet
 import SalesBudgetFunnelByStatusWidget from "@/components/sales/SalesBudgetFunnelByStatusWidget";
 import SalesBudgetFunnelConversionWidget from "@/components/sales/SalesBudgetFunnelConversionWidget";
 import SalesBudgetFunnelHealthWidget from "@/components/sales/SalesBudgetFunnelHealthWidget";
+import SalesBudgetOverviewHeroWidget from "@/components/sales/SalesBudgetOverviewHeroWidget";
+import SalesBudgetOverviewRhythmWidget from "@/components/sales/SalesBudgetOverviewRhythmWidget";
+import SalesBudgetOverviewSeasonalityWidget from "@/components/sales/SalesBudgetOverviewSeasonalityWidget";
 import SalesBudgetGeoByUfWidget from "@/components/sales/SalesBudgetGeoByUfWidget";
 import SalesBudgetEssentialKpiCards from "@/components/sales/SalesBudgetEssentialKpiCards";
 import SalesBudgetExecutiveKpiGrid from "@/components/sales/SalesBudgetExecutiveKpiGrid";
@@ -395,7 +398,10 @@ export default function SalesBudgetAnalyticsPage() {
         charts: VisibleChart[];
         defaultTabId?: string | null;
       }
-    | { kind: "funnel_health_summary"; charts: VisibleChart[] };
+    | { kind: "funnel_health_summary"; charts: VisibleChart[] }
+    | { kind: "overview_hero_summary"; charts: VisibleChart[] }
+    | { kind: "overview_rhythm_summary"; charts: VisibleChart[] }
+    | { kind: "overview_seasonality_summary"; charts: VisibleChart[] };
 
   const buildRenderHighlights = (sourceCharts: VisibleChart[]): RenderItem[] => {
     if (sourceCharts.length === 0) return [];
@@ -431,6 +437,27 @@ export default function SalesBudgetAnalyticsPage() {
         "funnel_loss_cancel_rate",
       ].includes(item.id)
     );
+    const overviewHeroChartsAll = sourceCharts.filter((item) =>
+      [
+        "overview_total_amount_period",
+        "overview_total_count_period",
+        "overview_avg_ticket",
+      ].includes(item.id)
+    );
+    const overviewRhythmChartsAll = sourceCharts.filter((item) =>
+      [
+        "overview_monthly_evolution",
+        "overview_weekly_evolution",
+        "overview_daily_evolution",
+      ].includes(item.id)
+    );
+    const overviewSeasonalityChartsAll = sourceCharts.filter((item) =>
+      [
+        "overview_month_seasonality",
+        "overview_weekday_heatmap",
+        "overview_month_year_heatmap",
+      ].includes(item.id)
+    );
 
     const matchedIds = new Set(localFilteredHighlights.map((c) => c.id));
 
@@ -454,11 +481,29 @@ export default function SalesBudgetAnalyticsPage() {
       (deferredSearch
         ? funnelHealthChartsAll.some((c) => matchedIds.has(c.id))
         : true);
+    const showOverviewHeroGroup =
+      overviewHeroChartsAll.length >= 2 &&
+      (deferredSearch
+        ? overviewHeroChartsAll.some((c) => matchedIds.has(c.id))
+        : true);
+    const showOverviewRhythmGroup =
+      overviewRhythmChartsAll.length >= 2 &&
+      (deferredSearch
+        ? overviewRhythmChartsAll.some((c) => matchedIds.has(c.id))
+        : true);
+    const showOverviewSeasonalityGroup =
+      overviewSeasonalityChartsAll.length >= 2 &&
+      (deferredSearch
+        ? overviewSeasonalityChartsAll.some((c) => matchedIds.has(c.id))
+        : true);
 
     const geoSet = new Set(geoGroupChartsAll.map((c) => c.id));
     const conversionSet = new Set(conversionGroupChartsAll.map((c) => c.id));
     const statusSet = new Set(statusGroupChartsAll.map((c) => c.id));
     const funnelHealthSet = new Set(funnelHealthChartsAll.map((c) => c.id));
+    const overviewHeroSet = new Set(overviewHeroChartsAll.map((c) => c.id));
+    const overviewRhythmSet = new Set(overviewRhythmChartsAll.map((c) => c.id));
+    const overviewSeasonalitySet = new Set(overviewSeasonalityChartsAll.map((c) => c.id));
 
     const items: RenderItem[] = [];
 
@@ -496,6 +541,24 @@ export default function SalesBudgetAnalyticsPage() {
         charts: funnelHealthChartsAll,
       });
     };
+    const pushOverviewHeroGroup = () => {
+      items.push({
+        kind: "overview_hero_summary",
+        charts: overviewHeroChartsAll,
+      });
+    };
+    const pushOverviewRhythmGroup = () => {
+      items.push({
+        kind: "overview_rhythm_summary",
+        charts: overviewRhythmChartsAll,
+      });
+    };
+    const pushOverviewSeasonalityGroup = () => {
+      items.push({
+        kind: "overview_seasonality_summary",
+        charts: overviewSeasonalityChartsAll,
+      });
+    };
 
     // Render order: keep list order, but collapse group members into one widget.
     for (const chart of localFilteredHighlights) {
@@ -517,6 +580,22 @@ export default function SalesBudgetAnalyticsPage() {
 
       if (showFunnelHealthGroup && funnelHealthSet.has(chart.id)) {
         if (!items.some((i) => i.kind === "funnel_health_summary")) pushFunnelHealthGroup();
+        continue;
+      }
+
+      if (showOverviewHeroGroup && overviewHeroSet.has(chart.id)) {
+        if (!items.some((i) => i.kind === "overview_hero_summary")) pushOverviewHeroGroup();
+        continue;
+      }
+
+      if (showOverviewRhythmGroup && overviewRhythmSet.has(chart.id)) {
+        if (!items.some((i) => i.kind === "overview_rhythm_summary")) pushOverviewRhythmGroup();
+        continue;
+      }
+
+      if (showOverviewSeasonalityGroup && overviewSeasonalitySet.has(chart.id)) {
+        if (!items.some((i) => i.kind === "overview_seasonality_summary"))
+          pushOverviewSeasonalityGroup();
         continue;
       }
 
@@ -665,6 +744,62 @@ export default function SalesBudgetAnalyticsPage() {
             startDate={startDate}
             endDate={endDate}
             categoryName={item.charts[0]?.categoryName ?? fallbackCategoryName ?? "Funil"}
+          />
+        </div>
+      );
+    }
+
+    if (item.kind === "overview_hero_summary") {
+      const byId: Record<string, SalesBudgetChartDataset | null> = {};
+      for (const chart of item.charts) {
+        byId[chart.id] = chartsById[chart.id] ?? null;
+      }
+      byId.funnel_count_by_status = chartsById.funnel_count_by_status ?? null;
+
+      return (
+        <div key={`overview_hero_${index}`} className="sm:col-span-2 xl:col-span-3">
+          <SalesBudgetOverviewHeroWidget
+            charts={byId as any}
+            kpiMap={kpiMap}
+            isLoading={isLoadingCharts || isLoadingKpis}
+            startDate={startDate}
+            endDate={endDate}
+          />
+        </div>
+      );
+    }
+
+    if (item.kind === "overview_rhythm_summary") {
+      const byId: Record<string, SalesBudgetChartDataset | null> = {};
+      for (const chart of item.charts) {
+        byId[chart.id] = chartsById[chart.id] ?? null;
+      }
+
+      return (
+        <div key={`overview_rhythm_${index}`} className="xl:col-span-2">
+          <SalesBudgetOverviewRhythmWidget
+            charts={byId as any}
+            isLoading={isLoadingCharts}
+            startDate={startDate}
+            endDate={endDate}
+          />
+        </div>
+      );
+    }
+
+    if (item.kind === "overview_seasonality_summary") {
+      const byId: Record<string, SalesBudgetChartDataset | null> = {};
+      for (const chart of item.charts) {
+        byId[chart.id] = chartsById[chart.id] ?? null;
+      }
+
+      return (
+        <div key={`overview_seasonality_${index}`}>
+          <SalesBudgetOverviewSeasonalityWidget
+            charts={byId as any}
+            isLoading={isLoadingCharts}
+            startDate={startDate}
+            endDate={endDate}
           />
         </div>
       );

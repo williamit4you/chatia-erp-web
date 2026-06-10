@@ -116,6 +116,8 @@ type VisibleChart = {
   accentColor?: string;
 };
 
+type ChartViewMode = "grouped" | "individual";
+
 export default function SalesBudgetAnalyticsPage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -151,6 +153,7 @@ export default function SalesBudgetAnalyticsPage() {
   );
   const [activeCategoryId, setActiveCategoryId] = useState(initialCategoryId);
   const [search, setSearch] = useState(initialSearch);
+  const [chartViewMode, setChartViewMode] = useState<ChartViewMode>("grouped");
   const [isChartDetailsOpen, setIsChartDetailsOpen] = useState(false);
 
   const deferredSearch = useDeferredValue(search.trim().toLowerCase());
@@ -164,6 +167,25 @@ export default function SalesBudgetAnalyticsPage() {
     setDraftStartDate(startDate);
     setDraftEndDate(endDate);
   }, [endDate, startDate]);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("salesBudgetChartViewMode");
+      if (saved === "grouped" || saved === "individual") {
+        setChartViewMode(saved);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("salesBudgetChartViewMode", chartViewMode);
+    } catch {
+      // ignore
+    }
+  }, [chartViewMode]);
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams?.toString() ?? "");
@@ -417,6 +439,10 @@ export default function SalesBudgetAnalyticsPage() {
 
     if (localFilteredHighlights.length === 0) return [];
 
+    if (chartViewMode === "individual") {
+      return localFilteredHighlights.map((chart) => ({ kind: "single", chart }));
+    }
+
     const groupIdByChartId = new Map<string, string | null>();
     for (const item of sourceCharts) {
       const def = getSalesBudgetChartDefinition(item.id);
@@ -657,7 +683,7 @@ export default function SalesBudgetAnalyticsPage() {
 
   const renderHighlights = useMemo<RenderItem[]>(() => {
     return buildRenderHighlights(activeCategoryCharts);
-  }, [activeCategoryCharts, deferredSearch]);
+  }, [activeCategoryCharts, chartViewMode, deferredSearch]);
 
   const overviewSections = useMemo(() => {
     if (activeCategoryId !== "overview") return [];
@@ -687,7 +713,7 @@ export default function SalesBudgetAnalyticsPage() {
         };
       })
       .filter((section) => section.items.length > 0);
-  }, [activeCategoryId, deferredSearch, visibleCatalog]);
+  }, [activeCategoryId, chartViewMode, deferredSearch, visibleCatalog]);
 
   const kpiMap = useMemo(() => {
     return kpis.reduce<Record<string, SalesBudgetKpiItem>>((acc, item) => {
@@ -1073,6 +1099,41 @@ export default function SalesBudgetAnalyticsPage() {
               );
             })}
           </div>
+          <div className="mb-6 flex flex-col gap-3 rounded-[24px] border border-neutral-200 bg-[linear-gradient(135deg,_#ffffff_0%,_#f8fafc_100%)] p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div className="text-[11px] font-black uppercase tracking-[0.18em] text-neutral-500">
+                Modo de visualização
+              </div>
+              <p className="mt-1 text-sm text-neutral-600">
+                Use a leitura guiada para ver os blocos consolidados ou abra todos os gráficos individualmente.
+              </p>
+            </div>
+
+            <div className="inline-flex w-fit rounded-2xl border border-neutral-200 bg-white p-1 shadow-sm">
+              <button
+                type="button"
+                onClick={() => setChartViewMode("grouped")}
+                className={`rounded-xl px-4 py-2 text-xs font-black uppercase tracking-[0.14em] transition-colors ${
+                  chartViewMode === "grouped"
+                    ? "bg-neutral-900 text-white"
+                    : "text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900"
+                }`}
+              >
+                Leitura guiada
+              </button>
+              <button
+                type="button"
+                onClick={() => setChartViewMode("individual")}
+                className={`rounded-xl px-4 py-2 text-xs font-black uppercase tracking-[0.14em] transition-colors ${
+                  chartViewMode === "individual"
+                    ? "bg-neutral-900 text-white"
+                    : "text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900"
+                }`}
+              >
+                Todos os gráficos
+              </button>
+            </div>
+          </div>
           <DashboardSection
             number={activeCategoryNumber}
             title={
@@ -1097,7 +1158,33 @@ export default function SalesBudgetAnalyticsPage() {
               </p>
             </div>
 
-            <div className="flex w-full max-w-md items-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-2">
+            <div className="flex w-full max-w-3xl flex-col gap-3 lg:items-end">
+              <div className="inline-flex w-fit rounded-2xl border border-neutral-200 bg-white p-1 shadow-sm">
+                <button
+                  type="button"
+                  onClick={() => setChartViewMode("grouped")}
+                  className={`rounded-xl px-3 py-2 text-xs font-black uppercase tracking-[0.14em] transition-colors ${
+                    chartViewMode === "grouped"
+                      ? "bg-neutral-900 text-white"
+                      : "text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900"
+                  }`}
+                >
+                  VisÃ£o geral
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChartViewMode("individual")}
+                  className={`rounded-xl px-3 py-2 text-xs font-black uppercase tracking-[0.14em] transition-colors ${
+                    chartViewMode === "individual"
+                      ? "bg-neutral-900 text-white"
+                      : "text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900"
+                  }`}
+                >
+                  Individuais
+                </button>
+              </div>
+
+              <div className="flex w-full max-w-md items-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-2">
               <Search className="h-4 w-4 text-neutral-400" />
               <input
                 value={search}
@@ -1105,6 +1192,7 @@ export default function SalesBudgetAnalyticsPage() {
                 placeholder="Buscar gráfico"
                 className="w-full bg-transparent text-sm text-neutral-700 outline-none placeholder:text-neutral-400"
               />
+            </div>
             </div>
           </div>
 
@@ -1169,7 +1257,7 @@ export default function SalesBudgetAnalyticsPage() {
               isLoading={isLoadingCharts}
             />
             ) : null}
-            {EXPLORER_CATEGORY_IDS.has(activeCategoryId) ? (
+            {EXPLORER_CATEGORY_IDS.has(activeCategoryId) && chartViewMode === "grouped" ? (
             <SalesBudgetCategoryExplorerWidget
               categoryId={activeCategoryId}
               categoryName={activeCategory?.name ?? "Explorador"}
@@ -1184,6 +1272,30 @@ export default function SalesBudgetAnalyticsPage() {
               startDate={startDate}
               endDate={endDate}
             />
+            ) : null}
+            {EXPLORER_CATEGORY_IDS.has(activeCategoryId) && chartViewMode === "individual" ? (
+            <SectionChartGrid variant="analysis">
+              {filteredHighlights.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500 xl:col-span-3">
+                  Nenhum grÃ¡fico desta categoria corresponde ao filtro digitado.
+                </div>
+              ) : (
+                filteredHighlights.map((chart) => (
+                  <div key={chart.id}>
+                    <SalesBudgetChartCard
+                      chart={chartsById[chart.id] ?? null}
+                      chartId={chart.id}
+                      fallbackTitle={chart.title}
+                      isLoading={isLoadingCharts && !chartsById[chart.id]}
+                      accentColor={chart.accentColor}
+                      startDate={startDate}
+                      endDate={endDate}
+                      categoryName={chart.categoryName ?? activeCategory?.name ?? null}
+                    />
+                  </div>
+                ))
+              )}
+            </SectionChartGrid>
             ) : null}
             {activeCategoryId !== "overview" &&
             activeCategoryId !== "kpis" &&

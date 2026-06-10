@@ -6,6 +6,10 @@ import { Building2, CreditCard, MapPinned, Search, User, Waypoints } from "lucid
 import SalesBudgetChartDetailsButton from "@/components/sales/SalesBudgetChartDetailsButton";
 import SalesBudgetChartDetailsModal from "@/components/sales/SalesBudgetChartDetailsModal";
 import SalesBudgetChartRenderer from "@/components/sales/SalesBudgetChartRenderer";
+import {
+  buildSalesBudgetChartHref,
+  useSalesBudgetDashboardReturnTo,
+} from "@/components/sales/salesBudgetChartNavigation";
 import type { SalesBudgetChartDataset } from "@/services/sales-budget-analytics.service";
 
 type ConversionTabId =
@@ -47,6 +51,7 @@ export default function SalesBudgetFunnelConversionWidget({
   categoryName?: string | null;
 }) {
   const storageKey = "sales_budget_funnel_conversion_tab";
+  const returnTo = useSalesBudgetDashboardReturnTo();
   const [activeTab, setActiveTab] = useState<ConversionTabId>("funnel_conversion_by_seller");
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
@@ -96,7 +101,7 @@ export default function SalesBudgetFunnelConversionWidget({
           <div className="flex items-center gap-1">
             <SalesBudgetChartDetailsButton onClick={() => setIsDetailsOpen(true)} />
             <Link
-              href={`/chat/sales-budget-analytics/${activeTab}`}
+              href={buildSalesBudgetChartHref(activeTab, returnTo)}
               className="rounded p-1 text-neutral-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
               title="Abrir gráfico / iniciar chat"
             >

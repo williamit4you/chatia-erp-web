@@ -6,6 +6,10 @@ import SalesBudgetChartDetailsButton from "@/components/sales/SalesBudgetChartDe
 import SalesBudgetChartDetailsModal from "@/components/sales/SalesBudgetChartDetailsModal";
 import { formatCurrency, formatPercent } from "@/lib/formatters/financeFormat";
 import { useMemo, useState } from "react";
+import {
+  buildSalesBudgetChartHref,
+  useSalesBudgetDashboardReturnTo,
+} from "@/components/sales/salesBudgetChartNavigation";
 import type { SalesBudgetChartDataset } from "@/services/sales-budget-analytics.service";
 
 type FunnelHealthChartId =
@@ -74,6 +78,7 @@ export default function SalesBudgetFunnelHealthWidget({
   categoryName?: string | null;
 }) {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const returnTo = useSalesBudgetDashboardReturnTo();
 
   const entries = useMemo(
     () =>
@@ -102,7 +107,7 @@ export default function SalesBudgetFunnelHealthWidget({
           <div className="flex items-center gap-1">
             <SalesBudgetChartDetailsButton onClick={() => setIsDetailsOpen(true)} />
             <Link
-              href={CARDS[0].href}
+              href={buildSalesBudgetChartHref(CARDS[0].id, returnTo)}
               className="rounded p-1 text-neutral-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
               title="Abrir detalhe do funil"
             >
@@ -128,7 +133,7 @@ export default function SalesBudgetFunnelHealthWidget({
               return (
                 <Link
                   key={item.id}
-                  href={item.href}
+                  href={buildSalesBudgetChartHref(item.id, returnTo)}
                   className={`flex min-h-[180px] flex-col rounded-2xl border p-4 transition-transform hover:-translate-y-0.5 ${item.tone}`}
                 >
                   <div className="flex items-center justify-between gap-3">

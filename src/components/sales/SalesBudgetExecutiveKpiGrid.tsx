@@ -23,6 +23,10 @@ import {
   MessageSquareText,
 } from "lucide-react";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/formatters/financeFormat";
+import {
+  buildSalesBudgetChartHref,
+  useSalesBudgetDashboardReturnTo,
+} from "@/components/sales/salesBudgetChartNavigation";
 import type { SalesBudgetChartDataset } from "@/services/sales-budget-analytics.service";
 
 type KpiCardItem = {
@@ -133,6 +137,8 @@ export default function SalesBudgetExecutiveKpiGrid({
   items,
   isLoading,
 }: SalesBudgetExecutiveKpiGridProps) {
+  const returnTo = useSalesBudgetDashboardReturnTo();
+
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
       {items.map((item, index) => {
@@ -167,7 +173,7 @@ export default function SalesBudgetExecutiveKpiGrid({
                   </p>
                 </div>
                 <Link
-                  href={`/chat/sales-budget-analytics/${item.chartId}`}
+                  href={buildSalesBudgetChartHref(item.chartId, returnTo)}
                   className="shrink-0 rounded-full p-1.5 text-neutral-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
                   title="Abrir KPI e conversar com a IA"
                 >

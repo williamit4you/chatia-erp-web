@@ -28,6 +28,7 @@ import MarkdownLite from "@/components/chat/MarkdownLite";
 import MiaAvatar from "@/components/chat/MiaAvatar";
 import ExportButtons from "@/components/chat/ExportButtons";
 import { downloadCsv } from "@/lib/csvExport";
+import { getSafeSalesBudgetReturnPath } from "@/components/sales/salesBudgetChartNavigation";
 
 type DashboardAccessUser = {
   role?: string;
@@ -286,6 +287,7 @@ export default function SalesBudgetAnalyticsDetailPage() {
   const user = (session?.user ?? null) as DashboardAccessUser | null;
   const userId = (session?.user as any)?.id;
   const chartId = String(params?.chartId ?? "");
+  const returnTo = getSafeSalesBudgetReturnPath(searchParams?.get("returnTo"));
 
   const [startDate, setStartDate] = useSessionStorageDate("salesBudgetStartDate", () => {
     const d = new Date();
@@ -692,7 +694,7 @@ O que você gostaria de entender especificamente sobre estes números?`
             <SidebarToggle />
             <div className="h-6 w-px bg-neutral-200 hidden sm:block"></div>
             <button 
-                onClick={() => router.push("/chat/sales-budget-analytics")}
+                onClick={() => router.push(returnTo)}
                 className="p-2 hover:bg-neutral-100 rounded-lg text-neutral-500 transition-colors"
                 title="Voltar para Vendas"
             >

@@ -13,6 +13,10 @@ import {
   Wallet,
 } from "lucide-react";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/formatters/financeFormat";
+import {
+  buildSalesBudgetChartHref,
+  useSalesBudgetDashboardReturnTo,
+} from "@/components/sales/salesBudgetChartNavigation";
 import type { SalesBudgetKpiItem } from "@/services/sales-budget-analytics.service";
 
 type SalesBudgetEssentialKpiCardsProps = {
@@ -105,6 +109,8 @@ export default function SalesBudgetEssentialKpiCards({
   items,
   isLoading,
 }: SalesBudgetEssentialKpiCardsProps) {
+  const returnTo = useSalesBudgetDashboardReturnTo();
+
   if (isLoading && items.length === 0) {
     return (
       <>
@@ -148,7 +154,7 @@ export default function SalesBudgetEssentialKpiCards({
                   {config.title}
                 </p>
                 <Link
-                  href={`/chat/sales-budget-analytics/${item.kpiId}`}
+                  href={buildSalesBudgetChartHref(item.kpiId, returnTo)}
                   className="shrink-0 rounded-full p-1.5 text-neutral-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
                   title="Abrir KPI e conversar com a IA"
                 >

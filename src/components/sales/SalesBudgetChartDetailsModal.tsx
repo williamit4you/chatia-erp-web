@@ -11,6 +11,10 @@ import {
   TrendingUp,
   X,
 } from "lucide-react";
+import {
+  buildSalesBudgetChartHref,
+  useSalesBudgetDashboardReturnTo,
+} from "@/components/sales/salesBudgetChartNavigation";
 import { getSalesBudgetChartDefinition } from "@/lib/salesBudgetChartDefinitions";
 import salesBudgetAnalyticsService, {
   type SalesBudgetChartQueryDetailsItem,
@@ -67,6 +71,7 @@ export default function SalesBudgetChartDetailsModal({
   startDate,
   endDate,
 }: SalesBudgetChartDetailsModalProps) {
+  const returnTo = useSalesBudgetDashboardReturnTo();
   const isSingle = entries.length === 1;
   const [queryDetailsByChartId, setQueryDetailsByChartId] = useState<
     Record<string, SalesBudgetChartQueryDetailsItem>
@@ -177,7 +182,7 @@ export default function SalesBudgetChartDetailsModal({
 
                   <div className="mb-4 flex justify-end">
                     <Link
-                      href={`/chat/sales-budget-analytics/${entry.id}`}
+                      href={buildSalesBudgetChartHref(entry.id, returnTo)}
                       className="inline-flex items-center gap-2 rounded-2xl border border-blue-200 bg-blue-50 px-3 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-blue-700 transition-colors hover:bg-blue-100"
                       title="Abrir gráfico"
                     >

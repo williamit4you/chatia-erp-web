@@ -1,6 +1,7 @@
 "use client";
 
 import { startTransition, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import SalesBudgetChartCard from "@/components/sales/SalesBudgetChartCard";
 import SalesBudgetChartDetailsModal from "@/components/sales/SalesBudgetChartDetailsModal";
@@ -111,6 +112,9 @@ type VisibleChart = {
 };
 
 export default function SalesBudgetAnalyticsPage() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const user = (session?.user ?? null) as DashboardAccessUser | null;
   const [catalog, setCatalog] = useState<SalesBudgetCategory[]>(
@@ -134,9 +138,14 @@ export default function SalesBudgetAnalyticsPage() {
   const [endDate, setEndDate] = useSessionStorageDate("salesBudgetEndDate", () => new Date().toISOString().split("T")[0]);
   const [draftStartDate, setDraftStartDate] = useState(startDate);
   const [draftEndDate, setDraftEndDate] = useState(endDate);
-  const [activeScope, setActiveScope] = useState<DashboardScope>("budget");
-  const [activeCategoryId, setActiveCategoryId] = useState("overview");
-  const [search, setSearch] = useState("");
+  const initialScope = searchParams?.get("scope");
+  const initialCategoryId = searchParams?.get("category") ?? "overview";
+  const initialSearch = searchParams?.get("q") ?? "";
+  const [activeScope, setActiveScope] = useState<DashboardScope>(
+    initialScope === "order" || initialScope === "invoice" ? initialScope : "budget"
+  );
+  const [activeCategoryId, setActiveCategoryId] = useState(initialCategoryId);
+  const [search, setSearch] = useState(initialSearch);
   const [isChartDetailsOpen, setIsChartDetailsOpen] = useState(false);
 
   const deferredSearch = useDeferredValue(search.trim().toLowerCase());
@@ -150,6 +159,34 @@ export default function SalesBudgetAnalyticsPage() {
     setDraftStartDate(startDate);
     setDraftEndDate(endDate);
   }, [endDate, startDate]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams?.toString() ?? "");
+
+    if (activeScope === "budget") {
+      params.delete("scope");
+    } else {
+      params.set("scope", activeScope);
+    }
+
+    if (activeCategoryId && activeCategoryId !== "overview") {
+      params.set("category", activeCategoryId);
+    } else {
+      params.delete("category");
+    }
+
+    if (search.trim()) {
+      params.set("q", search.trim());
+    } else {
+      params.delete("q");
+    }
+
+    const currentQuery = searchParams?.toString() ?? "";
+    const nextQuery = params.toString();
+    if (nextQuery === currentQuery) return;
+
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+  }, [activeCategoryId, activeScope, pathname, router, search, searchParams]);
 
   const handleFilter = () => {
     setStartDate(draftStartDate);

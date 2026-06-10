@@ -6,6 +6,10 @@ import { Search } from "lucide-react";
 import SalesBudgetChartDetailsButton from "@/components/sales/SalesBudgetChartDetailsButton";
 import SalesBudgetChartDetailsModal from "@/components/sales/SalesBudgetChartDetailsModal";
 import SalesBudgetChartRenderer from "@/components/sales/SalesBudgetChartRenderer";
+import {
+  buildSalesBudgetChartHref,
+  useSalesBudgetDashboardReturnTo,
+} from "@/components/sales/salesBudgetChartNavigation";
 import type { SalesBudgetChartDataset } from "@/services/sales-budget-analytics.service";
 
 type SalesBudgetChartCardProps = {
@@ -30,6 +34,7 @@ export default function SalesBudgetChartCard({
   categoryName,
 }: SalesBudgetChartCardProps) {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const returnTo = useSalesBudgetDashboardReturnTo();
   const title = chart?.title ?? fallbackTitle;
   const warnings = chart?.meta?.warnings ?? [];
 
@@ -52,7 +57,7 @@ export default function SalesBudgetChartCard({
           <div className="flex items-center gap-1">
             <SalesBudgetChartDetailsButton onClick={() => setIsDetailsOpen(true)} />
             <Link
-              href={`/chat/sales-budget-analytics/${chartId}`}
+              href={buildSalesBudgetChartHref(chartId, returnTo)}
               className="rounded p-1 text-neutral-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
               title="Abrir gráfico"
             >

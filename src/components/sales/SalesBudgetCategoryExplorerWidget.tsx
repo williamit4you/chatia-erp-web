@@ -33,6 +33,10 @@ import {
 import SalesBudgetChartDetailsButton from "@/components/sales/SalesBudgetChartDetailsButton";
 import SalesBudgetChartDetailsModal from "@/components/sales/SalesBudgetChartDetailsModal";
 import SalesBudgetChartRenderer from "@/components/sales/SalesBudgetChartRenderer";
+import {
+  buildSalesBudgetChartHref,
+  useSalesBudgetDashboardReturnTo,
+} from "@/components/sales/salesBudgetChartNavigation";
 import type { SalesBudgetChartDataset } from "@/services/sales-budget-analytics.service";
 
 type ExplorerItem = {
@@ -334,6 +338,7 @@ export default function SalesBudgetCategoryExplorerWidget({
   endDate,
 }: SalesBudgetCategoryExplorerWidgetProps) {
   const storageKey = `sales_budget_category_explorer_${categoryId}`;
+  const returnTo = useSalesBudgetDashboardReturnTo();
   const [activeChartId, setActiveChartId] = useState<string>(items[0]?.id ?? "");
   const [activeGroupKey, setActiveGroupKey] = useState<string>("");
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -418,7 +423,7 @@ export default function SalesBudgetCategoryExplorerWidget({
                   title="Entender este indicador"
                 />
                 <Link
-                  href={`/chat/sales-budget-analytics/${activeItem.id}`}
+                  href={buildSalesBudgetChartHref(activeItem.id, returnTo)}
                   className="rounded p-1 text-neutral-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
                   title={"Abrir gr\u00e1fico"}
                 >

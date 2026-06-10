@@ -6,6 +6,7 @@ import SalesBudgetChartCard from "@/components/sales/SalesBudgetChartCard";
 import SalesBudgetChartDetailsModal from "@/components/sales/SalesBudgetChartDetailsModal";
 import SalesBudgetFunnelByStatusWidget from "@/components/sales/SalesBudgetFunnelByStatusWidget";
 import SalesBudgetFunnelConversionWidget from "@/components/sales/SalesBudgetFunnelConversionWidget";
+import SalesBudgetFunnelHealthWidget from "@/components/sales/SalesBudgetFunnelHealthWidget";
 import SalesBudgetGeoByUfWidget from "@/components/sales/SalesBudgetGeoByUfWidget";
 import SalesBudgetEssentialKpiCards from "@/components/sales/SalesBudgetEssentialKpiCards";
 import SalesBudgetExecutiveKpiGrid from "@/components/sales/SalesBudgetExecutiveKpiGrid";
@@ -356,7 +357,8 @@ export default function SalesBudgetAnalyticsPage() {
         kind: "funnel_by_status_family";
         charts: VisibleChart[];
         defaultTabId?: string | null;
-      };
+      }
+    | { kind: "funnel_health_summary"; charts: VisibleChart[] };
 
   const buildRenderHighlights = (sourceCharts: VisibleChart[]): RenderItem[] => {
     if (sourceCharts.length === 0) return [];
@@ -385,6 +387,13 @@ export default function SalesBudgetAnalyticsPage() {
     const statusGroupChartsAll = sourceCharts.filter(
       (item) => groupIdByChartId.get(item.id) === "funnel_by_status_family"
     );
+    const funnelHealthChartsAll = sourceCharts.filter((item) =>
+      [
+        "funnel_pending_amount",
+        "funnel_approval_rate",
+        "funnel_loss_cancel_rate",
+      ].includes(item.id)
+    );
 
     const matchedIds = new Set(localFilteredHighlights.map((c) => c.id));
 
@@ -403,10 +412,16 @@ export default function SalesBudgetAnalyticsPage() {
       (deferredSearch
         ? statusGroupChartsAll.some((c) => matchedIds.has(c.id))
         : true);
+    const showFunnelHealthGroup =
+      funnelHealthChartsAll.length >= 2 &&
+      (deferredSearch
+        ? funnelHealthChartsAll.some((c) => matchedIds.has(c.id))
+        : true);
 
     const geoSet = new Set(geoGroupChartsAll.map((c) => c.id));
     const conversionSet = new Set(conversionGroupChartsAll.map((c) => c.id));
     const statusSet = new Set(statusGroupChartsAll.map((c) => c.id));
+    const funnelHealthSet = new Set(funnelHealthChartsAll.map((c) => c.id));
 
     const items: RenderItem[] = [];
 
@@ -438,6 +453,12 @@ export default function SalesBudgetAnalyticsPage() {
         defaultTabId,
       });
     };
+    const pushFunnelHealthGroup = () => {
+      items.push({
+        kind: "funnel_health_summary",
+        charts: funnelHealthChartsAll,
+      });
+    };
 
     // Render order: keep list order, but collapse group members into one widget.
     for (const chart of localFilteredHighlights) {
@@ -454,6 +475,11 @@ export default function SalesBudgetAnalyticsPage() {
 
       if (showStatusGroup && statusSet.has(chart.id)) {
         if (!items.some((i) => i.kind === "funnel_by_status_family")) pushStatusGroup();
+        continue;
+      }
+
+      if (showFunnelHealthGroup && funnelHealthSet.has(chart.id)) {
+        if (!items.some((i) => i.kind === "funnel_health_summary")) pushFunnelHealthGroup();
         continue;
       }
 
@@ -580,6 +606,25 @@ export default function SalesBudgetAnalyticsPage() {
             isLoading={isLoadingCharts}
             accentColor={accentColor}
             defaultTabId={item.defaultTabId ?? null}
+            startDate={startDate}
+            endDate={endDate}
+            categoryName={item.charts[0]?.categoryName ?? fallbackCategoryName ?? "Funil"}
+          />
+        </div>
+      );
+    }
+
+    if (item.kind === "funnel_health_summary") {
+      const byId: Record<string, SalesBudgetChartDataset | null> = {};
+      for (const chart of item.charts) {
+        byId[chart.id] = chartsById[chart.id] ?? null;
+      }
+
+      return (
+        <div key={`funnel_health_${index}`} className="sm:col-span-2 xl:col-span-2">
+          <SalesBudgetFunnelHealthWidget
+            charts={byId as any}
+            isLoading={isLoadingCharts}
             startDate={startDate}
             endDate={endDate}
             categoryName={item.charts[0]?.categoryName ?? fallbackCategoryName ?? "Funil"}
@@ -893,98 +938,9 @@ export default function SalesBudgetAnalyticsPage() {
                     : "Nenhum gráfico desta categoria corresponde ao filtro digitado."}
                 </div>
               ) : (
-                renderHighlights.map((item, index) => {
-                  if (item.kind === "geo_by_uf") {
-                    const byId: Record<string, SalesBudgetChartDataset | null> = {};
-                    for (const chart of item.charts) {
-                      byId[chart.id] = chartsById[chart.id] ?? null;
-                    }
-
-                    const accentColor =
-                      item.charts.find((c) => c.categoryId === "geo")?.accentColor ??
-                      item.charts[0]?.accentColor;
-
-                    return (
-                      <div key={`geo_by_uf_${index}`}>
-                        <SalesBudgetGeoByUfWidget
-                          charts={byId as any}
-                          isLoading={isLoadingCharts}
-                          accentColor={accentColor}
-                          defaultTabId={item.defaultTabId ?? null}
-                          startDate={startDate}
-                          endDate={endDate}
-                          categoryName={item.charts[0]?.categoryName ?? "Geo"}
-                        />
-                      </div>
-                    );
-                  }
-
-                  if (item.kind === "funnel_conversion_segments") {
-                    const byId: Record<string, SalesBudgetChartDataset | null> = {};
-                    for (const chart of item.charts) {
-                      byId[chart.id] = chartsById[chart.id] ?? null;
-                    }
-
-                    const accentColor =
-                      item.charts.find((c) => c.categoryId === "funnel")?.accentColor ??
-                      item.charts[0]?.accentColor;
-
-                    return (
-                      <div key={`funnel_conversion_${index}`}>
-                        <SalesBudgetFunnelConversionWidget
-                          charts={byId as any}
-                          isLoading={isLoadingCharts}
-                          accentColor={accentColor}
-                          defaultTabId={item.defaultTabId ?? null}
-                          startDate={startDate}
-                          endDate={endDate}
-                          categoryName={item.charts[0]?.categoryName ?? "Funil"}
-                        />
-                      </div>
-                    );
-                  }
-
-                  if (item.kind === "funnel_by_status_family") {
-                    const byId: Record<string, SalesBudgetChartDataset | null> = {};
-                    for (const chart of item.charts) {
-                      byId[chart.id] = chartsById[chart.id] ?? null;
-                    }
-
-                    const accentColor =
-                      item.charts.find((c) => c.categoryId === "funnel")?.accentColor ??
-                      item.charts[0]?.accentColor;
-
-                    return (
-                      <div key={`funnel_by_status_${index}`}>
-                        <SalesBudgetFunnelByStatusWidget
-                          charts={byId as any}
-                          isLoading={isLoadingCharts}
-                          accentColor={accentColor}
-                          defaultTabId={item.defaultTabId ?? null}
-                          startDate={startDate}
-                          endDate={endDate}
-                          categoryName={item.charts[0]?.categoryName ?? "Funil"}
-                        />
-                      </div>
-                    );
-                  }
-
-                  const chart = item.chart;
-                  return (
-                    <div key={chart.id}>
-                      <SalesBudgetChartCard
-                        chart={chartsById[chart.id] ?? null}
-                        chartId={chart.id}
-                        fallbackTitle={chart.title}
-                        isLoading={isLoadingCharts && !chartsById[chart.id]}
-                        accentColor={chart.accentColor}
-                        startDate={startDate}
-                        endDate={endDate}
-                        categoryName={chart.categoryName ?? activeCategory?.name ?? null}
-                      />
-                    </div>
-                  );
-                })
+                renderHighlights.map((item, index) =>
+                  renderHighlightItem(item, index, activeCategory?.name ?? null)
+                )
               )}
             </SectionChartGrid>
             ) : null}

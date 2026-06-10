@@ -8,7 +8,9 @@ import SalesBudgetChartDetailsModal from "@/components/sales/SalesBudgetChartDet
 import SalesBudgetFunnelByStatusWidget from "@/components/sales/SalesBudgetFunnelByStatusWidget";
 import SalesBudgetFunnelConversionWidget from "@/components/sales/SalesBudgetFunnelConversionWidget";
 import SalesBudgetFunnelHealthWidget from "@/components/sales/SalesBudgetFunnelHealthWidget";
+import SalesBudgetOverviewCompanyWidget from "@/components/sales/SalesBudgetOverviewCompanyWidget";
 import SalesBudgetOverviewHeroWidget from "@/components/sales/SalesBudgetOverviewHeroWidget";
+import SalesBudgetOverviewPeaksWidget from "@/components/sales/SalesBudgetOverviewPeaksWidget";
 import SalesBudgetOverviewRhythmWidget from "@/components/sales/SalesBudgetOverviewRhythmWidget";
 import SalesBudgetOverviewSeasonalityWidget from "@/components/sales/SalesBudgetOverviewSeasonalityWidget";
 import SalesBudgetGeoByUfWidget from "@/components/sales/SalesBudgetGeoByUfWidget";
@@ -400,6 +402,8 @@ export default function SalesBudgetAnalyticsPage() {
       }
     | { kind: "funnel_health_summary"; charts: VisibleChart[] }
     | { kind: "overview_hero_summary"; charts: VisibleChart[] }
+    | { kind: "overview_peaks_summary"; charts: VisibleChart[] }
+    | { kind: "overview_company_summary"; charts: VisibleChart[] }
     | { kind: "overview_rhythm_summary"; charts: VisibleChart[] }
     | { kind: "overview_seasonality_summary"; charts: VisibleChart[] };
 
@@ -451,6 +455,18 @@ export default function SalesBudgetAnalyticsPage() {
         "overview_daily_evolution",
       ].includes(item.id)
     );
+    const overviewPeaksChartsAll = sourceCharts.filter((item) =>
+      [
+        "overview_top_days_by_volume",
+        "overview_top_months_by_amount",
+      ].includes(item.id)
+    );
+    const overviewCompanyChartsAll = sourceCharts.filter((item) =>
+      [
+        "overview_amount_by_company",
+        "overview_count_by_company",
+      ].includes(item.id)
+    );
     const overviewSeasonalityChartsAll = sourceCharts.filter((item) =>
       [
         "overview_month_seasonality",
@@ -491,6 +507,16 @@ export default function SalesBudgetAnalyticsPage() {
       (deferredSearch
         ? overviewRhythmChartsAll.some((c) => matchedIds.has(c.id))
         : true);
+    const showOverviewPeaksGroup =
+      overviewPeaksChartsAll.length >= 2 &&
+      (deferredSearch
+        ? overviewPeaksChartsAll.some((c) => matchedIds.has(c.id))
+        : true);
+    const showOverviewCompanyGroup =
+      overviewCompanyChartsAll.length >= 2 &&
+      (deferredSearch
+        ? overviewCompanyChartsAll.some((c) => matchedIds.has(c.id))
+        : true);
     const showOverviewSeasonalityGroup =
       overviewSeasonalityChartsAll.length >= 2 &&
       (deferredSearch
@@ -503,6 +529,8 @@ export default function SalesBudgetAnalyticsPage() {
     const funnelHealthSet = new Set(funnelHealthChartsAll.map((c) => c.id));
     const overviewHeroSet = new Set(overviewHeroChartsAll.map((c) => c.id));
     const overviewRhythmSet = new Set(overviewRhythmChartsAll.map((c) => c.id));
+    const overviewPeaksSet = new Set(overviewPeaksChartsAll.map((c) => c.id));
+    const overviewCompanySet = new Set(overviewCompanyChartsAll.map((c) => c.id));
     const overviewSeasonalitySet = new Set(overviewSeasonalityChartsAll.map((c) => c.id));
 
     const items: RenderItem[] = [];
@@ -553,6 +581,18 @@ export default function SalesBudgetAnalyticsPage() {
         charts: overviewRhythmChartsAll,
       });
     };
+    const pushOverviewPeaksGroup = () => {
+      items.push({
+        kind: "overview_peaks_summary",
+        charts: overviewPeaksChartsAll,
+      });
+    };
+    const pushOverviewCompanyGroup = () => {
+      items.push({
+        kind: "overview_company_summary",
+        charts: overviewCompanyChartsAll,
+      });
+    };
     const pushOverviewSeasonalityGroup = () => {
       items.push({
         kind: "overview_seasonality_summary",
@@ -590,6 +630,16 @@ export default function SalesBudgetAnalyticsPage() {
 
       if (showOverviewRhythmGroup && overviewRhythmSet.has(chart.id)) {
         if (!items.some((i) => i.kind === "overview_rhythm_summary")) pushOverviewRhythmGroup();
+        continue;
+      }
+
+      if (showOverviewPeaksGroup && overviewPeaksSet.has(chart.id)) {
+        if (!items.some((i) => i.kind === "overview_peaks_summary")) pushOverviewPeaksGroup();
+        continue;
+      }
+
+      if (showOverviewCompanyGroup && overviewCompanySet.has(chart.id)) {
+        if (!items.some((i) => i.kind === "overview_company_summary")) pushOverviewCompanyGroup();
         continue;
       }
 
@@ -778,6 +828,42 @@ export default function SalesBudgetAnalyticsPage() {
       return (
         <div key={`overview_rhythm_${index}`} className="xl:col-span-2">
           <SalesBudgetOverviewRhythmWidget
+            charts={byId as any}
+            isLoading={isLoadingCharts}
+            startDate={startDate}
+            endDate={endDate}
+          />
+        </div>
+      );
+    }
+
+    if (item.kind === "overview_peaks_summary") {
+      const byId: Record<string, SalesBudgetChartDataset | null> = {};
+      for (const chart of item.charts) {
+        byId[chart.id] = chartsById[chart.id] ?? null;
+      }
+
+      return (
+        <div key={`overview_peaks_${index}`}>
+          <SalesBudgetOverviewPeaksWidget
+            charts={byId as any}
+            isLoading={isLoadingCharts}
+            startDate={startDate}
+            endDate={endDate}
+          />
+        </div>
+      );
+    }
+
+    if (item.kind === "overview_company_summary") {
+      const byId: Record<string, SalesBudgetChartDataset | null> = {};
+      for (const chart of item.charts) {
+        byId[chart.id] = chartsById[chart.id] ?? null;
+      }
+
+      return (
+        <div key={`overview_company_${index}`}>
+          <SalesBudgetOverviewCompanyWidget
             charts={byId as any}
             isLoading={isLoadingCharts}
             startDate={startDate}

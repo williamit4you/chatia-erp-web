@@ -1159,31 +1159,6 @@ export default function SalesBudgetAnalyticsPage() {
             </div>
 
             <div className="flex w-full max-w-3xl flex-col gap-3 lg:items-end">
-              <div className="inline-flex w-fit rounded-2xl border border-neutral-200 bg-white p-1 shadow-sm">
-                <button
-                  type="button"
-                  onClick={() => setChartViewMode("grouped")}
-                  className={`rounded-xl px-3 py-2 text-xs font-black uppercase tracking-[0.14em] transition-colors ${
-                    chartViewMode === "grouped"
-                      ? "bg-neutral-900 text-white"
-                      : "text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900"
-                  }`}
-                >
-                  Visão geral
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setChartViewMode("individual")}
-                  className={`rounded-xl px-3 py-2 text-xs font-black uppercase tracking-[0.14em] transition-colors ${
-                    chartViewMode === "individual"
-                      ? "bg-neutral-900 text-white"
-                      : "text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900"
-                  }`}
-                >
-                  Individuais
-                </button>
-              </div>
-
               <div className="flex w-full max-w-md items-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-2">
               <Search className="h-4 w-4 text-neutral-400" />
               <input
@@ -1427,3 +1402,4 @@ export default function SalesBudgetAnalyticsPage() {
     </div>
   );
 }
+

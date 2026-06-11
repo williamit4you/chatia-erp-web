@@ -582,9 +582,10 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
                 )}
 
                 {isAddUserOpen && (
-                    <div className="absolute inset-0 z-20 bg-neutral-950/80 backdrop-blur-sm flex items-center justify-center p-8">
-                        <div className="bg-neutral-900 border border-neutral-700 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
-                            <div className="px-8 py-6 border-b border-neutral-800 flex items-center justify-between">
+                    <div className="fixed inset-0 z-50 bg-neutral-950/88 backdrop-blur-md overflow-y-auto">
+                        <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-10">
+                            <div className="mx-auto w-full max-w-5xl rounded-[32px] border border-neutral-700 bg-neutral-900 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+                                <div className="px-8 py-6 border-b border-neutral-800 flex items-center justify-between bg-gradient-to-r from-neutral-900 to-neutral-800/60">
                                 <h4 className="text-lg font-bold text-white uppercase tracking-wider flex items-center gap-3">
                                     <Users className="text-blue-400 h-5 w-5" />
                                     Novo Usuario
@@ -592,81 +593,88 @@ export default function TenantDetailsClient({ tenant }: { tenant: any }) {
                                 <button onClick={closeCreateUserModal} className="p-2 hover:bg-neutral-800 rounded-xl transition-colors">
                                     <X className="h-5 w-5 text-neutral-500" />
                                 </button>
-                            </div>
-                            <form onSubmit={createUser} className="p-8 space-y-6">
-                                {userMsg && (
-                                    <div className={`p-4 rounded-2xl text-center text-sm font-bold border ${userMsg.toLowerCase().includes("sucesso") ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"}`}>
-                                        {userMsg}
-                                    </div>
-                                )}
-                                <div className="space-y-4">
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black uppercase text-neutral-500 tracking-widest pl-1">Nome</label>
-                                        <input
-                                            type="text"
-                                            className="w-full px-5 py-3.5 bg-neutral-950 border border-neutral-800 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                                            value={name}
-                                            onChange={(e) => setName(e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black uppercase text-neutral-500 tracking-widest pl-1">E-mail de Acesso</label>
-                                        <input
-                                            type="email"
-                                            required
-                                            className="w-full px-5 py-3.5 bg-neutral-950 border border-neutral-800 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black uppercase text-neutral-500 tracking-widest pl-1">Senha Inicial</label>
-                                        <div className="relative">
-                                            <input
-                                                type={showPasswordAdd ? "text" : "password"}
-                                                required
-                                                className="w-full pr-14 pl-5 py-3.5 bg-neutral-950 border border-neutral-800 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                                                value={password}
-                                                onChange={(e) => setPassword(e.target.value)}
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowPasswordAdd(!showPasswordAdd)}
-                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-blue-400 transition-colors"
-                                            >
-                                                {showPasswordAdd ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                                            </button>
+                                </div>
+                                <form onSubmit={createUser} className="p-8 space-y-6">
+                                    {userMsg && (
+                                        <div className={`p-4 rounded-2xl text-center text-sm font-bold border ${userMsg.toLowerCase().includes("sucesso") ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"}`}>
+                                            {userMsg}
+                                        </div>
+                                    )}
+                                    <div className="rounded-[28px] border border-neutral-800 bg-neutral-950/60 p-6">
+                                        <div className="mb-6">
+                                            <p className="text-xs font-black uppercase tracking-[0.24em] text-neutral-500">Cadastro de acesso</p>
+                                            <p className="mt-2 text-sm text-neutral-400">Preencha os dados do novo usuário da empresa. O formulário agora abre em tela cheia para facilitar o cadastro.</p>
+                                        </div>
+                                        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                                            <div className="space-y-1 md:col-span-2">
+                                                <label className="text-[10px] font-black uppercase text-neutral-500 tracking-widest pl-1">Nome</label>
+                                                <input
+                                                    type="text"
+                                                    className="w-full px-5 py-4 bg-neutral-900 border border-neutral-800 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                                                    value={name}
+                                                    onChange={(e) => setName(e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black uppercase text-neutral-500 tracking-widest pl-1">E-mail de Acesso</label>
+                                                <input
+                                                    type="email"
+                                                    required
+                                                    className="w-full px-5 py-4 bg-neutral-900 border border-neutral-800 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                                                    value={email}
+                                                    onChange={(e) => setEmail(e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black uppercase text-neutral-500 tracking-widest pl-1">Funcao / Perfil</label>
+                                                <select
+                                                    className="w-full px-5 py-4 bg-neutral-900 border border-neutral-800 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none custom-select"
+                                                    value={role}
+                                                    onChange={(e) => setRole(e.target.value)}
+                                                >
+                                                    <option value="TENANT_USER">Usuario Chat</option>
+                                                    <option value="TENANT_ADMIN">Administrador da Empresa</option>
+                                                </select>
+                                            </div>
+                                            <div className="space-y-1 md:col-span-2">
+                                                <label className="text-[10px] font-black uppercase text-neutral-500 tracking-widest pl-1">Senha Inicial</label>
+                                                <div className="relative">
+                                                    <input
+                                                        type={showPasswordAdd ? "text" : "password"}
+                                                        required
+                                                        className="w-full pr-14 pl-5 py-4 bg-neutral-900 border border-neutral-800 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                                                        value={password}
+                                                        onChange={(e) => setPassword(e.target.value)}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowPasswordAdd(!showPasswordAdd)}
+                                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-blue-400 transition-colors"
+                                                    >
+                                                        {showPasswordAdd ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black uppercase text-neutral-500 tracking-widest pl-1">Funcao / Perfil</label>
-                                        <select
-                                            className="w-full px-5 py-3.5 bg-neutral-950 border border-neutral-800 rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none custom-select"
-                                            value={role}
-                                            onChange={(e) => setRole(e.target.value)}
+                                    <div className="pt-2 flex flex-col-reverse gap-4 sm:flex-row">
+                                        <button
+                                            type="button"
+                                            onClick={closeCreateUserModal}
+                                            className="flex-1 py-4 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-2xl font-black text-xs uppercase tracking-widest transition-all"
                                         >
-                                            <option value="TENANT_USER">Usuario Chat</option>
-                                            <option value="TENANT_ADMIN">Administrador da Empresa</option>
-                                        </select>
+                                            Cancelar
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={userLoading}
+                                            className="flex-1 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-500/10 transition-all disabled:opacity-50"
+                                        >
+                                            {userLoading ? "Processando..." : "Cadastrar"}
+                                        </button>
                                     </div>
-                                </div>
-                                <div className="pt-2 flex gap-4">
-                                    <button
-                                        type="button"
-                                        onClick={closeCreateUserModal}
-                                        className="flex-1 py-4 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-2xl font-black text-xs uppercase tracking-widest transition-all"
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={userLoading}
-                                        className="flex-1 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-500/10 transition-all disabled:opacity-50"
-                                    >
-                                        {userLoading ? "Processando..." : "Cadastrar"}
-                                    </button>
-                                </div>
-                            </form>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 )}

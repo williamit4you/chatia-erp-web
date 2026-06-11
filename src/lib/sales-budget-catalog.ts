@@ -94,7 +94,6 @@ const salesBudgetCatalogBase: SalesBudgetCategoryPreview[] = [
       { id: "overview_monthly_evolution", title: "Evolução mensal de orçamentos", availability: "available_now" },
       { id: "overview_weekly_evolution", title: "Evolução semanal de orçamentos", availability: "available_now" },
       { id: "overview_daily_evolution", title: "Evolução diária de orçamentos", availability: "available_now" },
-      { id: "overview_current_vs_previous_month", title: "Comparativo mês atual x mês anterior", availability: "available_now" },
       { id: "overview_current_year_vs_previous_year", title: "Comparativo ano atual x ano anterior", availability: "available_now" },
       { id: "overview_top_days_by_volume", title: "Top dias com maior volume de orçamentos", availability: "available_now" },
       { id: "overview_top_months_by_amount", title: "Top meses com maior valor orçado", availability: "available_now" },

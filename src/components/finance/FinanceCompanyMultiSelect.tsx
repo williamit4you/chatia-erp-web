@@ -59,7 +59,7 @@ export default function FinanceCompanyMultiSelect({ options, selectedIds, onChan
             <button
                 type="button"
                 onClick={() => setIsOpen((current) => !current)}
-                className="flex min-w-[260px] items-center gap-3 rounded-xl border border-neutral-200 bg-white px-4 py-2.5 shadow-sm"
+                className="flex h-14 min-w-[260px] items-center gap-3 rounded-xl border border-neutral-200 bg-white px-4 shadow-sm"
             >
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 text-neutral-700">
                     <Building2 className="h-4 w-4" />

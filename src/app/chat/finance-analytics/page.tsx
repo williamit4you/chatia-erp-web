@@ -1151,23 +1151,23 @@ export default function FinanceAnalyticsDashboard() {
                         </p>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex flex-wrap items-stretch gap-3">
                         <FinanceCompanyMultiSelect options={companies} selectedIds={selectedCompanyIds} onChange={setSelectedCompanyIds} />
-                        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-neutral-200 bg-white p-1.5 shadow-sm">
-                            <div className="flex items-center gap-2 px-3 sm:border-r sm:border-neutral-100">
+                        <div className="flex min-h-14 flex-wrap items-stretch gap-2 rounded-xl border border-neutral-200 bg-white p-1.5 shadow-sm">
+                            <div className="flex h-11 items-center gap-2 px-3 sm:border-r sm:border-neutral-100">
                                 <Calendar className="h-4 w-4 text-neutral-400" />
                                 <input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} className="w-28 text-xs font-bold text-neutral-700 outline-none" />
                                 <span className="text-neutral-300">/</span>
                                 <input type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} className="w-28 text-xs font-bold text-neutral-700 outline-none" />
                             </div>
                             {hasPendingFilterChanges && (
-                                <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-[11px] font-black uppercase tracking-wide text-amber-700">
+                                <div className="flex h-11 items-center rounded-lg border border-amber-200 bg-amber-50 px-3 text-[11px] font-black uppercase tracking-wide text-amber-700">
                                     Filtros alterados
                                 </div>
                             )}
                             <button
                                 onClick={handleFilter}
-                                className={`rounded-lg px-5 py-1.5 text-xs font-black uppercase text-white transition-colors ${
+                                className={`h-11 rounded-lg px-5 text-xs font-black uppercase text-white transition-colors ${
                                     hasPendingFilterChanges
                                         ? "bg-amber-500 hover:bg-amber-600"
                                         : "bg-neutral-900 hover:bg-black"
@@ -1184,7 +1184,7 @@ export default function FinanceAnalyticsDashboard() {
                                             entries: chartDetailsEntries,
                                         })
                                     }
-                                    className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-1.5 text-xs font-black uppercase text-blue-700 transition-colors hover:bg-blue-100"
+                                    className="inline-flex h-11 items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 text-xs font-black uppercase text-blue-700 transition-colors hover:bg-blue-100"
                                 >
                                     <BookOpenText className="h-4 w-4" />
                                     Detalhes dos gráficos

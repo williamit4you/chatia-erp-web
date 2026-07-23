@@ -241,6 +241,7 @@ export default function FinanceAnalyticsDashboard() {
     const [chartMetrics, setChartMetrics] = useState<Record<string, ChartMetricsItem>>({});
     const [companies, setCompanies] = useState<FinanceCompanyOption[]>([]);
     const [selectedCompanyIds, setSelectedCompanyIds] = useState<string[]>([]);
+    const [appliedCompanyIds, setAppliedCompanyIds] = useState<string[]>([]);
 
     const [startDate, setStartDate] = useState<string>(() => {
         const d = new Date();
@@ -354,7 +355,6 @@ export default function FinanceAnalyticsDashboard() {
     };
 
     const didInitRef = useRef(false);
-
     useEffect(() => {
         setMounted(true);
 
@@ -402,7 +402,7 @@ export default function FinanceAnalyticsDashboard() {
             setCompanies([]);
         });
 
-        fetchData(startDate, endDate, selectedCompanyIds);
+        fetchData(startDate, endDate, appliedCompanyIds);
 
         if (user.role === "TENANT_ADMIN") {
             adminService
@@ -458,7 +458,24 @@ export default function FinanceAnalyticsDashboard() {
         }
     }, [activeTab, userId, visibleTabs]);
 
-    const handleFilter = () => fetchData(startDate, endDate, selectedCompanyIds);
+    const hasPendingCompanyFilterChanges = useMemo(() => {
+        const current = [...selectedCompanyIds].sort();
+        const applied = [...appliedCompanyIds].sort();
+        if (current.length !== applied.length) return true;
+        return current.some((item, index) => item !== applied[index]);
+    }, [appliedCompanyIds, selectedCompanyIds]);
+
+    const handleFilter = async () => {
+        setAppliedCompanyIds(selectedCompanyIds);
+        await fetchData(startDate, endDate, selectedCompanyIds);
+
+        if (analysisChartId) {
+            setAnalysisSummary(null);
+            setAnalysisMonthlyFlow(null);
+            setAnalysisAdvanced(null);
+            await fetchAnalysisData(analysisChartId, analysisStartDate || startDate, analysisEndDate || endDate, selectedCompanyIds);
+        }
+    };
     const getWidgetData = (id: string) => {
         if (!advanced) {
             if (id === "summary") return summary;
@@ -875,7 +892,7 @@ export default function FinanceAnalyticsDashboard() {
                         setAnalysisSummary(null);
                         setAnalysisMonthlyFlow(null);
                         setAnalysisAdvanced(null);
-                        fetchAnalysisData(selectedId, startDate, endDate, selectedCompanyIds);
+                        fetchAnalysisData(selectedId, startDate, endDate, appliedCompanyIds);
                     }}
                     onDetails={
                         isChartDetailsEnabled
@@ -1132,8 +1149,20 @@ export default function FinanceAnalyticsDashboard() {
                                 <span className="text-neutral-300">/</span>
                                 <input type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} className="w-28 text-xs font-bold text-neutral-700 outline-none" />
                             </div>
-                            <button onClick={handleFilter} className="rounded-lg bg-neutral-900 px-5 py-1.5 text-xs font-black uppercase text-white transition-colors hover:bg-black">
-                                Atualizar
+                            {hasPendingCompanyFilterChanges && (
+                                <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-[11px] font-black uppercase tracking-wide text-amber-700">
+                                    Filtros alterados
+                                </div>
+                            )}
+                            <button
+                                onClick={handleFilter}
+                                className={`rounded-lg px-5 py-1.5 text-xs font-black uppercase text-white transition-colors ${
+                                    hasPendingCompanyFilterChanges
+                                        ? "bg-amber-500 hover:bg-amber-600"
+                                        : "bg-neutral-900 hover:bg-black"
+                                }`}
+                            >
+                                {hasPendingCompanyFilterChanges ? "Aplicar filtros" : "Atualizar"}
                             </button>
                             {isChartDetailsEnabled && (
                                 <button
@@ -1268,11 +1297,11 @@ export default function FinanceAnalyticsDashboard() {
                     }}
                     initialStartDate={analysisStartDate || startDate}
                     initialEndDate={analysisEndDate || endDate}
-                    companyIds={selectedCompanyIds}
+                    companyIds={appliedCompanyIds}
                     onDateChange={async (start, end) => {
                         setAnalysisStartDate(start);
                         setAnalysisEndDate(end);
-                        await fetchAnalysisData(analysisChartId, start, end, selectedCompanyIds);
+                        await fetchAnalysisData(analysisChartId, start, end, appliedCompanyIds);
                     }}
                 />
             )}

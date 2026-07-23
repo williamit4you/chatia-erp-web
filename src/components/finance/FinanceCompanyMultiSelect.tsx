@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Building2, Check, ChevronDown, Search } from "lucide-react";
 import type { FinanceCompanyOption } from "@/services/finance-analytics.service";
 
@@ -13,6 +13,7 @@ type FinanceCompanyMultiSelectProps = {
 export default function FinanceCompanyMultiSelect({ options, selectedIds, onChange }: FinanceCompanyMultiSelectProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState("");
+    const rootRef = useRef<HTMLDivElement | null>(null);
 
     const filtered = useMemo(() => {
         const term = query.trim().toLowerCase();
@@ -39,8 +40,22 @@ export default function FinanceCompanyMultiSelect({ options, selectedIds, onChan
         onChange([...selectedIds, id]);
     };
 
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handlePointerDown = (event: MouseEvent) => {
+            const target = event.target as Node | null;
+            if (!target) return;
+            if (rootRef.current?.contains(target)) return;
+            setIsOpen(false);
+        };
+
+        document.addEventListener("mousedown", handlePointerDown);
+        return () => document.removeEventListener("mousedown", handlePointerDown);
+    }, [isOpen]);
+
     return (
-        <div className="relative">
+        <div ref={rootRef} className="relative">
             <button
                 type="button"
                 onClick={() => setIsOpen((current) => !current)}
@@ -70,7 +85,9 @@ export default function FinanceCompanyMultiSelect({ options, selectedIds, onChan
 
                     <button
                         type="button"
-                        onClick={() => onChange([])}
+                        onClick={() => {
+                            onChange([]);
+                        }}
                         className={`mb-2 flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm font-bold transition-colors ${
                             selectedIds.length === 0 ? "bg-blue-50 text-blue-700" : "hover:bg-neutral-50"
                         }`}

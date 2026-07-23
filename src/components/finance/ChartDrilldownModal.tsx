@@ -17,6 +17,7 @@ type ChartDrilldownModalProps = {
     title: string;
     startDate: string;
     endDate: string;
+    companyIds: string[];
     entityValue: string | null;
     kind: DrilldownKind;
     options: DrilldownOption[];
@@ -64,6 +65,7 @@ export default function ChartDrilldownModal({
     title,
     startDate,
     endDate,
+    companyIds,
     entityValue,
     kind,
     options,
@@ -164,6 +166,7 @@ export default function ChartDrilldownModal({
                 chartId: apiChartId || chartId,
                 startDate,
                 endDate,
+                companyIds,
                 entityValue,
                 selection,
                 page: next,
@@ -200,6 +203,7 @@ export default function ChartDrilldownModal({
                 chartId: apiChartId || chartId,
                 startDate,
                 endDate,
+                companyIds,
                 entityValue,
                 selection,
                 format,

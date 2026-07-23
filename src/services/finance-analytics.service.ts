@@ -146,6 +146,18 @@ export interface ChartMetricsResponse {
     items: ChartMetricsItem[];
 }
 
+export interface FinanceCompanyOption {
+    id: string;
+    label: string;
+    cpfCnpj?: string | null;
+    city?: string | null;
+    uf?: string | null;
+}
+
+export interface FinanceCompaniesResponse {
+    items: FinanceCompanyOption[];
+}
+
 export type ChartSelection =
     | { kind: "category"; key: string; label?: string }
     | { kind: "time_bucket"; bucket: "day" | "month"; value: string; label?: string }
@@ -206,65 +218,75 @@ export interface AdvancedDashboard {
     documentosPorFornecedorAtivo: Distribution[];
 }
 
-const buildQueryParams = (startDate?: string, endDate?: string) => {
+const buildQueryParams = (startDate?: string, endDate?: string, companyIds?: string[]) => {
     const params = new URLSearchParams();
     if (startDate) params.append('startDate', startDate);
     if (endDate) params.append('endDate', endDate);
+    if (companyIds?.length) params.append('companyIds', companyIds.join(','));
     const queryString = params.toString();
     return queryString ? `?${queryString}` : '';
 };
 
 export const financeAnalyticsService = {
-    getSummary: async (startDate?: string, endDate?: string): Promise<FinanceSummary> => {
-        const response = await apiClient.get(`/api/finance-analytics/summary${buildQueryParams(startDate, endDate)}`);
+    getCompanies: async (): Promise<FinanceCompanyOption[]> => {
+        const response = await apiClient.get("/api/finance-analytics/companies");
+        const data = response.data as FinanceCompaniesResponse;
+        return data?.items ?? [];
+    },
+
+    getSummary: async (startDate?: string, endDate?: string, companyIds?: string[]): Promise<FinanceSummary> => {
+        const response = await apiClient.get(`/api/finance-analytics/summary${buildQueryParams(startDate, endDate, companyIds)}`);
         return response.data;
     },
 
-    getMonthlyFlow: async (startDate?: string, endDate?: string): Promise<MonthlyFlow[]> => {
-        const response = await apiClient.get(`/api/finance-analytics/monthly-flow${buildQueryParams(startDate, endDate)}`);
+    getMonthlyFlow: async (startDate?: string, endDate?: string, companyIds?: string[]): Promise<MonthlyFlow[]> => {
+        const response = await apiClient.get(`/api/finance-analytics/monthly-flow${buildQueryParams(startDate, endDate, companyIds)}`);
         return response.data;
     },
 
-    getTopDebtors: async (startDate?: string, endDate?: string): Promise<TopDebtor[]> => {
-        const response = await apiClient.get(`/api/finance-analytics/top-debtors${buildQueryParams(startDate, endDate)}`);
+    getTopDebtors: async (startDate?: string, endDate?: string, companyIds?: string[]): Promise<TopDebtor[]> => {
+        const response = await apiClient.get(`/api/finance-analytics/top-debtors${buildQueryParams(startDate, endDate, companyIds)}`);
         return response.data;
     },
 
-    getAiAnalysisData: async (startDate?: string, endDate?: string): Promise<AiAnalysisData> => {
-        const response = await apiClient.get(`/api/finance-analytics/ai-analysis${buildQueryParams(startDate, endDate)}`);
+    getAiAnalysisData: async (startDate?: string, endDate?: string, companyIds?: string[]): Promise<AiAnalysisData> => {
+        const response = await apiClient.get(`/api/finance-analytics/ai-analysis${buildQueryParams(startDate, endDate, companyIds)}`);
         return response.data;
     },
 
-    getAdvancedAnalytics: async (startDate?: string, endDate?: string): Promise<AdvancedDashboard> => {
-        const response = await apiClient.get(`/api/finance-analytics/advanced-analytics${buildQueryParams(startDate, endDate)}`);
+    getAdvancedAnalytics: async (startDate?: string, endDate?: string, companyIds?: string[]): Promise<AdvancedDashboard> => {
+        const response = await apiClient.get(`/api/finance-analytics/advanced-analytics${buildQueryParams(startDate, endDate, companyIds)}`);
         return response.data;
     },
 
-    getChartQueryDetails: async (params: { chartIds: string[]; startDate?: string; endDate?: string }): Promise<ChartQueryDetailsResponse> => {
+    getChartQueryDetails: async (params: { chartIds: string[]; startDate?: string; endDate?: string; companyIds?: string[] }): Promise<ChartQueryDetailsResponse> => {
         const response = await apiClient.post("/api/finance-analytics/chart-query-details", {
             chartIds: params.chartIds,
             startDate: params.startDate ? new Date(params.startDate).toISOString() : null,
             endDate: params.endDate ? new Date(params.endDate).toISOString() : null,
+            companyIds: params.companyIds ?? [],
         });
         return response.data;
     },
 
-    getChartMetrics: async (params: { chartIds: string[]; startDate?: string; endDate?: string }): Promise<ChartMetricsResponse> => {
+    getChartMetrics: async (params: { chartIds: string[]; startDate?: string; endDate?: string; companyIds?: string[] }): Promise<ChartMetricsResponse> => {
         const response = await apiClient.post("/api/finance-analytics/charts/metrics", {
             chartIds: params.chartIds,
             startDate: params.startDate ? new Date(params.startDate).toISOString() : null,
             endDate: params.endDate ? new Date(params.endDate).toISOString() : null,
+            companyIds: params.companyIds ?? [],
         });
         return response.data;
     },
 
-    exportChartCsv: async (params: { chartId: string; startDate?: string; endDate?: string; entityValue?: string | null }): Promise<Blob> => {
+    exportChartCsv: async (params: { chartId: string; startDate?: string; endDate?: string; entityValue?: string | null; companyIds?: string[] }): Promise<Blob> => {
         const response = await apiClient.post(
             "/api/finance-analytics/charts/export",
             {
                 chartId: params.chartId,
                 startDate: params.startDate ? new Date(params.startDate).toISOString() : null,
                 endDate: params.endDate ? new Date(params.endDate).toISOString() : null,
+                companyIds: params.companyIds ?? [],
                 entityValue: params.entityValue || null,
                 format: "csv",
             },
@@ -277,6 +299,7 @@ export const financeAnalyticsService = {
         chartId: string;
         startDate?: string;
         endDate?: string;
+        companyIds?: string[];
         entityValue?: string | null;
         selection: ChartSelection;
         page?: number;
@@ -293,6 +316,7 @@ export const financeAnalyticsService = {
             chartId: params.chartId,
             startDate: params.startDate ? new Date(params.startDate).toISOString() : null,
             endDate: params.endDate ? new Date(params.endDate).toISOString() : null,
+            companyIds: params.companyIds ?? [],
             entityValue: params.entityValue || null,
             selection: selectionDto,
             page: params.page ?? 1,
@@ -305,6 +329,7 @@ export const financeAnalyticsService = {
         chartId: string;
         startDate?: string;
         endDate?: string;
+        companyIds?: string[];
         entityValue?: string | null;
         selection: ChartSelection;
         format: "xlsx" | "pdf";
@@ -322,6 +347,7 @@ export const financeAnalyticsService = {
                 chartId: params.chartId,
                 startDate: params.startDate ? new Date(params.startDate).toISOString() : null,
                 endDate: params.endDate ? new Date(params.endDate).toISOString() : null,
+                companyIds: params.companyIds ?? [],
                 entityValue: params.entityValue || null,
                 selection: selectionDto,
                 format: params.format,

@@ -50,6 +50,7 @@ interface ChartAnalysisViewProps {
     onClose: () => void;
     initialStartDate?: string;
     initialEndDate?: string;
+    companyIds?: string[];
     onDateChange?: (startDate: string, endDate: string) => Promise<void>;
     renderChart?: (filters: ChartRenderFilters) => ReactNode;
 }
@@ -103,7 +104,7 @@ function SqlViewer({ sqlQueries }: { sqlQueries: string }) {
     );
 }
 
-export default function ChartAnalysisView({ id, title, description: propDescription, chartComponent, data, onClose, initialStartDate, initialEndDate, onDateChange, renderChart }: ChartAnalysisViewProps) {
+export default function ChartAnalysisView({ id, title, description: propDescription, chartComponent, data, onClose, initialStartDate, initialEndDate, companyIds = [], onDateChange, renderChart }: ChartAnalysisViewProps) {
     const { data: session } = useSession();
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState("");
@@ -153,7 +154,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
     useEffect(() => {
         let cancelled = false;
         financeAnalyticsService
-            .getChartMetrics({ chartIds: [id], startDate, endDate })
+            .getChartMetrics({ chartIds: [id], startDate, endDate, companyIds })
             .then((res) => {
                 if (cancelled) return;
                 const item = (res.items || []).find((x) => x.chartId === id) || null;
@@ -166,7 +167,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
         return () => {
             cancelled = true;
         };
-    }, [endDate, id, startDate]);
+    }, [companyIds, endDate, id, startDate]);
 
     // Admin detection
     const userRole = (session?.user as any)?.role;
@@ -236,7 +237,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
 
         // Prefer backend export (consistent and can scale), fallback to local dataset export.
         financeAnalyticsService
-            .exportChartCsv({ chartId: id, startDate, endDate, entityValue })
+            .exportChartCsv({ chartId: id, startDate, endDate, companyIds, entityValue })
             .then((blob) => {
                 // If backend returned an empty file (common when chartId is not supported server-side),
                 // fallback to the local dataset export.
@@ -508,7 +509,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
             if (onDateChange) {
                 await onDateChange(startDate, endDate);
             } else {
-                const advancedData = await financeAnalyticsService.getAdvancedAnalytics(startDate, endDate);
+                const advancedData = await financeAnalyticsService.getAdvancedAnalytics(startDate, endDate, companyIds);
                 setLocalData(advancedData);
             }
         } catch (error) {
@@ -759,6 +760,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                     startDate={startDate}
                     endDate={endDate}
                     entityValue={entityValue}
+                    companyIds={companyIds}
                     kind={drilldownConfig.kind}
                     options={drilldownConfig.options}
                     initialSelectionValue={drilldownInitialSelection || undefined}

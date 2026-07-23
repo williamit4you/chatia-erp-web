@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
-import financeAnalyticsService, { AdvancedDashboard, ChartMetricsItem, FinanceSummary, MonthlyFlow } from "@/services/finance-analytics.service";
+import financeAnalyticsService, { AdvancedDashboard, ChartMetricsItem, FinanceCompanyOption, FinanceSummary, MonthlyFlow } from "@/services/finance-analytics.service";
 
 import AdvancedKpiCards from "@/components/finance/AdvancedKpiCards";
 import AgingChart from "@/components/finance/AgingChart";
@@ -16,6 +16,7 @@ import DashboardWidget from "@/components/finance/DashboardWidget";
 import DistributionBarChart from "@/components/finance/DistributionBarChart";
 import DistributionPieChart from "@/components/finance/DistributionPieChart";
 import EfficiencyKpiCards from "@/components/finance/EfficiencyKpiCards";
+import FinanceCompanyMultiSelect from "@/components/finance/FinanceCompanyMultiSelect";
 import FinanceSummaryCards from "@/components/finance/FinanceSummaryCards";
 import MonthlyEvolutionChart from "@/components/finance/MonthlyEvolutionChart";
 import MonthlyFlowChart from "@/components/finance/MonthlyFlowChart";
@@ -238,6 +239,8 @@ export default function FinanceAnalyticsDashboard() {
     const [activeTab, setActiveTab] = useState<DashboardTabKey>("overview");
     const [widgets, setWidgets] = useState<WidgetConfig[]>(DEFAULT_WIDGETS);
     const [chartMetrics, setChartMetrics] = useState<Record<string, ChartMetricsItem>>({});
+    const [companies, setCompanies] = useState<FinanceCompanyOption[]>([]);
+    const [selectedCompanyIds, setSelectedCompanyIds] = useState<string[]>([]);
 
     const [startDate, setStartDate] = useState<string>(() => {
         const d = new Date();
@@ -248,15 +251,15 @@ export default function FinanceAnalyticsDashboard() {
 
     const userId = session?.user?.id || "default";
 
-    const fetchData = async (start?: string, end?: string) => {
+    const fetchData = async (start?: string, end?: string, companyIds?: string[]) => {
         setIsLoading(true);
         setError(null);
         try {
             const [summaryData, flowData, advancedData, metricsRes] = await Promise.all([
-                financeAnalyticsService.getSummary(start, end),
-                financeAnalyticsService.getMonthlyFlow(start, end),
-                financeAnalyticsService.getAdvancedAnalytics(start, end),
-                financeAnalyticsService.getChartMetrics({ chartIds: widgets.map((w) => w.id), startDate: start, endDate: end }),
+                financeAnalyticsService.getSummary(start, end, companyIds),
+                financeAnalyticsService.getMonthlyFlow(start, end, companyIds),
+                financeAnalyticsService.getAdvancedAnalytics(start, end, companyIds),
+                financeAnalyticsService.getChartMetrics({ chartIds: widgets.map((w) => w.id), startDate: start, endDate: end, companyIds }),
             ]);
             setSummary(summaryData);
             setMonthlyFlow(flowData);
@@ -286,7 +289,7 @@ export default function FinanceAnalyticsDashboard() {
     const analysisSummaryCacheRef = useRef<Map<string, CacheEntry<FinanceSummary>>>(new Map());
     const analysisFlowCacheRef = useRef<Map<string, CacheEntry<MonthlyFlow[]>>>(new Map());
 
-    const makeCacheKey = (chartId: string, start?: string, end?: string) => `${chartId}|${start || ""}|${end || ""}`;
+    const makeCacheKey = (chartId: string, start?: string, end?: string, companyIds?: string[]) => `${chartId}|${start || ""}|${end || ""}|${(companyIds || []).slice().sort().join(",")}`;
 
     const cacheGet = <T,>(map: Map<string, CacheEntry<T>>, key: string) => {
         const entry = map.get(key);
@@ -312,13 +315,13 @@ export default function FinanceAnalyticsDashboard() {
         for (const [evictKey] of toEvict) map.delete(evictKey);
     };
 
-    const fetchAnalysisData = async (chartId: string, start?: string, end?: string) => {
-        const key = makeCacheKey(chartId, start, end);
+    const fetchAnalysisData = async (chartId: string, start?: string, end?: string, companyIds?: string[]) => {
+        const key = makeCacheKey(chartId, start, end, companyIds);
         setAnalysisIsLoading(true);
         try {
             if (["summary"].includes(chartId)) {
                 const cached = cacheGet(analysisSummaryCacheRef.current, key);
-                const s = cached ?? (await financeAnalyticsService.getSummary(start, end));
+                const s = cached ?? (await financeAnalyticsService.getSummary(start, end, companyIds));
                 if (!cached) cacheSet(analysisSummaryCacheRef.current, key, s, ANALYSIS_CACHE_MAX_SMALL);
                 setAnalysisSummary(s);
                 setAnalysisMonthlyFlow(null);
@@ -328,7 +331,7 @@ export default function FinanceAnalyticsDashboard() {
 
             if (["flow"].includes(chartId)) {
                 const cached = cacheGet(analysisFlowCacheRef.current, key);
-                const f = cached ?? (await financeAnalyticsService.getMonthlyFlow(start, end));
+                const f = cached ?? (await financeAnalyticsService.getMonthlyFlow(start, end, companyIds));
                 if (!cached) cacheSet(analysisFlowCacheRef.current, key, f, ANALYSIS_CACHE_MAX_SMALL);
                 setAnalysisMonthlyFlow(f);
                 setAnalysisSummary(null);
@@ -338,7 +341,7 @@ export default function FinanceAnalyticsDashboard() {
 
             // Default: charts derived from AdvancedDashboard
             const cached = cacheGet(analysisAdvancedCacheRef.current, key);
-            const adv = cached ?? (await financeAnalyticsService.getAdvancedAnalytics(start, end));
+            const adv = cached ?? (await financeAnalyticsService.getAdvancedAnalytics(start, end, companyIds));
             if (!cached) cacheSet(analysisAdvancedCacheRef.current, key, adv, ANALYSIS_CACHE_MAX_ADV);
             setAnalysisAdvanced(adv);
             setAnalysisSummary(null);
@@ -394,7 +397,12 @@ export default function FinanceAnalyticsDashboard() {
             setActiveTab(savedTab as DashboardTabKey);
         }
 
-        fetchData(startDate, endDate);
+        financeAnalyticsService.getCompanies().then(setCompanies).catch((error) => {
+            console.error("Erro ao carregar empresas do financeiro:", error);
+            setCompanies([]);
+        });
+
+        fetchData(startDate, endDate, selectedCompanyIds);
 
         if (user.role === "TENANT_ADMIN") {
             adminService
@@ -450,7 +458,7 @@ export default function FinanceAnalyticsDashboard() {
         }
     }, [activeTab, userId, visibleTabs]);
 
-    const handleFilter = () => fetchData(startDate, endDate);
+    const handleFilter = () => fetchData(startDate, endDate, selectedCompanyIds);
     const getWidgetData = (id: string) => {
         if (!advanced) {
             if (id === "summary") return summary;
@@ -867,7 +875,7 @@ export default function FinanceAnalyticsDashboard() {
                         setAnalysisSummary(null);
                         setAnalysisMonthlyFlow(null);
                         setAnalysisAdvanced(null);
-                        fetchAnalysisData(selectedId, startDate, endDate);
+                        fetchAnalysisData(selectedId, startDate, endDate, selectedCompanyIds);
                     }}
                     onDetails={
                         isChartDetailsEnabled
@@ -1116,6 +1124,7 @@ export default function FinanceAnalyticsDashboard() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3">
+                        <FinanceCompanyMultiSelect options={companies} selectedIds={selectedCompanyIds} onChange={setSelectedCompanyIds} />
                         <div className="flex flex-wrap items-center gap-3 rounded-xl border border-neutral-200 bg-white p-1.5 shadow-sm">
                             <div className="flex items-center gap-2 px-3 sm:border-r sm:border-neutral-100">
                                 <Calendar className="h-4 w-4 text-neutral-400" />
@@ -1259,10 +1268,11 @@ export default function FinanceAnalyticsDashboard() {
                     }}
                     initialStartDate={analysisStartDate || startDate}
                     initialEndDate={analysisEndDate || endDate}
+                    companyIds={selectedCompanyIds}
                     onDateChange={async (start, end) => {
                         setAnalysisStartDate(start);
                         setAnalysisEndDate(end);
-                        await fetchAnalysisData(analysisChartId, start, end);
+                        await fetchAnalysisData(analysisChartId, start, end, selectedCompanyIds);
                     }}
                 />
             )}

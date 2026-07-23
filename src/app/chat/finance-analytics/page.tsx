@@ -249,6 +249,12 @@ export default function FinanceAnalyticsDashboard() {
         return d.toISOString().split("T")[0];
     });
     const [endDate, setEndDate] = useState<string>(() => new Date().toISOString().split("T")[0]);
+    const [appliedStartDate, setAppliedStartDate] = useState<string>(() => {
+        const d = new Date();
+        d.setFullYear(d.getFullYear() - 1);
+        return d.toISOString().split("T")[0];
+    });
+    const [appliedEndDate, setAppliedEndDate] = useState<string>(() => new Date().toISOString().split("T")[0]);
 
     const userId = session?.user?.id || "default";
 
@@ -402,7 +408,7 @@ export default function FinanceAnalyticsDashboard() {
             setCompanies([]);
         });
 
-        fetchData(startDate, endDate, appliedCompanyIds);
+        fetchData(appliedStartDate, appliedEndDate, appliedCompanyIds);
 
         if (user.role === "TENANT_ADMIN") {
             adminService
@@ -414,7 +420,7 @@ export default function FinanceAnalyticsDashboard() {
                     console.error("Erro ao carregar flag de detalhes dos gráficos:", error);
                 });
         }
-    }, [session, startDate, endDate, status]);
+    }, [appliedEndDate, appliedStartDate, session, status]);
 
     const availableWidgetIds = useMemo(() => new Set(widgets.map((widget) => widget.id)), [widgets]);
 
@@ -465,7 +471,12 @@ export default function FinanceAnalyticsDashboard() {
         return current.some((item, index) => item !== applied[index]);
     }, [appliedCompanyIds, selectedCompanyIds]);
 
+    const hasPendingDateFilterChanges = startDate !== appliedStartDate || endDate !== appliedEndDate;
+    const hasPendingFilterChanges = hasPendingCompanyFilterChanges || hasPendingDateFilterChanges;
+
     const handleFilter = async () => {
+        setAppliedStartDate(startDate);
+        setAppliedEndDate(endDate);
         setAppliedCompanyIds(selectedCompanyIds);
         await fetchData(startDate, endDate, selectedCompanyIds);
 
@@ -1149,7 +1160,7 @@ export default function FinanceAnalyticsDashboard() {
                                 <span className="text-neutral-300">/</span>
                                 <input type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} className="w-28 text-xs font-bold text-neutral-700 outline-none" />
                             </div>
-                            {hasPendingCompanyFilterChanges && (
+                            {hasPendingFilterChanges && (
                                 <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-[11px] font-black uppercase tracking-wide text-amber-700">
                                     Filtros alterados
                                 </div>
@@ -1157,12 +1168,12 @@ export default function FinanceAnalyticsDashboard() {
                             <button
                                 onClick={handleFilter}
                                 className={`rounded-lg px-5 py-1.5 text-xs font-black uppercase text-white transition-colors ${
-                                    hasPendingCompanyFilterChanges
+                                    hasPendingFilterChanges
                                         ? "bg-amber-500 hover:bg-amber-600"
                                         : "bg-neutral-900 hover:bg-black"
                                 }`}
                             >
-                                {hasPendingCompanyFilterChanges ? "Aplicar filtros" : "Atualizar"}
+                                {hasPendingFilterChanges ? "Aplicar filtros" : "Atualizar"}
                             </button>
                             {isChartDetailsEnabled && (
                                 <button

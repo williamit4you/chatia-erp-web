@@ -33,6 +33,7 @@ import { getSafeSalesBudgetReturnPath } from "@/components/sales/salesBudgetChar
 type DashboardAccessUser = {
   role?: string;
   hasBudgetDashboardAccess?: boolean;
+  showChartDetails?: boolean;
 };
 
 const catalogIndex = salesBudgetCatalog.flatMap((category) =>
@@ -321,6 +322,9 @@ export default function SalesBudgetAnalyticsDetailPage() {
     user?.role === "TENANT_ADMIN" ||
     user?.role === "SUPER_ADMIN" ||
     user?.hasBudgetDashboardAccess;
+  const canSeeSql =
+    user?.role === "SUPER_ADMIN" ||
+    (user?.role === "TENANT_ADMIN" && Boolean(user?.showChartDetails));
 
   const chartMeta = useMemo(
     () => catalogIndex.find((item) => item.id === chartId),
@@ -994,7 +998,7 @@ O que você gostaria de entender especificamente sobre estes números?`
                                             <p className="text-[13px] leading-relaxed whitespace-pre-wrap">{message.content}</p>
                                         )}
                                         
-                                        {message.sqlQueries && <SqlViewer sqlQueries={message.sqlQueries} />}
+                                        {canSeeSql && message.sqlQueries && <SqlViewer sqlQueries={message.sqlQueries} />}
                                     </div>
                                     
                                     {message.role === 'assistant' && message.exportId && (

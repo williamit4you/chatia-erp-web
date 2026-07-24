@@ -97,7 +97,9 @@ export default function ChatContainer({ sessionId, initialMessages, initialPromp
     const getRightRailStorageKey = (targetSessionId?: string) => `chat-right-rail:${targetSessionId || "new"}`;
 
     const userRole = (session?.user as any)?.role;
-    const isAdmin = userRole === "TENANT_ADMIN" || userRole === "SUPER_ADMIN" || userRole === "ADMIN";
+    const isSuperAdmin = userRole === "SUPER_ADMIN";
+    const isTenantAdmin = userRole === "TENANT_ADMIN";
+    const canSeeSql = isSuperAdmin || (isTenantAdmin && Boolean((session?.user as any)?.showChartDetails));
     const showWelcomePanel = !sessionId && messages.length <= 1;
     const showConversationCard =
         !!sessionId || isLoading || messages.some((message) => message.role === "user" || message.role === "model");
@@ -302,7 +304,7 @@ export default function ChatContainer({ sessionId, initialMessages, initialPromp
                                     </div>
 
                                     <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
-                                        <ChatBox messages={messages} isLoading={isLoading} onFavorite={handleFavorite} isAdmin={isAdmin} />
+                                        <ChatBox messages={messages} isLoading={isLoading} onFavorite={handleFavorite} canSeeSql={canSeeSql} />
                                     </div>
                                 </>
                             )}

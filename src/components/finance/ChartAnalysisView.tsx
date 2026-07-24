@@ -172,7 +172,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
     // Admin detection
     const userRole = (session?.user as any)?.role;
     const userId = (session?.user as any)?.id;
-    const isAdmin = userRole === 'TENANT_ADMIN' || userRole === 'SUPER_ADMIN' || userRole === 'ADMIN';
+    const canSeeSql = userRole === 'SUPER_ADMIN' || (userRole === 'TENANT_ADMIN' && isChartDetailsEnabled);
 
     const hint = getChartHint(id);
     const description = hint.description || propDescription;
@@ -989,7 +989,7 @@ export default function ChartAnalysisView({ id, title, description: propDescript
                                             ) : (
                                                 <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                                             )}
-                                            {isAdmin && msg.role === 'assistant' && msg.sqlQueries && (
+                                            {canSeeSql && msg.role === 'assistant' && msg.sqlQueries && (
                                                 <SqlViewer sqlQueries={msg.sqlQueries} />
                                             )}
                                             {msg.role === "assistant" && msg.exportId && (

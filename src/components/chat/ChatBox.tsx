@@ -185,7 +185,7 @@ function ActionsSection({ items }: { items: ResponseAction[] }) {
     );
 }
 
-function ModelMessageCard({ message, isAdmin }: { message: Message; isAdmin: boolean }) {
+function ModelMessageCard({ message, canSeeSql }: { message: Message; canSeeSql: boolean }) {
     const sections = message.sections && message.sections.length > 0 ? message.sections : buildFallbackSections(message);
 
     return (
@@ -249,16 +249,16 @@ function ModelMessageCard({ message, isAdmin }: { message: Message; isAdmin: boo
                     </section>
                 )}
 
-                {isAdmin && message.sqlQueries && <SqlViewer sqlQueries={message.sqlQueries} />}
+                {canSeeSql && message.sqlQueries && <SqlViewer sqlQueries={message.sqlQueries} />}
                 {message.exportId && <ExportButtons exportId={message.exportId} exportTotal={message.exportTotal} />}
             </div>
         </div>
     );
 }
 
-function MessageContent({ message, isAdmin }: { message: Message; isAdmin: boolean }) {
+function MessageContent({ message, canSeeSql }: { message: Message; canSeeSql: boolean }) {
     if (message.role === "model") {
-        return <ModelMessageCard message={message} isAdmin={isAdmin} />;
+        return <ModelMessageCard message={message} canSeeSql={canSeeSql} />;
     }
 
     if (message.role === "system") {
@@ -280,12 +280,12 @@ export default function ChatBox({
     messages,
     isLoading,
     onFavorite,
-    isAdmin = false,
+    canSeeSql = false,
 }: {
     messages: Message[];
     isLoading: boolean;
     onFavorite?: (text: string) => void;
-    isAdmin?: boolean;
+    canSeeSql?: boolean;
 }) {
     const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -326,7 +326,7 @@ export default function ChatBox({
                                 <Star className="h-5 w-5" />
                             </button>
                         )}
-                        <MessageContent message={message} isAdmin={isAdmin} />
+                        <MessageContent message={message} canSeeSql={canSeeSql} />
                     </div>
                 </div>
             ))}
